@@ -1,0 +1,15 @@
+---
+
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: golang
+    tag: latest
+
+inputs:
+  - name: dp-frontend-filter-flex-dataset
+
+run:
+  path: dp-frontend-filter-flex-dataset/ci/scripts/lint.sh
