@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -35,8 +36,7 @@ func run(ctx context.Context) error {
 	// Read config
 	cfg, err := config.Get()
 	if err != nil {
-		log.Error(ctx, "unable to retrieve service configuration", err)
-		return err
+		return fmt.Errorf("unable to retrieve service configuration: %w", err)
 	}
 
 	log.Info(ctx, "got service configuration", log.Data{"config": cfg})
@@ -44,8 +44,7 @@ func run(ctx context.Context) error {
 	// Run service
 	svc := service.New()
 	if err := svc.Init(ctx, cfg, svcList); err != nil {
-		log.Error(ctx, "failed to initialise service", err)
-		return err
+		return fmt.Errorf("failed to initialise service: %w", err)
 	}
 	svc.Run(ctx, svcErrors)
 

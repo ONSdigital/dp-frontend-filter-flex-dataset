@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/routes"
@@ -33,7 +34,8 @@ func New() *Service {
 }
 
 // Init initialises all the service dependencies, including healthcheck with checkers, api and middleware
-func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *ExternalServiceList) (err error) {
+func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *ExternalServiceList) error {
+	var err error
 	log.Info(ctx, "initialising service")
 
 	svc.Config = cfg
@@ -43,14 +45,11 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *E
 	clients := routes.Clients{}
 
 	// Get healthcheck with checkers
-	svc.HealthCheck, err = serviceList.GetHealthCheck(cfg, BuildTime, GitCommit, Version)
-	if err != nil {
-		log.Fatal(ctx, "failed to create health check", err)
-		return err
+	if svc.HealthCheck, err = serviceList.GetHealthCheck(cfg, BuildTime, GitCommit, Version); err != nil {
+		return fmt.Errorf("failed to create health check: %w", err)
 	}
 	if err = svc.registerCheckers(ctx, clients); err != nil {
-		log.Error(ctx, "failed to register checkers", err)
-		return err
+		return fmt.Errorf("failed to register checkers: %w", err)
 	}
 	clients.HealthCheckHandler = svc.HealthCheck.Handler
 
@@ -121,7 +120,7 @@ func (svc *Service) Close(ctx context.Context) error {
 	return nil
 }
 
-func (svc *Service) registerCheckers(ctx context.Context, c routes.Clients) (err error) {
+func (svc *Service) registerCheckers(ctx context.Context, c routes.Clients) error {
 	hasErrors := false
 
 	// TODO: Add health checks here
