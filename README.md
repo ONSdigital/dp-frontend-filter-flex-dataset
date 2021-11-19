@@ -1,15 +1,16 @@
 # dp-frontend-filter-flex-dataset
-"Frontend service to host filter and flexing of datasets"
 
-### Getting started
+Frontend service to host filter and flexing of datasets
+
+## Getting started
 
 * Run `make debug`
 
-### Dependencies
+## Dependencies
 
 * No further dependencies other than those defined in `go.mod`
 
-### Configuration
+## Configuration
 
 | Environment variable         | Default   | Description
 | ---------------------------- | --------- | -----------
@@ -19,13 +20,12 @@
 | HEALTHCHECK_CRITICAL_TIMEOUT | 90s       | Time to wait until an unhealthy dependent propagates its state to make this app unhealthy (`time.Duration` format)
 | HELLO_WORLD_EMPHASISE        | true      | Example boolean flag to control whether the 'Hello World' greeting should be emphasised with "!"
 
-### Contributing
+## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md) for details.
 
-### License
+## License
 
-Copyright © 2021, Office for National Statistics (https://www.ons.gov.uk)
+Copyright © 2021, Office for National Statistics (<https://www.ons.gov.uk>)
 
 Released under MIT license, see [LICENSE](LICENSE.md) for details.
-
