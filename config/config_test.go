@@ -20,10 +20,11 @@ func TestConfig(t *testing.T) {
 			})
 
 			Convey("Then the values should be set to the expected defaults", func() {
-				So(cfg.BindAddr, ShouldEqual, ":20100")
+				So(cfg.BindAddr, ShouldEqual, "localhost:20100")
 				So(cfg.GracefulShutdownTimeout, ShouldEqual, 5*time.Second)
 				So(cfg.HealthCheckInterval, ShouldEqual, 30*time.Second)
 				So(cfg.HealthCheckCriticalTimeout, ShouldEqual, 90*time.Second)
+				So(cfg.SiteDomain, ShouldEqual, "localhost")
 				// TODO: Remove assertion once configuration variable has been removed from config.go
 				So(cfg.HelloWorldEmphasise, ShouldEqual, true)
 			})

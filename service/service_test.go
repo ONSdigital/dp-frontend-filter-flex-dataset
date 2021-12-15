@@ -115,7 +115,7 @@ func TestInitSuccess(t *testing.T) {
 							So(mockServiceList.HealthCheck, ShouldBeTrue)
 							So(len(hcMock.AddCheckCalls()), ShouldEqual, 0)
 							So(len(initMock.DoGetHTTPServerCalls()), ShouldEqual, 1)
-							So(initMock.DoGetHTTPServerCalls()[0].BindAddr, ShouldEqual, ":20100")
+							So(initMock.DoGetHTTPServerCalls()[0].BindAddr, ShouldEqual, "localhost:20100")
 						})
 					})
 				})
@@ -156,7 +156,7 @@ func TestInitFailure(t *testing.T) {
 
 					Convey("And returns error", func() {
 						So(err, ShouldNotBeNil)
-						So(err, ShouldResemble, errHealthCheck)
+						So(err, ShouldBeError, "failed to create health check: healthCheck error")
 					})
 				})
 			})
