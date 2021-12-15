@@ -14,6 +14,7 @@ type Config struct {
 	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
 	HelloWorldEmphasise        bool          `envconfig:"HELLO_WORLD_EMPHASISE"`
+	SiteDomain                 string        `envconfig:"SITE_DOMAIN"`
 }
 
 var cfg *Config
@@ -26,11 +27,12 @@ func Get() (*Config, error) {
 	}
 
 	cfg = &Config{
-		BindAddr:                   ":20100",
+		BindAddr:                   "localhost:20100",
 		GracefulShutdownTimeout:    5 * time.Second,
 		HealthCheckInterval:        30 * time.Second,
 		HealthCheckCriticalTimeout: 90 * time.Second,
 		HelloWorldEmphasise:        true,
+		SiteDomain:                 "localhost",
 	}
 
 	return cfg, envconfig.Process("", cfg)
