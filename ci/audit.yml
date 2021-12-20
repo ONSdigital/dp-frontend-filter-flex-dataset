@@ -1,0 +1,15 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: onsdigital/dp-concourse-tools-nancy
+    tag: latest
+
+inputs:
+  - name: dp-frontend-filter-flex-dataset
+    path: dp-frontend-filter-flex-dataset
+
+run:
+  path: dp-frontend-filter-flex-dataset/ci/scripts/audit.sh
