@@ -38,8 +38,8 @@ convey:
 	goconvey ./...
 
 .PHONY: test-component
-test-component:
-	go test -cover -coverpkg=github.com/ONSdigital/dp-frontend-filter-flex-dataset/... -component
+test-component: generate-prod
+	go test -cover -coverpkg=github.com/ONSdigital/dp-frontend-filter-flex-dataset/... -component -tags 'production' ./...
 
 .PHONY: generate-debug
 generate-debug: fetch-renderer-lib
