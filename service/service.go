@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/assets"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/routes"
+	render "github.com/ONSdigital/dp-renderer"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
 )
@@ -34,15 +36,16 @@ func New() *Service {
 }
 
 // Init initialises all the service dependencies, including healthcheck with checkers, api and middleware
-func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *ExternalServiceList) error {
-	var err error
+func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *ExternalServiceList) (err error) {
 	log.Info(ctx, "initialising service")
 
 	svc.Config = cfg
 	svc.ServiceList = serviceList
 
 	// Initialise clients
-	clients := routes.Clients{}
+	clients := routes.Clients{
+		Render: render.NewWithDefaultClient(assets.Asset, assets.AssetNames, cfg.PatternLibraryAssetsPath, cfg.SiteDomain),
+	}
 
 	// Get healthcheck with checkers
 	if svc.HealthCheck, err = serviceList.GetHealthCheck(cfg, BuildTime, GitCommit, Version); err != nil {
