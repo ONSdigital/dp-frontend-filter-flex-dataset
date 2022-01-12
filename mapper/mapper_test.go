@@ -5,29 +5,19 @@ import (
 	"testing"
 
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
-
+	"github.com/ONSdigital/dp-renderer/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-// TODO: remove example test case
 func TestUnitMapper(t *testing.T) {
 	ctx := context.Background()
+	cfg := config.Config{}
+	mdl := model.Page{}
 
-	Convey("test mapper adds emphasis to hello world string when set in config", t, func() {
-		cfg := config.Config{
-			BindAddr:                   "1234",
-			GracefulShutdownTimeout:    0,
-			HealthCheckInterval:        0,
-			HealthCheckCriticalTimeout: 0,
-			HelloWorldEmphasise:        true,
-		}
-
-		hm := HelloModel{
-			Greeting: "Hello",
-			Who:      "World",
-		}
-
-		hw := HelloWorld(ctx, hm, cfg)
-		So(hw.HelloWho, ShouldEqual, "Hello World!")
+	Convey("test filter flex overview maps correctly", t, func() {
+		m := CreateFilterFlexOverview(ctx, mdl, cfg)
+		So(m.BetaBannerEnabled, ShouldBeTrue)
+		So(m.Type, ShouldEqual, "filter-flex-overview")
+		So(m.Metadata.Title, ShouldEqual, "Filter flex overview")
 	})
 }

@@ -1,18 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/log.go/v2/log"
 )
-
-// ClientError is an interface that can be used to retrieve the status code if a client has errored
-type ClientError interface {
-	Code() int
-}
 
 func setStatusCode(req *http.Request, w http.ResponseWriter, err error) {
 	status := http.StatusInternalServerError
@@ -23,30 +17,17 @@ func setStatusCode(req *http.Request, w http.ResponseWriter, err error) {
 	w.WriteHeader(status)
 }
 
-// TODO: remove hello world example handler
-// HelloWorld Handler
-func HelloWorld(cfg config.Config) http.HandlerFunc {
+// FilterFlexOverview Handler
+func FilterFlexOverview(cfg config.Config, rc RenderClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		helloWorld(w, req, cfg)
+		filterFlexOverview(w, req, rc, cfg)
 	}
 }
 
-func helloWorld(w http.ResponseWriter, req *http.Request, cfg config.Config) {
+func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, cfg config.Config) {
 	ctx := req.Context()
-	greetingsModel := mapper.HelloModel{Greeting: "Hello", Who: "World"}
-	m := mapper.HelloWorld(ctx, greetingsModel, cfg)
+	basePage := rc.NewBasePageModel()
+	m := mapper.CreateFilterFlexOverview(ctx, basePage, cfg)
 
-	b, err := json.Marshal(m)
-	if err != nil {
-		setStatusCode(req, w, err)
-		return
-	}
-
-	_, err = w.Write(b)
-	if err != nil {
-		log.Error(ctx, "failed to write bytes for http response", err)
-		setStatusCode(req, w, err)
-		return
-	}
-	return
+	rc.BuildPage(w, m, "overview")
 }
