@@ -6,7 +6,7 @@ require (
 	github.com/ONSdigital/dp-api-clients-go/v2 v2.4.3
 	github.com/ONSdigital/dp-healthcheck v1.2.0
 	github.com/ONSdigital/dp-net v1.2.0
-	github.com/ONSdigital/dp-renderer v1.10.4
+	github.com/ONSdigital/dp-renderer v1.11.8
 	github.com/ONSdigital/log.go/v2 v2.0.9
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.0
@@ -17,10 +17,11 @@ require (
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/ONSdigital/dp-api-clients-go v1.41.1 // indirect
+	github.com/ONSdigital/dp-cookies v0.3.3
 	github.com/c2h5oh/datasize v0.0.0-20200825124411-48ed595a09d2 // indirect
 	github.com/fatih/color v1.12.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20210918183006-daae65060a40 // indirect
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect

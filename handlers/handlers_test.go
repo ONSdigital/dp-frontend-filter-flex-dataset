@@ -53,10 +53,29 @@ func TestUnitHandlers(t *testing.T) {
 			mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "overview")
 
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/flex/helloworld", nil)
+			req := httptest.NewRequest("GET", "/flex/1234", nil)
 
 			router := mux.NewRouter()
-			router.HandleFunc("/flex/helloworld", FilterFlexOverview(mockConfig, mockRend))
+			router.HandleFunc("/flex/1234", FilterFlexOverview(mockConfig, mockRend))
+
+			router.ServeHTTP(w, req)
+
+			So(w.Code, ShouldEqual, http.StatusOK)
+		})
+	})
+
+	Convey("test dimension selector", t, func() {
+		Convey("test dimension selector page is successful", func() {
+			mockConfig := config.Config{}
+			mockRend := NewMockRenderClient(mockCtrl)
+			mockRend.EXPECT().NewBasePageModel().Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
+			mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "selector")
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/flex/1234/dimensions/test-name", nil)
+
+			router := mux.NewRouter()
+			router.HandleFunc("/flex/1234/dimensions/test-name", DimensionsSelector(mockConfig, mockRend))
 
 			router.ServeHTTP(w, req)
 
