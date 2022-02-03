@@ -27,7 +27,7 @@ func FilterFlexOverview(cfg config.Config, rc RenderClient) http.HandlerFunc {
 func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, cfg config.Config) {
 	ctx := req.Context()
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateFilterFlexOverview(ctx, basePage, cfg)
+	m := mapper.CreateFilterFlexOverview(ctx, req, basePage, cfg)
 
 	rc.BuildPage(w, m, "overview")
 }
