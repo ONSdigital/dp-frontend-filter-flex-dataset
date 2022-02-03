@@ -42,10 +42,13 @@ func TestUnitMapCookiesPreferences(t *testing.T) {
 		},
 	}
 
-	Convey("maps cookies preferences cookie data to page model correctly", t, func() {
+	Convey("cookies preferences initialise as false", t, func() {
 		So(pageModel.CookiesPreferencesSet, ShouldBeFalse)
 		So(pageModel.CookiesPolicy.Essential, ShouldBeFalse)
 		So(pageModel.CookiesPolicy.Usage, ShouldBeFalse)
+	})
+
+	Convey("cookie preferences map to page model", t, func() {
 		req.AddCookie(&http.Cookie{Name: "cookies_preferences_set", Value: "true"})
 		req.AddCookie(&http.Cookie{Name: "cookies_policy", Value: "%7B%22essential%22%3Atrue%2C%22usage%22%3Atrue%7D"})
 		mapCookiePreferences(req, &pageModel.CookiesPreferencesSet, &pageModel.CookiesPolicy)
