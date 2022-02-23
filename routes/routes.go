@@ -23,6 +23,6 @@ func Setup(ctx context.Context, r *mux.Router, cfg *config.Config, c Clients) {
 	log.Info(ctx, "adding routes")
 	r.StrictSlash(true).Path("/health").HandlerFunc(c.HealthCheckHandler)
 
-	r.StrictSlash(true).Path("/flex/{filterID}/dimensions").Methods("GET").HandlerFunc(handlers.FilterFlexOverview(*cfg, c.Render))
-	r.StrictSlash(true).Path("/flex/{filterID}/dimensions/{name}").Methods("GET").HandlerFunc(handlers.DimensionsSelector(*cfg, c.Render))
+	r.StrictSlash(true).Path("/filters/{filterID}/dimensions").Methods("GET").HandlerFunc(handlers.FilterFlexOverview(*cfg, c.Render))
+	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("GET").HandlerFunc(handlers.DimensionsSelector(*cfg, c.Render))
 }
