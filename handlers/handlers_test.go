@@ -53,10 +53,10 @@ func TestUnitHandlers(t *testing.T) {
 			mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "overview")
 
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/flex/1234", nil)
+			req := httptest.NewRequest("GET", "/filters/1234/dimensions", nil)
 
 			router := mux.NewRouter()
-			router.HandleFunc("/flex/1234", FilterFlexOverview(mockConfig, mockRend))
+			router.HandleFunc("/filters/1234/dimensions", FilterFlexOverview(mockConfig, mockRend))
 
 			router.ServeHTTP(w, req)
 
@@ -72,10 +72,10 @@ func TestUnitHandlers(t *testing.T) {
 			mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "selector")
 
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/flex/1234/dimensions/test-name", nil)
+			req := httptest.NewRequest("GET", "/filters/1234/dimensions/test-name", nil)
 
 			router := mux.NewRouter()
-			router.HandleFunc("/flex/1234/dimensions/test-name", DimensionsSelector(mockConfig, mockRend))
+			router.HandleFunc("/filters/1234/dimensions/test-name", DimensionsSelector(mockConfig, mockRend))
 
 			router.ServeHTTP(w, req)
 
