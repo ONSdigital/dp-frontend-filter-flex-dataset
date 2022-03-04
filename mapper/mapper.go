@@ -1,18 +1,16 @@
 package mapper
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
 	"github.com/ONSdigital/dp-cookies/cookies"
-	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(ctx context.Context, req *http.Request, basePage coreModel.Page, cfg config.Config) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang string) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
@@ -21,6 +19,7 @@ func CreateFilterFlexOverview(ctx context.Context, req *http.Request, basePage c
 	p.BetaBannerEnabled = true
 	p.Type = "filter-flex-overview"
 	p.Metadata.Title = "Review changes"
+	p.Language = lang
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
@@ -33,7 +32,7 @@ func CreateFilterFlexOverview(ctx context.Context, req *http.Request, basePage c
 }
 
 // CreateSelector maps data to the Selector model
-func CreateSelector(ctx context.Context, req *http.Request, basePage coreModel.Page, cfg config.Config, dimName string) model.Selector {
+func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang string) model.Selector {
 	p := model.Selector{
 		Page: basePage,
 	}
@@ -42,6 +41,7 @@ func CreateSelector(ctx context.Context, req *http.Request, basePage coreModel.P
 	p.BetaBannerEnabled = true
 	p.Type = "filter-flex-selector"
 	p.Metadata.Title = strings.Title(dimName)
+	p.Language = lang
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{

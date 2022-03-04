@@ -1,34 +1,33 @@
 package mapper
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-renderer/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestUnitMapper(t *testing.T) {
-	ctx := context.Background()
-	cfg := config.Config{}
 	mdl := model.Page{}
 	req := httptest.NewRequest("", "/", nil)
+	lang := "en"
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(ctx, req, mdl, cfg)
+		m := CreateFilterFlexOverview(req, mdl, lang)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-overview")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
+		So(m.Language, ShouldEqual, lang)
 	})
 
 	Convey("test create selector maps correctly", t, func() {
-		m := CreateSelector(ctx, req, mdl, cfg, "dimensionName")
+		m := CreateSelector(req, mdl, "dimensionName", lang)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-selector")
 		So(m.Metadata.Title, ShouldEqual, "DimensionName")
+		So(m.Language, ShouldEqual, lang)
 	})
 }
 

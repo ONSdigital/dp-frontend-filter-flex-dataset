@@ -5,6 +5,7 @@ import (
 
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
+	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
@@ -19,15 +20,14 @@ func setStatusCode(req *http.Request, w http.ResponseWriter, err error) {
 
 // FilterFlexOverview Handler
 func FilterFlexOverview(cfg config.Config, rc RenderClient) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		filterFlexOverview(w, req, rc, cfg)
-	}
+	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
+		filterFlexOverview(w, req, rc, lang)
+	})
 }
 
-func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, cfg config.Config) {
-	ctx := req.Context()
+func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, lang string) {
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateFilterFlexOverview(ctx, req, basePage, cfg)
+	m := mapper.CreateFilterFlexOverview(req, basePage, lang)
 
 	rc.BuildPage(w, m, "overview")
 }
