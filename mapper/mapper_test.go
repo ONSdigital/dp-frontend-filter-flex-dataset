@@ -13,9 +13,10 @@ func TestUnitMapper(t *testing.T) {
 	mdl := model.Page{}
 	req := httptest.NewRequest("", "/", nil)
 	lang := "en"
+	showAll := []string{}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang)
+		m := CreateFilterFlexOverview(req, mdl, lang, showAll)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-overview")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")

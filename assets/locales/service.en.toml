@@ -12,3 +12,29 @@
 # count - 4 = other; 4,5 & >6
 # Plural rules can be found here: http://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Variable]
+description = "Variable"
+one = "Variable"
+other = "Variables"
+
+[VariableExplanation]
+description = "What the variable means"
+one = "What does the variable mean"
+other = "What do the variables mean"
+
+[Selection]
+description = "Selection"
+one = "Selection"
+
+[HasSelectedCategories]
+description = "{{ $length }} out of {{ .OptionsCount }} categories"
+one = "{{.arg0}} out of {{.arg1}} categories"
+
+[Change]
+description = "Change"
+one = "Change"
+
+[Filter]
+description = "Filter"
+one = "Filter"

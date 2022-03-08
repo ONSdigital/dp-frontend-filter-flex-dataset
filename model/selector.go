@@ -6,4 +6,5 @@ import (
 
 type Selector struct {
 	coreModel.Page
+	Dimensions Dimension `json:"dimensions"`
 }

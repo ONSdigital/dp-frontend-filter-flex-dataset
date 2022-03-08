@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"io"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-renderer/model"
 )
 
@@ -19,4 +21,9 @@ type ClientError interface {
 type RenderClient interface {
 	BuildPage(w io.Writer, pageModel interface{}, templateName string)
 	NewBasePageModel() model.Page
+}
+
+// FilterClient is an interface with the methods required for a filter client
+type FilterClient interface {
+	GetDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID string, q *filter.QueryParams) (dims filter.Dimensions, eTag string, err error)
 }

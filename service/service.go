@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/health"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/assets"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/routes"
@@ -24,10 +26,11 @@ var (
 
 // Service contains the healthcheck, server and serviceList for the controller
 type Service struct {
-	Config      *config.Config
-	HealthCheck HealthChecker
-	Server      HTTPServer
-	ServiceList *ExternalServiceList
+	Config             *config.Config
+	HealthCheck        HealthChecker
+	Server             HTTPServer
+	ServiceList        *ExternalServiceList
+	routerHealthClient *health.Client
 }
 
 // New creates a new service
@@ -42,9 +45,13 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *E
 	svc.Config = cfg
 	svc.ServiceList = serviceList
 
+	// Get health client for api router
+	svc.routerHealthClient = serviceList.GetHealthClient("api-router", cfg.APIRouterURL)
+
 	// Initialise clients
 	clients := routes.Clients{
 		Render: render.NewWithDefaultClient(assets.Asset, assets.AssetNames, cfg.PatternLibraryAssetsPath, cfg.SiteDomain),
+		Filter: filter.NewWithHealthClient(svc.routerHealthClient),
 	}
 
 	// Get healthcheck with checkers
@@ -126,7 +133,10 @@ func (svc *Service) Close(ctx context.Context) error {
 func (svc *Service) registerCheckers(ctx context.Context, c routes.Clients) error {
 	hasErrors := false
 
-	// TODO: Add health checks here
+	if err := svc.HealthCheck.AddCheck("API router", svc.routerHealthClient.Checker); err != nil {
+		hasErrors = true
+		log.Error(ctx, "failed to add API router checker", err)
+	}
 
 	if hasErrors {
 		return errors.New("Error(s) registering checkers for healthcheck")
