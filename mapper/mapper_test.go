@@ -1,10 +1,13 @@
 package mapper
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-renderer/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -14,13 +17,96 @@ func TestUnitMapper(t *testing.T) {
 	req := httptest.NewRequest("", "/", nil)
 	lang := "en"
 	showAll := []string{}
+	filterJob := filter.Model{
+		Dimensions: []filter.ModelDimension{
+			{
+				Name:       "Dim 1",
+				IsAreaType: new(bool),
+				Options:    []string{"Opt 1", "Opt 2"},
+			},
+			{
+				Name:       "Truncated dim 1",
+				IsAreaType: new(bool),
+				Options: []string{"Opt 1",
+					"Opt 2",
+					"Opt 3",
+					"Opt 4",
+					"Opt 5",
+					"Opt 6",
+					"Opt 7",
+					"Opt 8",
+					"Opt 9",
+					"Opt 10",
+					"Opt 11",
+					"Opt 12",
+					"Opt 13",
+					"Opt 14",
+					"Opt 15",
+					"Opt 16",
+					"Opt 17",
+					"Opt 18",
+					"Opt 19",
+					"Opt 20",
+				},
+			},
+			{
+				Name:       "Truncated dim 2",
+				IsAreaType: new(bool),
+				Options: []string{"Opt 1",
+					"Opt 2",
+					"Opt 3",
+					"Opt 4",
+					"Opt 5",
+					"Opt 6",
+					"Opt 7",
+					"Opt 8",
+					"Opt 9",
+					"Opt 10",
+					"Opt 11",
+					"Opt 12",
+				},
+			},
+		},
+	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, showAll)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob)
+		mockEncodedName := url.QueryEscape(filterJob.Dimensions[0].Name)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-overview")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
 		So(m.Language, ShouldEqual, lang)
+		So(m.Dimensions[0].Name, ShouldEqual, filterJob.Dimensions[0].Name)
+		So(m.Dimensions[0].IsAreaType, ShouldBeFalse)
+		So(m.Dimensions[0].Options, ShouldResemble, filterJob.Dimensions[0].Options)
+		So(m.Dimensions[0].OptionsCount, ShouldEqual, 2)
+		So(m.Dimensions[0].EncodedName, ShouldEqual, mockEncodedName)
+		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", mockEncodedName))
+		So(m.Dimensions[0].IsTruncated, ShouldBeFalse)
+	})
+
+	Convey("test truncation maps as expected", t, func() {
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob)
+		So(m.Dimensions[1].OptionsCount, ShouldEqual, len(filterJob.Dimensions[1].Options))
+		So(m.Dimensions[1].Options, ShouldHaveLength, 9)
+		So(m.Dimensions[1].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
+		So(m.Dimensions[1].Options[3:6], ShouldResemble, []string{"Opt 9", "Opt 10", "Opt 11"})
+		So(m.Dimensions[1].Options[6:], ShouldResemble, []string{"Opt 18", "Opt 19", "Opt 20"})
+		So(m.Dimensions[1].IsTruncated, ShouldBeTrue)
+
+		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(filterJob.Dimensions[2].Options))
+		So(m.Dimensions[2].Options, ShouldHaveLength, 9)
+		So(m.Dimensions[2].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
+		So(m.Dimensions[2].Options[3:6], ShouldResemble, []string{"Opt 5", "Opt 6", "Opt 7"})
+		So(m.Dimensions[2].Options[6:], ShouldResemble, []string{"Opt 10", "Opt 11", "Opt 12"})
+		So(m.Dimensions[2].IsTruncated, ShouldBeTrue)
+	})
+
+	Convey("test truncation shows all when parameter given", t, func() {
+		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob)
+		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(filterJob.Dimensions[2].Options))
+		So(m.Dimensions[2].Options, ShouldHaveLength, 12)
+		So(m.Dimensions[2].IsTruncated, ShouldBeFalse)
 	})
 
 	Convey("test create selector maps correctly", t, func() {

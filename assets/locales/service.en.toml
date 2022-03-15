@@ -28,8 +28,8 @@ description = "Selection"
 one = "Selection"
 
 [HasSelectedCategories]
-description = "{{ $length }} out of {{ .OptionsCount }} categories"
-one = "{{.arg0}} out of {{.arg1}} categories"
+description = "{{ .OptionsCount }} categories"
+one = "{{.arg0}} categories"
 
 [Change]
 description = "Change"

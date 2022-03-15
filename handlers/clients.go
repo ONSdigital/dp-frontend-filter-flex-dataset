@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-renderer/model"
 )
@@ -25,5 +26,10 @@ type RenderClient interface {
 
 // FilterClient is an interface with the methods required for a filter client
 type FilterClient interface {
-	GetDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID string, q *filter.QueryParams) (dims filter.Dimensions, eTag string, err error)
+	GetJobState(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID string) (f filter.Model, eTag string, err error)
+}
+
+// DatasetClient is an interface with methods required for a dataset client
+type DatasetClient interface {
+	GetOptions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension string, q *dataset.QueryParams) (m dataset.Options, err error)
 }

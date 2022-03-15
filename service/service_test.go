@@ -19,7 +19,7 @@ import (
 var (
 	ctx = context.Background()
 
-	errAddCheckFail = errors.New("Error(s) registering checkers for healthcheck")
+	errAddCheckFail = errors.New("failed to register checkers: Error(s) registering checkers for healthcheck")
 	errHealthCheck  = errors.New("healthCheck error")
 	errServer       = errors.New("HTTP Server error")
 
@@ -113,7 +113,7 @@ func TestInitSuccess(t *testing.T) {
 
 						Convey("And the checkers are registered and the healthcheck", func() {
 							So(mockServiceList.HealthCheck, ShouldBeTrue)
-							So(len(hcMock.AddCheckCalls()), ShouldEqual, 0)
+							So(len(hcMock.AddCheckCalls()), ShouldEqual, 1)
 							So(len(initMock.DoGetHTTPServerCalls()), ShouldEqual, 1)
 							So(initMock.DoGetHTTPServerCalls()[0].BindAddr, ShouldEqual, "localhost:20100")
 						})
@@ -163,8 +163,7 @@ func TestInitFailure(t *testing.T) {
 		})
 	})
 
-	// TODO: Enable this test when health checks are registered
-	SkipConvey("Given that Checkers cannot be registered", t, func() {
+	Convey("Given that Checkers cannot be registered", t, func() {
 		initMock := &mocks.InitialiserMock{
 			DoGetHealthClientFunc: funcDoGetHealthClient,
 			DoGetHealthCheckFunc:  funcDoGetHealthAddCheckerFail,
@@ -199,9 +198,8 @@ func TestInitFailure(t *testing.T) {
 
 						Convey("And all checks try to register", func() {
 							So(mockServiceList.HealthCheck, ShouldBeTrue)
-							So(len(hcMockAddFail.AddCheckCalls()), ShouldEqual, 2)
-							So(hcMockAddFail.AddCheckCalls()[0].Name, ShouldResemble, "frontend renderer")
-							So(hcMockAddFail.AddCheckCalls()[1].Name, ShouldResemble, "API router")
+							So(len(hcMockAddFail.AddCheckCalls()), ShouldEqual, 1)
+							So(hcMockAddFail.AddCheckCalls()[0].Name, ShouldResemble, "API router")
 						})
 					})
 				})
