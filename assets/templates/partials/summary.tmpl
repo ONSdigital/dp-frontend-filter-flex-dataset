@@ -1,0 +1,72 @@
+{{$lang := .Language}}
+<section>
+    <h2 class="ons-u-fw-b">{{ localise "Variable" $lang 4 }}</h2>
+    <div class="ons-summary ons-summary--hub">
+        <div class="ons-summary__group">
+            <table class="ons-summary__items ons-u-mb-s">
+                <thead class="ons-u-vh">
+                    <tr>
+                        <th>{{ localise "Variable" $lang 1 }}</th>
+                        <th>{{ localise "Selection" $lang 1 }}</th>
+                        <th>{{ localise "Change" $lang 1 }}
+                            {{ localise "Selection" $lang 1 }}</th>
+                    </tr>
+                </thead>
+                {{ range $i, $dim := .Dimensions }}
+                    <tbody class="ons-summary__item">
+                        <tr id="{{.EncodedName}}" class="ons-summary__row ons-summary__row--has-values{{ if eq $i 0 }} ons-u-bt{{ end }}{{ if last $i $.Dimensions }} ons-u-bb{{ end }}">
+                            <td class="ons-summary__item-title ons-u-pt-s ons-u-pb-s ons-u-pr-m">
+                                <div class="ons-summary__item--text ons-u-fw-b">{{ .Name }}</div>
+                            </td>
+                            <td class="ons-summary__values ons-u-pt-s ons-u-pb-s ons-u-pr-m">
+                                {{ $length := len .Options }}
+                                {{ $strOptCount := intToString .OptionsCount }}
+                                {{ $isTruncated := .IsTruncated }}
+                                {{ if eq .IsAreaType false }}
+                                    {{ localise "HasSelectedCategories" $lang 1 $strOptCount }}
+                                    <div class="ons-u-mt-s ons-u-fs-s ons-list--container">
+                                        <ul class="ons-list{{ if $isTruncated }}--truncated{{end}}{{ if or (gt $length 9) ($isTruncated) }} ons-u-mb-xs{{else}} ons-u-m-no{{end}}">
+                                            {{ range $i, $opt := .Options }}
+                                                <li class="ons-list__item{{ if $isTruncated }}--truncated{{end}}">
+                                                    {{ . }}
+                                                </li>
+                                            {{ end }}
+                                        </ul>
+                                        {{ if $isTruncated }}
+                                            <a href="{{.TruncateLink}}">Show all {{$strOptCount}} categories</a>
+                                        {{ else if gt $length 9 }}
+                                            <a href="{{.TruncateLink}}">Show less categories</a>
+                                        {{ end }}
+                                    </div>
+                                {{ else }}
+                                    {{ range $i, $opt := .Options }}
+                                        {{ if eq $dim.IsAreaType false }}
+                                            <li>{{ . }}</li>
+                                        {{ else }}
+                                            {{ if and (last $i $dim.Options) (ne $length 1) }}and{{ end }}
+                                            {{ . }}
+                                        {{ end }}
+                                        {{ if and (notLastItem $length $i) (last $i $dim.Options) }},&nbsp;{{ end }}
+                                    {{ end }}
+                                    {{ if and (eq .IsAreaType true) (ne .Name "Coverage") }}
+                                        ({{ .OptionsCount }})
+                                    {{ end }}
+                                {{ end }}
+                            </td>
+                            <td class="ons-summary__actions ons-u-pt-s ons-u-pb-s">
+                                <a href="{{ .URI }}" class="ons-summary__button">
+                                    {{ if .IsAreaType }}
+                                        {{ localise "Change" $lang 1 }}
+                                    {{ else }}
+                                        {{ localise "Filter" $lang 1 }}
+                                    {{ end }}
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                {{ end }}
+            </table>
+            {{ template "partials/collapsible" . }}
+        </div>
+    </div>
+</section>

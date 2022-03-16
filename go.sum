@@ -9,6 +9,10 @@ github.com/ONSdigital/dp-api-clients-go v1.43.0/go.mod h1:V5MfINik+o3OAF985UXUoM
 github.com/ONSdigital/dp-api-clients-go/v2 v2.1.7-beta/go.mod h1:p9Ig0jUJmOXYpsZFZkb+mBeUgNBKoTiTVqHt1kJlVrM=
 github.com/ONSdigital/dp-api-clients-go/v2 v2.92.4 h1:BS9aW9y1LuVojYJDoR0CLDsmQUVjRHb5Y+rG5kXGMq8=
 github.com/ONSdigital/dp-api-clients-go/v2 v2.92.4/go.mod h1:P3GYyqqXnbp4RjWhz0oYpUFjHPT6Ca4fEoh4huNkxHU=
+github.com/ONSdigital/dp-api-clients-go/v2 v2.96.11 h1:g8oPE/h5X3wmC9O+/RFTwQw61vPAPnJ60gpAmiWGtzM=
+github.com/ONSdigital/dp-api-clients-go/v2 v2.96.11/go.mod h1:P3GYyqqXnbp4RjWhz0oYpUFjHPT6Ca4fEoh4huNkxHU=
+github.com/ONSdigital/dp-api-clients-go/v2 v2.99.0 h1:Z92zgWQij+MyAkBCZ4Tf6L7ibYvga8QqTQP0lW0y2vE=
+github.com/ONSdigital/dp-api-clients-go/v2 v2.99.0/go.mod h1:P3GYyqqXnbp4RjWhz0oYpUFjHPT6Ca4fEoh4huNkxHU=
 github.com/ONSdigital/dp-cookies v0.3.3 h1:KXX4swf+OnljIYbsTYICIBjuRJoxQukGWKBTvBaISlA=
 github.com/ONSdigital/dp-cookies v0.3.3/go.mod h1:qyvkAXoVLMNU9Xf1U5zFGRnuWyLxQ/mHloXUXyzcgb8=
 github.com/ONSdigital/dp-healthcheck v1.0.5/go.mod h1:2wbVAUHMl9+4tWhUlxYUuA1dnf2+NrwzC+So5f5BMLk=
@@ -38,6 +42,10 @@ github.com/ONSdigital/dp-renderer v1.11.8 h1:QBAWMvaLXkh8gPN7jdrF9RJhpsBontoeDhs
 github.com/ONSdigital/dp-renderer v1.11.8/go.mod h1:Z5sbyS0ApY6D8ikGDt2KIl5bt2p5kk73PeeMxGs1pEM=
 github.com/ONSdigital/dp-renderer v1.14.0 h1:nICekO809pWc+pTjbnigSac23wG45JrpM5beIHcfsSo=
 github.com/ONSdigital/dp-renderer v1.14.0/go.mod h1:Z5sbyS0ApY6D8ikGDt2KIl5bt2p5kk73PeeMxGs1pEM=
+github.com/ONSdigital/dp-renderer v1.19.0 h1:W2DWnMHvTw8gReZ0Gf8eJWXogJ7rt8/N8sycHlxaafw=
+github.com/ONSdigital/dp-renderer v1.19.0/go.mod h1:Z5sbyS0ApY6D8ikGDt2KIl5bt2p5kk73PeeMxGs1pEM=
+github.com/ONSdigital/dp-renderer v1.20.1 h1:7iz25P+Dc01O5QSr6jkMpmamU5wdUBnpGzujpRGdNZE=
+github.com/ONSdigital/dp-renderer v1.20.1/go.mod h1:Z5sbyS0ApY6D8ikGDt2KIl5bt2p5kk73PeeMxGs1pEM=
 github.com/ONSdigital/go-ns v0.0.0-20191104121206-f144c4ec2e58/go.mod h1:iWos35il+NjbvDEqwtB736pyHru0MPFE/LqcwkV1wDc=
 github.com/ONSdigital/log.go v1.0.0/go.mod h1:UnGu9Q14gNC+kz0DOkdnLYGoqugCvnokHBRBxFRpVoQ=
 github.com/ONSdigital/log.go v1.0.1-0.20200805084515-ee61165ea36a/go.mod h1:dDnQATFXCBOknvj6ZQuKfmDhbOWf3e8mtV+dPEfWJqs=

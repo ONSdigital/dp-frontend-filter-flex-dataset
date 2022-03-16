@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Debug                      bool          `envconfig:"DEBUG"`
 	BindAddr                   string        `envconfig:"BIND_ADDR"`
+	APIRouterURL               string        `envconfig:"API_ROUTER_URL"`
 	PatternLibraryAssetsPath   string        `envconfig:"PATTERN_LIBRARY_ASSETS_PATH"`
 	SupportedLanguages         []string      `envconfig:"SUPPORTED_LANGUAGES"`
 	SiteDomain                 string        `envconfig:"SITE_DOMAIN"`
@@ -31,7 +32,7 @@ func Get() (*Config, error) {
 	if cfg.Debug {
 		cfg.PatternLibraryAssetsPath = "http://localhost:9002/dist/assets"
 	} else {
-		cfg.PatternLibraryAssetsPath = "//cdn.ons.gov.uk/dp-design-system/613c855"
+		cfg.PatternLibraryAssetsPath = "//cdn.ons.gov.uk/dp-design-system/2ea84e3"
 	}
 
 	return cfg, nil
@@ -45,6 +46,7 @@ func get() (*Config, error) {
 	cfg = &Config{
 		Debug:                      false,
 		BindAddr:                   "localhost:20100",
+		APIRouterURL:               "http://localhost:23200/v1",
 		SupportedLanguages:         []string{"en", "cy"},
 		SiteDomain:                 "localhost",
 		GracefulShutdownTimeout:    5 * time.Second,

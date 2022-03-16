@@ -1,16 +1,23 @@
 package mapper
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-cookies/cookies"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 )
 
+// Constants...
+const queryStrKey = "showAll"
+
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang string) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.Model) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
@@ -25,6 +32,66 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang s
 		{
 			Title: "Back",
 			URI:   "#",
+		},
+	}
+
+	for _, dim := range filterJob.Dimensions {
+		pageDim := model.Dimension{}
+		encodedName := url.QueryEscape(dim.Name)
+		pageDim.Name = dim.Name
+		pageDim.IsAreaType = *dim.IsAreaType
+		pageDim.OptionsCount = len(dim.Options)
+		pageDim.EncodedName = encodedName
+		pageDim.URI = fmt.Sprintf("%s/%s", path, encodedName)
+		q := url.Values{}
+
+		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) {
+			firstSlice := dim.Options[:3]
+
+			mid := len(dim.Options) / 2
+			midFloor := mid - 2
+			midCeiling := midFloor + 3
+			midSlice := dim.Options[midFloor:midCeiling]
+
+			lastSlice := dim.Options[len(dim.Options)-3:]
+			pageDim.Options = append(pageDim.Options, firstSlice...)
+			pageDim.Options = append(pageDim.Options, midSlice...)
+			pageDim.Options = append(pageDim.Options, lastSlice...)
+
+			q.Add(queryStrKey, dim.Name)
+			helpers.PersistExistingParams(queryStrValues, queryStrKey, dim.Name, q)
+			pageDim.IsTruncated = true
+		} else {
+			helpers.PersistExistingParams(queryStrValues, queryStrKey, dim.Name, q)
+			pageDim.Options = dim.Options
+			pageDim.IsTruncated = false
+		}
+
+		truncatePath := path
+		if q.Encode() != "" {
+			truncatePath += fmt.Sprintf("?%s", q.Encode())
+		}
+		if encodedName != "" {
+			truncatePath += fmt.Sprintf("#%s", encodedName)
+		}
+		pageDim.TruncateLink = truncatePath
+
+		p.Dimensions = append(p.Dimensions, pageDim)
+	}
+
+	// TODO: Get this from dataset client
+	p.Collapsible = coreModel.Collapsible{
+		LocaliseKey:       "VariableExplanation",
+		LocalisePluralInt: 4,
+		CollapsibleItems: []coreModel.CollapsibleItem{
+			{
+				Subheading: "This is a subheading",
+				Content:    []string{"a string"},
+			},
+			{
+				Subheading: "This is another subheading",
+				Content:    []string{"another string", "and another"},
+			},
 		},
 	}
 

@@ -3,14 +3,13 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/gorilla/mux"
 )
 
 // DimensionsSelector Handler
-func DimensionsSelector(cfg config.Config, rc RenderClient) http.HandlerFunc {
+func DimensionsSelector(rc RenderClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
 		dimensionsSelector(w, req, rc, lang)
 	})
