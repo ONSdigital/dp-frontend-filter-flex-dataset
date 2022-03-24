@@ -7,13 +7,15 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
-	"github.com/ONSdigital/dp-renderer/model"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
+	coreModel "github.com/ONSdigital/dp-renderer/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestUnitMapper(t *testing.T) {
-	mdl := model.Page{}
+	mdl := coreModel.Page{}
 	req := httptest.NewRequest("", "/", nil)
 	lang := "en"
 	showAll := []string{}
@@ -118,11 +120,58 @@ func TestUnitMapper(t *testing.T) {
 	})
 }
 
+func TestCreateAreaTypeSelector(t *testing.T) {
+	Convey("Given a slice of geography areas", t, func() {
+		areas := []dimension.AreaType{
+			{ID: "one", Label: "One", TotalCount: 1},
+			{ID: "two", Label: "Two", TotalCount: 2},
+		}
+
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", areas, "")
+
+		expectedSelections := []model.Selection{
+			{Value: "one", Label: "One", TotalCount: 1},
+			{Value: "two", Label: "Two", TotalCount: 2},
+		}
+
+		Convey("Maps each geography dimension into a selection", func() {
+			So(changeDimension.Selections, ShouldResemble, expectedSelections)
+		})
+	})
+
+	Convey("Given a valid page", t, func() {
+		const lang = "en"
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, nil, "")
+
+		Convey("it sets page metadata", func() {
+			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
+			So(changeDimension.Type, ShouldEqual, "filter-flex-selector")
+			So(changeDimension.Language, ShouldEqual, lang)
+		})
+
+		Convey("it sets the title to Area Type", func() {
+			So(changeDimension.Metadata.Title, ShouldEqual, "Area Type")
+		})
+	})
+
+	Convey("Given a selection name", t, func() {
+		const selectionName = "test"
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, selectionName)
+
+		Convey("it returns the value as an initial selection", func() {
+			So(changeDimension.InitialSelection, ShouldEqual, selectionName)
+		})
+	})
+}
+
 func TestUnitMapCookiesPreferences(t *testing.T) {
 	req := httptest.NewRequest("", "/", nil)
-	pageModel := model.Page{
+	pageModel := coreModel.Page{
 		CookiesPreferencesSet: false,
-		CookiesPolicy: model.CookiesPolicy{
+		CookiesPolicy: coreModel.CookiesPolicy{
 			Essential: false,
 			Usage:     false,
 		},

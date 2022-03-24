@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-cookies/cookies"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
@@ -116,6 +117,26 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang st
 			URI:   "../dimensions",
 		},
 	}
+
+	return p
+}
+
+// CreateAreaTypeSelector maps data to the Overview model
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, selectionName string) model.Selector {
+	p := CreateSelector(req, basePage, selectionName, lang)
+	p.Page.Metadata.Title = "Area Type"
+
+	var selections []model.Selection
+	for _, area := range areaType {
+		selections = append(selections, model.Selection{
+			Value:      area.ID,
+			Label:      area.Label,
+			TotalCount: area.TotalCount,
+		})
+	}
+
+	p.Selections = selections
+	p.InitialSelection = selectionName
 
 	return p
 }

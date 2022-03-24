@@ -2,13 +2,17 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
@@ -143,21 +147,246 @@ func TestUnitHandlers(t *testing.T) {
 		})
 	})
 
-	Convey("test dimension selector", t, func() {
-		Convey("test dimension selector page is successful", func() {
-			mockRend := NewMockRenderClient(mockCtrl)
-			mockRend.EXPECT().NewBasePageModel().Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
-			mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "selector")
+	Convey("Dimensions Selector", t, func() {
+		Convey("Given a valid dimension param for a filter", func() {
+			Convey("Then the page title contains the dimension name", func() {
+				const dimensionName = "Number Of Siblings"
 
-			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/1234/dimensions/test-name", nil)
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.
+					EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(
+						filter.Model{Dimensions: []filter.ModelDimension{{Name: dimensionName}}},
+						"",
+						nil,
+					)
 
-			router := mux.NewRouter()
-			router.HandleFunc("/filters/1234/dimensions/test-name", DimensionsSelector(mockRend))
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.
+					EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
 
-			router.ServeHTTP(w, req)
+				mockRend.
+					EXPECT().
+					BuildPage(gomock.Any(), pageHasTitle{dimensionName}, gomock.Any())
 
-			So(w.Code, ShouldEqual, http.StatusOK)
+				w := runDimensionsSelector(
+					"number+of+siblings",
+					DimensionsSelector(mockRend, mockFilter, NewMockDimensionClient(mockCtrl)),
+				)
+
+				Convey("And the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
+			})
+		})
+
+		Convey("Given a dimension param which is missing from a filter", func() {
+			mockFilter := NewMockFilterClient(mockCtrl)
+			mockFilter.
+				EXPECT().
+				GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.Model{}, "", nil) // No filter dimensions
+
+			w := runDimensionsSelector(
+				"city",
+				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockDimensionClient(mockCtrl)),
+			)
+
+			Convey("Then the status code should be 404", func() {
+				So(w.Code, ShouldEqual, http.StatusNotFound)
+			})
+		})
+
+		Convey("Given a dimension param which is not an area type", func() {
+			const dimensionName = "siblings"
+
+			stubFilter := filter.Model{
+				Dimensions: []filter.ModelDimension{
+					{
+						Name:       dimensionName,
+						IsAreaType: toBoolPtr(false),
+					},
+				},
+			}
+
+			// This will change, but represents the current non-area-type behaviour.
+			Convey("Then the page should contain no selections", func() {
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.
+					EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(stubFilter, "", nil).
+					AnyTimes()
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.
+					EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+
+				mockRend.
+					EXPECT().
+					// Assert that there are no selections passed to BuildPage
+					BuildPage(gomock.Any(), pageMatchesSelections{}, gomock.Any())
+
+				w := runDimensionsSelector(
+					dimensionName,
+					DimensionsSelector(mockRend, mockFilter, NewMockDimensionClient(mockCtrl)),
+				)
+
+				Convey("And the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
+			})
+
+			Convey("When the filter API responds with an error", func() {
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(stubFilter, "", errors.New("oh no")).
+					AnyTimes()
+
+				w := runDimensionsSelector(
+					dimensionName,
+					DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockDimensionClient(mockCtrl)),
+				)
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+		})
+
+		Convey("Given an area type", func() {
+			const dimensionName = "city"
+
+			stubAreaTypeFilter := filter.Model{
+				Dimensions: []filter.ModelDimension{
+					{
+						Name:       dimensionName,
+						IsAreaType: toBoolPtr(true),
+					},
+				},
+			}
+
+			Convey("When area types are returned", func() {
+				Convey("Then the page should contain a list of area type selections", func() {
+					const dimensionLabel = "City"
+
+					mockFilter := NewMockFilterClient(mockCtrl)
+					mockFilter.EXPECT().
+						GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(stubAreaTypeFilter, "", nil).
+						AnyTimes()
+
+					mockDimension := NewMockDimensionClient(mockCtrl)
+					mockDimension.EXPECT().
+						GetAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(
+							dimension.GetAreaTypesResponse{
+								AreaTypes: []dimension.AreaType{{
+									ID:         dimensionName,
+									Label:      dimensionLabel,
+									TotalCount: 1,
+								}},
+							},
+							nil,
+						).
+						AnyTimes()
+
+					mockRend := NewMockRenderClient(mockCtrl)
+					mockRend.EXPECT().
+						NewBasePageModel().
+						Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+						AnyTimes()
+
+					// Validate page data contains selections
+					mockRend.EXPECT().
+						BuildPage(
+							gomock.Any(),
+							pageMatchesSelections{
+								selections: []model.Selection{
+									{
+										Value:      dimensionName,
+										Label:      dimensionLabel,
+										TotalCount: 1,
+									},
+								},
+							},
+							"selector",
+						)
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockDimension))
+
+					Convey("And the status code should be 200", func() {
+						So(w.Code, ShouldEqual, http.StatusOK)
+					})
+				})
+
+				Convey("Then the dimensions API client should request area types using the cantabular ID", func() {
+					const cantabularID = "cantabular"
+
+					filterWithBlobID := stubAreaTypeFilter
+					filterWithBlobID.PopulationType = cantabularID
+
+					mockFilter := NewMockFilterClient(mockCtrl)
+					mockFilter.EXPECT().
+						GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filterWithBlobID, "", nil).
+						AnyTimes()
+
+					mockDimension := NewMockDimensionClient(mockCtrl)
+					mockDimension.EXPECT().
+						GetAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), cantabularID).
+						Return(dimension.GetAreaTypesResponse{}, nil)
+
+					mockRend := NewMockRenderClient(mockCtrl)
+					mockRend.EXPECT().
+						NewBasePageModel().
+						Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+						AnyTimes()
+
+					mockRend.
+						EXPECT().
+						BuildPage(gomock.Any(), gomock.Any(), "selector").
+						AnyTimes()
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockDimension))
+
+					Convey("And the status code should be 200", func() {
+						So(w.Code, ShouldEqual, http.StatusOK)
+					})
+				})
+			})
+
+			Convey("When the dimension API responds with an error", func() {
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(stubAreaTypeFilter, "", nil)
+
+				mockDimension := NewMockDimensionClient(mockCtrl)
+				mockDimension.EXPECT().
+					GetAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dimension.GetAreaTypesResponse{}, errors.New("oh no"))
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockDimension))
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
 		})
 	})
 }
@@ -168,4 +397,58 @@ func initialiseMockConfig() config.Config {
 		SiteDomain:               "ons",
 		SupportedLanguages:       []string{"en", "cy"},
 	}
+}
+
+func runDimensionsSelector(dimension string, selector func(http.ResponseWriter, *http.Request)) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", fmt.Sprintf("/filters/1234/dimensions/%s", dimension), nil)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/filters/{filterID}/dimensions/{name}", selector)
+
+	router.ServeHTTP(w, req)
+
+	return w
+}
+
+// pageMatchesSelections is a gomock matcher that confirms a selection page
+// contains the correct selections (i.e. radio buttons).
+type pageMatchesSelections struct {
+	selections []model.Selection
+}
+
+func (c pageMatchesSelections) Matches(x interface{}) bool {
+	page, ok := x.(model.Selector)
+	if !ok {
+		return false
+	}
+
+	return reflect.DeepEqual(c.selections, page.Selections)
+}
+
+func (c pageMatchesSelections) String() string {
+	return fmt.Sprintf("is equal to %+v", c.selections)
+}
+
+// pageMatchesSelections is a gomock matcher that confirms a selection page
+// has the correct page title.
+type pageHasTitle struct {
+	title string
+}
+
+func (p pageHasTitle) Matches(x interface{}) bool {
+	page, ok := x.(model.Selector)
+	if !ok {
+		return false
+	}
+
+	return p.title == page.Page.Metadata.Title
+}
+
+func (p pageHasTitle) String() string {
+	return fmt.Sprintf("title is equal to \"%s\"", p.title)
+}
+
+func toBoolPtr(val bool) *bool {
+	return &val
 }

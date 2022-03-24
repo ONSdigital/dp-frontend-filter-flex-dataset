@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-renderer/model"
 )
@@ -32,4 +33,9 @@ type FilterClient interface {
 // DatasetClient is an interface with methods required for a dataset client
 type DatasetClient interface {
 	GetOptions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension string, q *dataset.QueryParams) (m dataset.Options, err error)
+}
+
+// DimensionClient is an interface with methods required for a dimension client
+type DimensionClient interface {
+	GetAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (dimension.GetAreaTypesResponse, error)
 }
