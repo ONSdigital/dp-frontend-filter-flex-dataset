@@ -38,3 +38,11 @@ one = "Change"
 [Filter]
 description = "Filter"
 one = "Filter"
+
+[Continue]
+description = "Continue"
+one = "Continue"
+
+[SelectAreaTypeLeadText]
+description = "Select area type"
+one = "Select area type"

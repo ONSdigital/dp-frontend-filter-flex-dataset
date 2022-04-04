@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/health"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/assets"
@@ -49,11 +50,17 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *E
 	// Get health client for api router
 	svc.routerHealthClient = serviceList.GetHealthClient("api-router", cfg.APIRouterURL)
 
+	dimensionClient, err := dimension.NewWithHealthClient(svc.routerHealthClient)
+	if err != nil {
+		return fmt.Errorf("failed to create dimensions API client: %w", err)
+	}
+
 	// Initialise clients
 	clients := routes.Clients{
-		Render:  render.NewWithDefaultClient(assets.Asset, assets.AssetNames, cfg.PatternLibraryAssetsPath, cfg.SiteDomain),
-		Filter:  filter.NewWithHealthClient(svc.routerHealthClient),
-		Dataset: dataset.NewWithHealthClient(svc.routerHealthClient),
+		Render:    render.NewWithDefaultClient(assets.Asset, assets.AssetNames, cfg.PatternLibraryAssetsPath, cfg.SiteDomain),
+		Filter:    filter.NewWithHealthClient(svc.routerHealthClient),
+		Dataset:   dataset.NewWithHealthClient(svc.routerHealthClient),
+		Dimension: dimensionClient,
 	}
 
 	// Get healthcheck with checkers
