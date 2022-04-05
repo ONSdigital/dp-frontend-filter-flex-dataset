@@ -130,7 +130,9 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang str
 	var selections []model.Selection
 	for _, area := range areaType {
 		selections = append(selections, model.Selection{
-			Value:      area.ID,
+			// Currently, labels are used instead of ID's, since dimensions are stored/queried using their
+			// display name. Once that changes we can use the area-type ID, knowing it will match the imported dimension.
+			Value:      area.Label,
 			Label:      area.Label,
 			TotalCount: area.TotalCount,
 		})
@@ -138,6 +140,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang str
 
 	p.Selections = selections
 	p.InitialSelection = selectionName
+	p.IsAreaType = true
 
 	return p
 }

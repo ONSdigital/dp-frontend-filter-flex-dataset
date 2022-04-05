@@ -66,7 +66,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, nameParam)
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, dimensionName)
 	rc.BuildPage(w, selector, "selector")
 }
 

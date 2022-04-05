@@ -132,8 +132,8 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", areas, "")
 
 		expectedSelections := []model.Selection{
-			{Value: "one", Label: "One", TotalCount: 1},
-			{Value: "two", Label: "Two", TotalCount: 2},
+			{Value: "One", Label: "One", TotalCount: 1},
+			{Value: "Two", Label: "Two", TotalCount: 2},
 		}
 
 		Convey("Maps each geography dimension into a selection", func() {
@@ -154,6 +154,10 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 		Convey("it sets the title to Area Type", func() {
 			So(changeDimension.Metadata.Title, ShouldEqual, "Area Type")
+		})
+
+		Convey("it sets IsAreaType to true", func() {
+			So(changeDimension.IsAreaType, ShouldBeTrue)
 		})
 	})
 
