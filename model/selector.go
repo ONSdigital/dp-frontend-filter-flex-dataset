@@ -10,6 +10,7 @@ type Selector struct {
 	Dimensions       Dimension `json:"dimensions"`
 	Selections       []Selection
 	InitialSelection string
+	IsAreaType       bool
 }
 
 // Selection represents a dimension selection (e.g. an Area-type of City)

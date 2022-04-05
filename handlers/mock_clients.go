@@ -218,6 +218,22 @@ func (mr *MockFilterClientMockRecorder) SubmitFilter(ctx, userAuthToken, service
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitFilter", reflect.TypeOf((*MockFilterClient)(nil).SubmitFilter), ctx, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch, sfr)
 }
 
+// UpdateDimensions mocks base method.
+func (m *MockFilterClient) UpdateDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch string, dimension filter.Dimension) (filter.Dimension, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateDimensions", ctx, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch, dimension)
+	ret0, _ := ret[0].(filter.Dimension)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UpdateDimensions indicates an expected call of UpdateDimensions.
+func (mr *MockFilterClientMockRecorder) UpdateDimensions(ctx, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch, dimension interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDimensions", reflect.TypeOf((*MockFilterClient)(nil).UpdateDimensions), ctx, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch, dimension)
+}
+
 // MockDatasetClient is a mock of DatasetClient interface.
 type MockDatasetClient struct {
 	ctrl     *gomock.Controller

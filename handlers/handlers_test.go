@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -254,6 +257,41 @@ func TestUnitHandlers(t *testing.T) {
 				})
 			})
 
+			Convey("Then the page should have the area type bool set to false", func() {
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.
+					EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Model{}, "", nil).
+					AnyTimes()
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(stubDimension, "", nil).
+					AnyTimes()
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.
+					EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+
+				mockRend.
+					EXPECT().
+					// Assert that the area type boolean is false
+					BuildPage(gomock.Any(), pageIsAreaType{false}, gomock.Any())
+
+				w := runDimensionsSelector(
+					dimensionName,
+					DimensionsSelector(mockRend, mockFilter, NewMockDimensionClient(mockCtrl)),
+				)
+
+				Convey("And the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
+			})
+
 			// This can be removed once we start using the name/ID.
 			Convey("Then the dimensions API should be queried using the display name", func() {
 				mockFilter := NewMockFilterClient(mockCtrl)
@@ -316,6 +354,8 @@ func TestUnitHandlers(t *testing.T) {
 			}
 
 			Convey("When area types are returned", func() {
+				// Currently, labels are used instead of ID's, since dimensions are stored/queried using their
+				// display name. Once that changes we can use the area-type ID, knowing it will match the imported dimension.
 				Convey("Then the page should contain a list of area type selections", func() {
 					const dimensionLabel = "City"
 
@@ -336,7 +376,7 @@ func TestUnitHandlers(t *testing.T) {
 						Return(
 							dimension.GetAreaTypesResponse{
 								AreaTypes: []dimension.AreaType{{
-									ID:         dimensionName,
+									ID:         dimensionLabel,
 									Label:      dimensionLabel,
 									TotalCount: 1,
 								}},
@@ -358,7 +398,7 @@ func TestUnitHandlers(t *testing.T) {
 							pageMatchesSelections{
 								selections: []model.Selection{
 									{
-										Value:      dimensionName,
+										Value:      dimensionLabel,
 										Label:      dimensionLabel,
 										TotalCount: 1,
 									},
@@ -410,6 +450,41 @@ func TestUnitHandlers(t *testing.T) {
 						So(w.Code, ShouldEqual, http.StatusOK)
 					})
 				})
+
+				Convey("Then the page should have the area type bool set to true", func() {
+					mockFilter := NewMockFilterClient(mockCtrl)
+					mockFilter.EXPECT().
+						GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.Model{}, "", nil).
+						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(stubAreaTypeDimension, "", nil).
+						AnyTimes()
+
+					mockDimension := NewMockDimensionClient(mockCtrl)
+					mockDimension.EXPECT().
+						GetAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(dimension.GetAreaTypesResponse{}, nil)
+
+					mockRend := NewMockRenderClient(mockCtrl)
+					mockRend.EXPECT().
+						NewBasePageModel().
+						Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+						AnyTimes()
+
+					mockRend.
+						EXPECT().
+						// Assert that the area type boolean is true
+						BuildPage(gomock.Any(), pageIsAreaType{true}, gomock.Any())
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockDimension))
+
+					Convey("And the status code should be 200", func() {
+						So(w.Code, ShouldEqual, http.StatusOK)
+					})
+				})
 			})
 
 			Convey("When the dimension API responds with an error", func() {
@@ -442,6 +517,115 @@ func TestUnitHandlers(t *testing.T) {
 			})
 		})
 	})
+
+	Convey("Change dimension", t, func() {
+		stubFormData := url.Values{}
+		stubFormData.Add("dimension", "country")
+		stubFormData.Add("is_area_type", "true")
+
+		Convey("Given a valid dimension", func() {
+			Convey("When the user is redirected to the dimensions review screen", func() {
+				const filterID = "1234"
+
+				filterClient := NewMockFilterClient(mockCtrl)
+				filterClient.
+					EXPECT().
+					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", nil).
+					AnyTimes()
+
+				w := runChangeDimension(filterID, "city", stubFormData, ChangeDimension(filterClient))
+
+				Convey("Then the location header should match the review screen", func() {
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/", filterID))
+				})
+
+				Convey("And the status code should be 301", func() {
+					So(w.Code, ShouldEqual, http.StatusMovedPermanently)
+				})
+			})
+
+			Convey("When the filter client's `UpdateDimensions` method is called, it is passed the new dimension", func() {
+				const filterID = "1234"
+				const currentDimension = "City"
+				const newDimension = "Country"
+
+				expDimension := filter.Dimension{
+					Name:       newDimension,
+					IsAreaType: toBoolPtr(true),
+				}
+
+				filterClient := NewMockFilterClient(mockCtrl)
+				filterClient.
+					EXPECT().
+					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), filterID, currentDimension, gomock.Any(), gomock.Eq(expDimension)).
+					Return(filter.Dimension{}, "", nil)
+
+				formData := url.Values{}
+				formData.Add("dimension", newDimension)
+				formData.Add("is_area_type", "true")
+
+				runChangeDimension(filterID, currentDimension, formData, ChangeDimension(filterClient))
+			})
+
+			Convey("When the filter API client responds with an error", func() {
+				filterClient := NewMockFilterClient(mockCtrl)
+				filterClient.
+					EXPECT().
+					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", errors.New("internal error"))
+
+				w := runChangeDimension("test", "test", stubFormData, ChangeDimension(filterClient))
+
+				Convey("Then the client should not be redirected", func() {
+					So(w.Header().Get("Location"), ShouldBeEmpty)
+				})
+
+				Convey("And the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+		})
+
+		Convey("Given an invalid request", func() {
+			Convey("When the request is missing the required form values", func() {
+				tests := map[string]url.Values{
+					"Missing dimension":          {"is_area_type": []string{"true"}},
+					"Missing is_area_type":       {"dimension": []string{"country"}},
+					"Invalid is_area_type value": {"dimension": []string{"country"}, "is_area_type": []string{"no"}},
+				}
+
+				for name, formData := range tests {
+					Convey(name, func() {
+						w := runChangeDimension("test", "test", formData, ChangeDimension(NewMockFilterClient(mockCtrl)))
+
+						Convey("Then the client should not be redirected", func() {
+							So(w.Header().Get("Location"), ShouldBeEmpty)
+						})
+
+						Convey("And the status code should be 400", func() {
+							So(w.Code, ShouldEqual, http.StatusBadRequest)
+						})
+					})
+				}
+			})
+		})
+	})
+}
+
+func runChangeDimension(filterID, dimension string, formData url.Values, handler http.HandlerFunc) *httptest.ResponseRecorder {
+	encodedFormData := formData.Encode()
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/filters/%s/dimensions/%s", filterID, dimension), strings.NewReader(encodedFormData))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(encodedFormData)))
+
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter()
+	router.HandleFunc("/filters/{filterID}/dimensions/{name}", handler)
+	router.ServeHTTP(w, req)
+
+	return w
 }
 
 func initialiseMockConfig() config.Config {
@@ -502,6 +686,21 @@ func (p pageHasTitle) String() string {
 	return fmt.Sprintf("title is equal to \"%s\"", p.title)
 }
 
-func toBoolPtr(val bool) *bool {
-	return &val
+// pageIsAreaType is a gomock matcher that confirms a selection page
+// `IsAreaType` boolean is set to the expected value.
+type pageIsAreaType struct {
+	expected bool
+}
+
+func (c pageIsAreaType) Matches(x interface{}) bool {
+	page, ok := x.(model.Selector)
+	if !ok {
+		return false
+	}
+
+	return page.IsAreaType == c.expected
+}
+
+func (c pageIsAreaType) String() string {
+	return fmt.Sprintf("is equal to %+v", c.expected)
 }
