@@ -5,9 +5,13 @@
 package handlers
 
 import (
+	context "context"
 	io "io"
 	reflect "reflect"
 
+	dataset "github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	dimension "github.com/ONSdigital/dp-api-clients-go/v2/dimension"
+	filter "github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	model "github.com/ONSdigital/dp-renderer/model"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -110,4 +114,119 @@ func (m *MockRenderClient) NewBasePageModel() model.Page {
 func (mr *MockRenderClientMockRecorder) NewBasePageModel() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewBasePageModel", reflect.TypeOf((*MockRenderClient)(nil).NewBasePageModel))
+}
+
+// MockFilterClient is a mock of FilterClient interface.
+type MockFilterClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockFilterClientMockRecorder
+}
+
+// MockFilterClientMockRecorder is the mock recorder for MockFilterClient.
+type MockFilterClientMockRecorder struct {
+	mock *MockFilterClient
+}
+
+// NewMockFilterClient creates a new mock instance.
+func NewMockFilterClient(ctrl *gomock.Controller) *MockFilterClient {
+	mock := &MockFilterClient{ctrl: ctrl}
+	mock.recorder = &MockFilterClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFilterClient) EXPECT() *MockFilterClientMockRecorder {
+	return m.recorder
+}
+
+// GetJobState mocks base method.
+func (m *MockFilterClient) GetJobState(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID string) (filter.Model, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetJobState", ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID)
+	ret0, _ := ret[0].(filter.Model)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetJobState indicates an expected call of GetJobState.
+func (mr *MockFilterClientMockRecorder) GetJobState(ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobState", reflect.TypeOf((*MockFilterClient)(nil).GetJobState), ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID)
+}
+
+// MockDatasetClient is a mock of DatasetClient interface.
+type MockDatasetClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockDatasetClientMockRecorder
+}
+
+// MockDatasetClientMockRecorder is the mock recorder for MockDatasetClient.
+type MockDatasetClientMockRecorder struct {
+	mock *MockDatasetClient
+}
+
+// NewMockDatasetClient creates a new mock instance.
+func NewMockDatasetClient(ctrl *gomock.Controller) *MockDatasetClient {
+	mock := &MockDatasetClient{ctrl: ctrl}
+	mock.recorder = &MockDatasetClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDatasetClient) EXPECT() *MockDatasetClientMockRecorder {
+	return m.recorder
+}
+
+// GetOptions mocks base method.
+func (m *MockDatasetClient) GetOptions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension string, q *dataset.QueryParams) (dataset.Options, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOptions", ctx, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension, q)
+	ret0, _ := ret[0].(dataset.Options)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOptions indicates an expected call of GetOptions.
+func (mr *MockDatasetClientMockRecorder) GetOptions(ctx, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension, q interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOptions", reflect.TypeOf((*MockDatasetClient)(nil).GetOptions), ctx, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension, q)
+}
+
+// MockDimensionClient is a mock of DimensionClient interface.
+type MockDimensionClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockDimensionClientMockRecorder
+}
+
+// MockDimensionClientMockRecorder is the mock recorder for MockDimensionClient.
+type MockDimensionClientMockRecorder struct {
+	mock *MockDimensionClient
+}
+
+// NewMockDimensionClient creates a new mock instance.
+func NewMockDimensionClient(ctrl *gomock.Controller) *MockDimensionClient {
+	mock := &MockDimensionClient{ctrl: ctrl}
+	mock.recorder = &MockDimensionClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDimensionClient) EXPECT() *MockDimensionClientMockRecorder {
+	return m.recorder
+}
+
+// GetAreaTypes mocks base method.
+func (m *MockDimensionClient) GetAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (dimension.GetAreaTypesResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAreaTypes", ctx, userAuthToken, serviceAuthToken, datasetID)
+	ret0, _ := ret[0].(dimension.GetAreaTypesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAreaTypes indicates an expected call of GetAreaTypes.
+func (mr *MockDimensionClientMockRecorder) GetAreaTypes(ctx, userAuthToken, serviceAuthToken, datasetID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreaTypes", reflect.TypeOf((*MockDimensionClient)(nil).GetAreaTypes), ctx, userAuthToken, serviceAuthToken, datasetID)
 }

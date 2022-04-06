@@ -37,6 +37,10 @@ test: generate-prod
 convey:
 	goconvey ./...
 
+.PHONY: run
+run:
+	HUMAN_LOG=1 go run -tags 'production' -ldflags "-X $(SERVICE_PATH).BuildTime=$(BUILD_TIME) -X $(SERVICE_PATH).GitCommit=$(GIT_COMMIT) -X $(SERVICE_PATH).Version=$(VERSION)" -race $(LDFLAGS) main.go
+
 .PHONY: test-component
 test-component: generate-prod
 	go test -cover -coverpkg=github.com/ONSdigital/dp-frontend-filter-flex-dataset/... -component -tags 'production' ./...

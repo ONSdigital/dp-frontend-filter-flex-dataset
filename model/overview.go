@@ -6,4 +6,5 @@ import (
 
 type Overview struct {
 	coreModel.Page
+	Dimensions []Dimension `json:"dimensions"`
 }
