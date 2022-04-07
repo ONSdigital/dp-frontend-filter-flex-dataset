@@ -28,6 +28,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	p.Type = "filter-flex-overview"
 	p.Metadata.Title = "Review changes"
 	p.Language = lang
+	p.FilterID = filterJob.FilterID
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
@@ -42,8 +43,8 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		pageDim.Name = dim.Name
 		pageDim.IsAreaType = *dim.IsAreaType
 		pageDim.OptionsCount = len(dim.Options)
-		pageDim.EncodedName = encodedName
-		pageDim.URI = fmt.Sprintf("%s/%s", path, encodedName)
+		pageDim.EncodedName = strings.ToLower(encodedName)
+		pageDim.URI = fmt.Sprintf("%s/%s", path, strings.ToLower(encodedName))
 		q := url.Values{}
 
 		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) {
@@ -73,7 +74,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 			truncatePath += fmt.Sprintf("?%s", q.Encode())
 		}
 		if encodedName != "" {
-			truncatePath += fmt.Sprintf("#%s", encodedName)
+			truncatePath += fmt.Sprintf("#%s", strings.ToLower(encodedName))
 		}
 		pageDim.TruncateLink = truncatePath
 

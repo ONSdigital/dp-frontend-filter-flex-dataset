@@ -6,5 +6,6 @@ import (
 
 type Overview struct {
 	coreModel.Page
+	FilterID   string      `json:"filter_id"`
 	Dimensions []Dimension `json:"dimensions"`
 }

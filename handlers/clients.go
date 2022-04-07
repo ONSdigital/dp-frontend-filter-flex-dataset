@@ -28,6 +28,7 @@ type RenderClient interface {
 // FilterClient is an interface with the methods required for a filter client
 type FilterClient interface {
 	GetJobState(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID string) (f filter.Model, eTag string, err error)
+	UpdateFlexBlueprint(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID string, m filter.Model, doSubmit bool, populationType string, ifMatch string) (filter.Model, string, error)
 }
 
 // DatasetClient is an interface with methods required for a dataset client

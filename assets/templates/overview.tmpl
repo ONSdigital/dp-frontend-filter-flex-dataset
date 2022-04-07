@@ -5,20 +5,11 @@
         <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
                 {{ template "partials/summary" . }}
-                <a href="#0" role="button" class="ons-u-mt-xl ons-btn ons-btn--link">
-                    <span class="ons-btn__inner">Get the data
-                        <svg
-                            class="ons-svg-icon ons-u-ml-xs"
-                            viewBox="0 0 8 13"
-                            xmlns="http://www.w3.org/2000/svg"
-                            focusable="false"
-                            fill="currentColor">
-                            <path
-                                d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z"
-                                transform="translate(-5.02 -1.59)"/>
-                        </svg>
-                    </span>
-                </a>
+                <form method="post" action="/filters/{{.FilterID}}/submit">
+                    <button class="ons-u-mt-xl ons-btn">
+                        <span class="ons-btn__inner">Get the data</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
