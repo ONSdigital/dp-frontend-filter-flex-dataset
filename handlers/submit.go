@@ -21,24 +21,24 @@ func submit(w http.ResponseWriter, req *http.Request, accessToken, collectionID 
 	filterID := vars["filterID"]
 	ctx := req.Context()
 
-	filter, eTag, err := fc.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
+	filter, _, err := fc.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
 	if err != nil {
 		log.Error(ctx, "failed to get job state", err, log.Data{"filter_id": filterID})
 		setStatusCode(req, w, err)
 		return
 	}
 
-	// etag is coming back empty??
-
-	mdl, _, err := fc.UpdateFlexBlueprint(ctx, accessToken, "", "", collectionID, filter, true, filter.PopulationType, eTag)
+	// TODO: this endpoint is changing, update to specific submit method
+	mdl, _, err := fc.UpdateFlexBlueprint(ctx, accessToken, "", "", collectionID, filter, true, filter.PopulationType, "")
 	if err != nil {
 		log.Error(ctx, "failed to submit filter blueprint", err, log.Data{"filter_id": filterID})
 		setStatusCode(req, w, err)
 		return
 	}
 
-	filterOutputID := mdl.Links.FilterOutputs.ID
-
-	// redirect to dataset controller
-	http.Redirect(w, req, fmt.Sprintf("/filter-outputs/%s", filterOutputID), http.StatusFound)
+	dsID := filter.DatasetID
+	ed := filter.Edition
+	v := filter.Version
+	foID := mdl.Links.FilterOutputs.ID
+	http.Redirect(w, req, fmt.Sprintf("/datasets/%s/editions/%s/versions/%s/filter-outputs/%s", dsID, ed, v, foID), http.StatusFound)
 }

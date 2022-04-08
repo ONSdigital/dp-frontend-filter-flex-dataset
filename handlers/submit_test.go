@@ -1,73 +1,82 @@
 package handlers
 
-// import (
-// 	"errors"
-// 	"strings"
-// 	"testing"
+import (
+	"errors"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-// 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
-// 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
-// 	gomock "github.com/golang/mock/gomock"
-// 	. "github.com/smartystreets/goconvey/convey"
-// )
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	gomock "github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	. "github.com/smartystreets/goconvey/convey"
+)
 
-// func TestSubmitHandler(t *testing.T) {
-// 	mockCtrl := gomock.NewController(t)
-// 	//cfg := initialiseMockConfig()
-// 	ctx := gomock.Any()
-// 	var mockServiceAuthToken, mockDownloadToken, mockUserAuthToken, mockCollectionID, mockFilterID string
+// TestSubmitHandler unit tests
+func TestSubmitHandler(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	ctx := gomock.Any()
+	var mockServiceAuthToken, mockDownloadToken, mockUserAuthToken, mockCollectionID string
 
-// 	Convey("test submit handler", t, func() {
-// 		// mockCfg := config.Config{EnableCensusPages: true}
-// 		// mockVersions := dataset.VersionsList{
-// 		// 	Items: []dataset.Version{
-// 		// 		{}, // deliberately empty
-// 		// 		{
-// 		// 			Dimensions: []dataset.VersionDimension{
-// 		// 				{
-// 		// 					Name: "aggregate",
-// 		// 				},
-// 		// 				{
-// 		// 					Name: "time",
-// 		// 				},
-// 		// 			},
-// 		// 		},
-// 		// 	},
+	Convey("test submit handler", t, func() {
+		Convey("test Submit handler, starts a filter-outputs job and redirects on success", func() {
+			mockClient := NewMockFilterClient(mockCtrl)
+			mockJobStateModel := filter.Model{
+				DatasetID: "5678",
+				Edition:   "2021",
+				Version:   "1",
+			}
+			mockFilterOutputModel := filter.Model{}
+			mockFilterOutputModel.Links.FilterOutputs.ID = "abcde12345"
+			mockClient.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, "12345").Return(mockJobStateModel, "", nil)
+			mockClient.EXPECT().UpdateFlexBlueprint(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockJobStateModel, true, "", "").Return(mockFilterOutputModel, "", nil)
 
-// 		Convey("test Submit handler, starts a filter-outputs job and redirects", func() {
-// 			mockClient := NewMockFilterClient(mockCtrl)
-// 			mockFm := filter.Model{}
-// 			mockClient.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockFilterID).Return()
-// 			mockClient.EXPECT().UpdateFlexBlueprint(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockFm, true, "", "").Return("12345", "testETag", nil)
+			w := testResponse(http.StatusFound, "/filters/12345/submit", mockClient)
 
-// 			body := strings.NewReader("dimension=aggregate")
-// 			w := testResponse(301, body, "/datasets/1234/editions/2021/versions/1/filter-flex", mockClient, mockDatasetClient, true, mockCfg)
+			location := w.Header().Get("Location")
+			So(location, ShouldNotBeEmpty)
+			So(location, ShouldEqual, "/datasets/5678/editions/2021/versions/1/filter-outputs/abcde12345")
+		})
 
-// 			location := w.Header().Get("Location")
-// 			So(location, ShouldNotBeEmpty)
+		Convey("test Submit handler returns 500 if unable to get job state", func() {
+			mockClient := NewMockFilterClient(mockCtrl)
+			mockClient.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, "12345").Return(filter.Model{}, "", errors.New("failed to get job state"))
+			testResponse(http.StatusInternalServerError, "/filters/12345/submit", mockClient)
+		})
 
-// 			So(location, ShouldEqual, "/filters/12345/dimensions/aggregate")
-// 		})
+		Convey("test Submit handler returns 500 if unable to update flex blueprint", func() {
+			mockClient := NewMockFilterClient(mockCtrl)
+			mockJobStateModel := filter.Model{
+				DatasetID: "5678",
+				Edition:   "2021",
+				Version:   "1",
+			}
+			mockFilterOutputModel := filter.Model{}
+			mockFilterOutputModel.Links.FilterOutputs.ID = "abcde12345"
+			mockClient.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, "12345").Return(mockJobStateModel, "", nil)
+			mockClient.EXPECT().UpdateFlexBlueprint(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockJobStateModel, true, "", "").Return(filter.Model{}, "", errors.New("failed to submit filter blueprint"))
+			testResponse(http.StatusInternalServerError, "/filters/12345/submit", mockClient)
+		})
+	})
+}
 
-// 		// Convey("test post route fails if config is false", func() {
-// 		// 	mockCfg := config.Config{EnableCensusPages: false}
-// 		// 	mockDatasetClient := NewMockDatasetClient(mockCtrl)
-// 		// 	mockFilterClient := NewMockFilterClient(mockCtrl)
-// 		// 	body := strings.NewReader("")
+func testResponse(code int, url string, fc FilterClient) *httptest.ResponseRecorder {
+	req := httptest.NewRequest("POST", url, nil)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-// 		// 	testResponse(500, body, "/datasets/1234/editions/2021/versions/1/filter-flex", mockFilterClient, mockDatasetClient, true, mockCfg)
-// 		// })
+	w := httptest.NewRecorder()
 
-// 		// Convey("test CreateFilterFlexID returns 500 if unable to create a blueprint on filter api", func() {
-// 		// 	mockDatasetClient := NewMockDatasetClient(mockCtrl)
-// 		// 	mockDatasetClient.EXPECT().GetVersion(ctx, userAuthToken, serviceAuthToken, "", collectionID, "1234", "2021", "1").Return(mockVersions.Items[0], nil)
-// 		// 	mockDatasetClient.EXPECT().Get(ctx, userAuthToken, serviceAuthToken, collectionID, "1234").Return(dataset.DatasetDetails{IsBasedOn: &dataset.IsBasedOn{}}, nil)
-// 		// 	mockFilterClient := NewMockFilterClient(mockCtrl)
-// 		// 	mockFilterClient.EXPECT().CreateFlexibleBlueprint(ctx, userAuthToken, serviceAuthToken, "", collectionID, "1234", "2021", "1", gomock.Any(), "").Return("", "", errors.New("unable to create filter blueprint"))
-// 		// 	body := strings.NewReader("")
+	router := mux.NewRouter()
+	router.HandleFunc("/filters/{filterID}/submit", Submit(fc))
+	router.ServeHTTP(w, req)
 
-// 		// 	testResponse(500, body, "/datasets/1234/editions/2021/versions/1/filter-flex", mockFilterClient, mockDatasetClient, true, mockCfg)
-// 		// })
-// 	})
-// }
+	So(w.Code, ShouldEqual, code)
+
+	b, err := ioutil.ReadAll(w.Body)
+	So(err, ShouldBeNil)
+	// Writer body should be empty, we don't write a response
+	So(b, ShouldBeEmpty)
+
+	return w
+}

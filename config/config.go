@@ -44,7 +44,7 @@ func get() (*Config, error) {
 	}
 
 	cfg = &Config{
-		Debug:                      true,
+		Debug:                      false,
 		BindAddr:                   "localhost:20100",
 		APIRouterURL:               "http://localhost:23200/v1",
 		SupportedLanguages:         []string{"en", "cy"},
