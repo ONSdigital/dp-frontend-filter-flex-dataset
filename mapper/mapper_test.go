@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
@@ -73,7 +74,7 @@ func TestUnitMapper(t *testing.T) {
 
 	Convey("test filter flex overview maps correctly", t, func() {
 		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob)
-		mockEncodedName := url.QueryEscape(filterJob.Dimensions[0].Name)
+		mockEncodedName := url.QueryEscape(strings.ToLower(filterJob.Dimensions[0].Name))
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-overview")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
