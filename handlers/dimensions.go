@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
@@ -37,7 +37,14 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	filterDimension, err := findDimension(nameParam, currentFilter.Dimensions)
+	dimensionName, err := convertDimensionToName(nameParam)
+	if err != nil {
+		log.Error(ctx, "failed to parse dimension name", err, logData)
+		setStatusCode(req, w, err)
+		return
+	}
+
+	filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dimensionName)
 	if err != nil {
 		log.Error(ctx, "failed to find dimension in filter", err, logData)
 		setStatusCode(req, w, err)
@@ -64,11 +71,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 }
 
 // isAreaType determines if the current dimension is an area type
-func isAreaType(dimension *filter.ModelDimension) bool {
-	if dimension == nil {
-		return false
-	}
-
+func isAreaType(dimension filter.Dimension) bool {
 	if dimension.IsAreaType == nil {
 		return false
 	}
@@ -76,34 +79,18 @@ func isAreaType(dimension *filter.ModelDimension) bool {
 	return *dimension.IsAreaType
 }
 
-// findDimension attempts to find a dimension based on the dimension value in a URL param.
-func findDimension(selectionParam string, dimensions []filter.ModelDimension) (*filter.ModelDimension, error) {
-	// Params are matched by name, and therefore may contain spaces/escaped punctuation.
-	selection, err := url.QueryUnescape(selectionParam)
+// convertDimensionToName takes a URL-coded param for a dimension name and attempts to convert it to the
+// pretty label. This is temporary/best-effort, and only a stopgap until we start using ID's/names everywhere.
+// Changing everything to use these will involve updating several services, including the importer, so to
+// restore the journey right now we're taking the hacky approach.
+// Example: `number+of+siblings+%283+mappings%29` -> `Number of siblings (3 mappings)`
+func convertDimensionToName(param string) (string, error) {
+	selection, err := url.QueryUnescape(param)
 	if err != nil {
-		return nil, fmt.Errorf("error escaping selection (%s): %w", selectionParam, err)
+		return "", err
 	}
 
-	for _, dimension := range dimensions {
-		if err == nil && selection == strings.ToLower(dimension.Name) {
-			return &dimension, nil
-		}
-	}
-
-	return nil, dimensionNotFoundErr{dimensions, selection}
-}
-
-// dimensionNotFoundErr is an error provided when a matching dimension cannot be found
-// in the current filter using a dimension route parameter.
-type dimensionNotFoundErr struct {
-	list      []filter.ModelDimension
-	dimension string
-}
-
-func (d dimensionNotFoundErr) Error() string {
-	return fmt.Sprintf("could not find dimension with name %s in list (%+v)", d.dimension, d.list)
-}
-
-func (d dimensionNotFoundErr) Code() int {
-	return http.StatusNotFound
+	// Sentence case the param
+	runes := []rune(strings.ToLower(selection))
+	return string(append([]rune{unicode.ToUpper(runes[0])}, runes[1:]...)), nil
 }
