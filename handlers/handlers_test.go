@@ -156,11 +156,12 @@ func TestUnitHandlers(t *testing.T) {
 				mockFilter.
 					EXPECT().
 					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(
-						filter.Model{Dimensions: []filter.ModelDimension{{Name: dimensionName}}},
-						"",
-						nil,
-					)
+					Return(filter.Model{}, "", nil)
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{Name: dimensionName}, "", nil).
+					AnyTimes()
 
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
@@ -190,6 +191,11 @@ func TestUnitHandlers(t *testing.T) {
 				EXPECT().
 				GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(filter.Model{}, "", nil) // No filter dimensions
+			mockFilter.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.Dimension{}, "", &filter.ErrInvalidFilterAPIResponse{ExpectedCode: http.StatusOK, ActualCode: http.StatusNotFound}).
+				AnyTimes()
 
 			w := runDimensionsSelector(
 				"city",
@@ -204,13 +210,9 @@ func TestUnitHandlers(t *testing.T) {
 		Convey("Given a dimension param which is not an area type", func() {
 			const dimensionName = "siblings"
 
-			stubFilter := filter.Model{
-				Dimensions: []filter.ModelDimension{
-					{
-						Name:       dimensionName,
-						IsAreaType: toBoolPtr(false),
-					},
-				},
+			stubDimension := filter.Dimension{
+				Name:       dimensionName,
+				IsAreaType: toBoolPtr(false),
 			}
 
 			// This will change, but represents the current non-area-type behaviour.
@@ -219,7 +221,12 @@ func TestUnitHandlers(t *testing.T) {
 				mockFilter.
 					EXPECT().
 					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(stubFilter, "", nil).
+					Return(filter.Model{}, "", nil).
+					AnyTimes()
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(stubDimension, "", nil).
 					AnyTimes()
 
 				mockRend := NewMockRenderClient(mockCtrl)
@@ -244,11 +251,46 @@ func TestUnitHandlers(t *testing.T) {
 				})
 			})
 
+			// This can be removed once we start using the name/ID.
+			Convey("Then the dimensions API should be queried using the display name", func() {
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.
+					EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Model{}, "", nil).
+					AnyTimes()
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "Siblings").
+					Return(stubDimension, "", nil).
+					AnyTimes()
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.
+					EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+
+				mockRend.
+					EXPECT().
+					BuildPage(gomock.Any(), gomock.Any(), gomock.Any())
+
+				w := runDimensionsSelector(
+					dimensionName,
+					DimensionsSelector(mockRend, mockFilter, NewMockDimensionClient(mockCtrl)),
+				)
+
+				Convey("And the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
+			})
+
 			Convey("When the filter API responds with an error", func() {
 				mockFilter := NewMockFilterClient(mockCtrl)
 				mockFilter.EXPECT().
 					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(stubFilter, "", errors.New("oh no")).
+					Return(filter.Model{}, "", errors.New("oh no")).
 					AnyTimes()
 
 				w := runDimensionsSelector(
@@ -265,13 +307,9 @@ func TestUnitHandlers(t *testing.T) {
 		Convey("Given an area type", func() {
 			const dimensionName = "city"
 
-			stubAreaTypeFilter := filter.Model{
-				Dimensions: []filter.ModelDimension{
-					{
-						Name:       dimensionName,
-						IsAreaType: toBoolPtr(true),
-					},
-				},
+			stubAreaTypeDimension := filter.Dimension{
+				Name:       dimensionName,
+				IsAreaType: toBoolPtr(true),
 			}
 
 			Convey("When area types are returned", func() {
@@ -281,7 +319,12 @@ func TestUnitHandlers(t *testing.T) {
 					mockFilter := NewMockFilterClient(mockCtrl)
 					mockFilter.EXPECT().
 						GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(stubAreaTypeFilter, "", nil).
+						Return(filter.Model{}, "", nil).
+						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(stubAreaTypeDimension, "", nil).
 						AnyTimes()
 
 					mockDimension := NewMockDimensionClient(mockCtrl)
@@ -331,13 +374,15 @@ func TestUnitHandlers(t *testing.T) {
 				Convey("Then the dimensions API client should request area types using the cantabular ID", func() {
 					const cantabularID = "cantabular"
 
-					filterWithBlobID := stubAreaTypeFilter
-					filterWithBlobID.PopulationType = cantabularID
-
 					mockFilter := NewMockFilterClient(mockCtrl)
 					mockFilter.EXPECT().
 						GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(filterWithBlobID, "", nil).
+						Return(filter.Model{PopulationType: cantabularID}, "", nil).
+						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(stubAreaTypeDimension, "", nil).
 						AnyTimes()
 
 					mockDimension := NewMockDimensionClient(mockCtrl)
@@ -368,7 +413,12 @@ func TestUnitHandlers(t *testing.T) {
 				mockFilter := NewMockFilterClient(mockCtrl)
 				mockFilter.EXPECT().
 					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(stubAreaTypeFilter, "", nil)
+					Return(filter.Model{}, "", nil)
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(stubAreaTypeDimension, "", nil).
+					AnyTimes()
 
 				mockDimension := NewMockDimensionClient(mockCtrl)
 				mockDimension.EXPECT().
