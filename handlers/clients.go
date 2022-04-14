@@ -27,8 +27,10 @@ type RenderClient interface {
 
 // FilterClient is an interface with the methods required for a filter client
 type FilterClient interface {
+	GetFilter(ctx context.Context, input filter.GetFilterInput) (*filter.GetFilterResponse, error)
 	GetJobState(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID string) (f filter.Model, eTag string, err error)
 	GetDimension(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name string) (dim filter.Dimension, eTag string, err error)
+	GetDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID string, q *filter.QueryParams) (dims filter.Dimensions, eTag string, err error)
 	UpdateFlexBlueprint(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID string, m filter.Model, doSubmit bool, populationType string, ifMatch string) (filter.Model, string, error)
 }
 
