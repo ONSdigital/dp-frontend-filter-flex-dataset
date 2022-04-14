@@ -28,26 +28,6 @@ func TestUnitHandlers(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	cfg := initialiseMockConfig()
 	ctx := gomock.Any()
-	var mockServiceAuthToken, mockDownloadToken, mockUserAuthToken, mockCollectionID, mockFilterID string
-	mockFm := []filter.Model{
-		{
-			Dimensions: []filter.ModelDimension{
-				{
-					Name:       "Dim 1",
-					IsAreaType: new(bool),
-					Options:    []string{"option 1", "option 2"},
-				},
-			},
-		},
-		{
-			Dimensions: []filter.ModelDimension{
-				{
-					Name:       "Dim 2",
-					IsAreaType: new(bool),
-				},
-			},
-		},
-	}
 	mockOpts := []dataset.Options{
 		{
 			Items: []dataset.Option{
@@ -88,12 +68,23 @@ func TestUnitHandlers(t *testing.T) {
 		Convey("test filter flex overview page is successful", func() {
 			mockRend := NewMockRenderClient(mockCtrl)
 			mockDc := NewMockDatasetClient(mockCtrl)
-			mockFc := NewMockFilterClient(mockCtrl)
 
 			Convey("options on filter job no additional call to get options", func() {
+				mockFc := NewMockFilterClient(mockCtrl)
+				dims := filter.Dimensions{
+					Items: []filter.Dimension{
+						{
+							Name:       "Test",
+							IsAreaType: new(bool),
+							Options:    []string{"an option", "and another"},
+						},
+					},
+				}
 				mockRend.EXPECT().NewBasePageModel().Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
 				mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "overview")
-				mockFc.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockFilterID).Return(mockFm[0], "", nil)
+				mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(&filter.GetFilterResponse{}, nil)
+				mockFc.EXPECT().GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dims, "", nil)
+				mockFc.EXPECT().GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dims.Items[0], "", nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -107,10 +98,22 @@ func TestUnitHandlers(t *testing.T) {
 			})
 
 			Convey("no options on filter job additional call to get options", func() {
+				mockFc := NewMockFilterClient(mockCtrl)
+				dims := filter.Dimensions{
+					Items: []filter.Dimension{
+						{
+							Name:       "Test",
+							IsAreaType: new(bool),
+							Options:    []string{},
+						},
+					},
+				}
 				mockRend.EXPECT().NewBasePageModel().Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
 				mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "overview")
-				mockFc.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockFilterID).Return(mockFm[1], "", nil)
-				mockDc.EXPECT().GetOptions(ctx, mockUserAuthToken, mockServiceAuthToken, mockCollectionID, "", "", "0", "Dim 2",
+				mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(&filter.GetFilterResponse{}, nil)
+				mockFc.EXPECT().GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dims, "", nil)
+				mockFc.EXPECT().GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dims.Items[0], "", nil)
+				mockDc.EXPECT().GetOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), "", "", "0", dims.Items[0].Name,
 					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
 
 				w := httptest.NewRecorder()
@@ -132,7 +135,7 @@ func TestUnitHandlers(t *testing.T) {
 			Convey("test FilterFlexOverview returns 500 if client GetJobState returns an error", func() {
 				mockFc := NewMockFilterClient(mockCtrl)
 				mockDc := NewMockDatasetClient(mockCtrl)
-				mockFc.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockFilterID).Return(filter.Model{}, "", errors.New("sorry"))
+				mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(nil, errors.New("sorry"))
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)

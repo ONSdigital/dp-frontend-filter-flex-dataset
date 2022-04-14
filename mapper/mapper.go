@@ -18,7 +18,7 @@ import (
 const queryStrKey = "showAll"
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.Model) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, dims filter.Dimensions) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
@@ -37,7 +37,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		},
 	}
 
-	for _, dim := range filterJob.Dimensions {
+	for _, dim := range dims.Items {
 		pageDim := model.Dimension{}
 		encodedName := url.QueryEscape(dim.Name)
 		pageDim.Name = dim.Name

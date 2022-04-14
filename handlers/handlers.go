@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -31,15 +32,37 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
+	filterInput := &filter.GetFilterInput{
+		FilterID: filterID,
+		AuthHeaders: filter.AuthHeaders{
+			UserAuthToken: accessToken,
+			CollectionID:  collectionID,
+		},
+	}
 
-	filterJob, _, err := fc.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
+	filterJob, err := fc.GetFilter(ctx, *filterInput)
 	if err != nil {
-		log.Error(ctx, "failed to get job state", err, log.Data{"filter_id": filterID})
+		log.Error(ctx, "failed to get filter", err, log.Data{"filter_id": filterID})
 		setStatusCode(req, w, err)
 		return
 	}
 
-	for i, dim := range filterJob.Dimensions {
+	dims, _, err := fc.GetDimensions(ctx, accessToken, "", collectionID, filterID, &filter.QueryParams{Limit: 500})
+	if err != nil {
+		log.Error(ctx, "failed to get dimensions", err, log.Data{"filter_id": filterID})
+		setStatusCode(req, w, err)
+		return
+	}
+
+	for i, dim := range dims.Items {
+		// Needed to determine whether demension is_area_type
+		filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterJob.FilterID, dim.Name)
+		if err != nil {
+			log.Error(ctx, "failed to get dimension", err, log.Data{"dimension_name": dim.Name})
+			setStatusCode(req, w, err)
+			return
+		}
+		dims.Items[i].IsAreaType = filterDimension.IsAreaType
 		if len(dim.Options) == 0 {
 			q := dataset.QueryParams{Offset: 0, Limit: 1000}
 			opts, err := dc.GetOptions(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, strconv.Itoa(filterJob.Dataset.Version), dim.Name, &q)
@@ -49,7 +72,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 				return
 			}
 			for _, opt := range opts.Items {
-				filterJob.Dimensions[i].Options = append(filterJob.Dimensions[i].Options, opt.Label)
+				dims.Items[i].Options = append(dims.Items[i].Options, opt.Label)
 			}
 		}
 	}
@@ -57,6 +80,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	basePage := rc.NewBasePageModel()
 	showAll := req.URL.Query()["showAll"]
 	path := req.URL.Path
-	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, filterJob)
+	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, dims)
 	rc.BuildPage(w, m, "overview")
 }

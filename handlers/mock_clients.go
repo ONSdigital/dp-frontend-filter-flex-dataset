@@ -155,6 +155,37 @@ func (mr *MockFilterClientMockRecorder) GetDimension(ctx, userAuthToken, service
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimension", reflect.TypeOf((*MockFilterClient)(nil).GetDimension), ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name)
 }
 
+// GetDimensions mocks base method.
+func (m *MockFilterClient) GetDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID string, q *filter.QueryParams) (filter.Dimensions, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDimensions", ctx, userAuthToken, serviceAuthToken, collectionID, filterID, q)
+	ret0, _ := ret[0].(filter.Dimensions)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetDimensions indicates an expected call of GetDimensions.
+func (mr *MockFilterClientMockRecorder) GetDimensions(ctx, userAuthToken, serviceAuthToken, collectionID, filterID, q interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimensions", reflect.TypeOf((*MockFilterClient)(nil).GetDimensions), ctx, userAuthToken, serviceAuthToken, collectionID, filterID, q)
+}
+
+// GetFilter mocks base method.
+func (m *MockFilterClient) GetFilter(ctx context.Context, input filter.GetFilterInput) (*filter.GetFilterResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFilter", ctx, input)
+	ret0, _ := ret[0].(*filter.GetFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFilter indicates an expected call of GetFilter.
+func (mr *MockFilterClientMockRecorder) GetFilter(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilter", reflect.TypeOf((*MockFilterClient)(nil).GetFilter), ctx, input)
+}
+
 // GetJobState mocks base method.
 func (m *MockFilterClient) GetJobState(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID string) (filter.Model, string, error) {
 	m.ctrl.T.Helper()
