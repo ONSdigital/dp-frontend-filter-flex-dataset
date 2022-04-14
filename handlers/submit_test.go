@@ -17,22 +17,23 @@ import (
 func TestSubmitHandler(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	ctx := gomock.Any()
-	var mockServiceAuthToken, mockDownloadToken, mockUserAuthToken, mockCollectionID string
 
 	Convey("test submit handler", t, func() {
 		Convey("test Submit handler, starts a filter-outputs job and redirects on success", func() {
-			mockClient := NewMockFilterClient(mockCtrl)
-			mockJobStateModel := filter.Model{
-				DatasetID: "5678",
-				Edition:   "2021",
-				Version:   "1",
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockJobStateModel := &filter.GetFilterResponse{
+				Dataset: filter.Dataset{
+					DatasetID: "5678",
+					Edition:   "2021",
+					Version:   1,
+				},
 			}
-			mockFilterOutputModel := filter.Model{}
+			mockFilterOutputModel := &filter.SubmitFilterResponse{}
 			mockFilterOutputModel.Links.FilterOutputs.ID = "abcde12345"
-			mockClient.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, "12345").Return(mockJobStateModel, "", nil)
-			mockClient.EXPECT().UpdateFlexBlueprint(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockJobStateModel, true, "", "").Return(mockFilterOutputModel, "", nil)
+			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockJobStateModel, nil)
+			mockFc.EXPECT().SubmitFilter(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterOutputModel, "", nil)
 
-			w := testResponse(http.StatusFound, "/filters/12345/submit", mockClient)
+			w := testResponse(http.StatusFound, "/filters/12345/submit", mockFc)
 
 			location := w.Header().Get("Location")
 			So(location, ShouldNotBeEmpty)
@@ -41,22 +42,22 @@ func TestSubmitHandler(t *testing.T) {
 
 		Convey("test Submit handler returns 500 if unable to get job state", func() {
 			mockClient := NewMockFilterClient(mockCtrl)
-			mockClient.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, "12345").Return(filter.Model{}, "", errors.New("failed to get job state"))
+			mockClient.EXPECT().GetFilter(ctx, gomock.Any()).Return(nil, errors.New("failed to get job state"))
 			testResponse(http.StatusInternalServerError, "/filters/12345/submit", mockClient)
 		})
 
 		Convey("test Submit handler returns 500 if unable to update flex blueprint", func() {
-			mockClient := NewMockFilterClient(mockCtrl)
-			mockJobStateModel := filter.Model{
-				DatasetID: "5678",
-				Edition:   "2021",
-				Version:   "1",
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockJobStateModel := &filter.GetFilterResponse{
+				Dataset: filter.Dataset{
+					DatasetID: "5678",
+					Edition:   "2021",
+					Version:   1,
+				},
 			}
-			mockFilterOutputModel := filter.Model{}
-			mockFilterOutputModel.Links.FilterOutputs.ID = "abcde12345"
-			mockClient.EXPECT().GetJobState(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, "12345").Return(mockJobStateModel, "", nil)
-			mockClient.EXPECT().UpdateFlexBlueprint(ctx, mockUserAuthToken, mockServiceAuthToken, mockDownloadToken, mockCollectionID, mockJobStateModel, true, "", "").Return(filter.Model{}, "", errors.New("failed to submit filter blueprint"))
-			testResponse(http.StatusInternalServerError, "/filters/12345/submit", mockClient)
+			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockJobStateModel, nil)
+			mockFc.EXPECT().SubmitFilter(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, "", errors.New("failed to submit filter blueprint"))
+			testResponse(http.StatusInternalServerError, "/filters/12345/submit", mockFc)
 		})
 	})
 }

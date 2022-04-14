@@ -202,20 +202,20 @@ func (mr *MockFilterClientMockRecorder) GetJobState(ctx, userAuthToken, serviceA
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobState", reflect.TypeOf((*MockFilterClient)(nil).GetJobState), ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID)
 }
 
-// UpdateFlexBlueprint mocks base method.
-func (m_2 *MockFilterClient) UpdateFlexBlueprint(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID string, m filter.Model, doSubmit bool, populationType, ifMatch string) (filter.Model, string, error) {
-	m_2.ctrl.T.Helper()
-	ret := m_2.ctrl.Call(m_2, "UpdateFlexBlueprint", ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, m, doSubmit, populationType, ifMatch)
-	ret0, _ := ret[0].(filter.Model)
+// SubmitFilter mocks base method.
+func (m *MockFilterClient) SubmitFilter(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch string, sfr filter.SubmitFilterRequest) (*filter.SubmitFilterResponse, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubmitFilter", ctx, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch, sfr)
+	ret0, _ := ret[0].(*filter.SubmitFilterResponse)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-// UpdateFlexBlueprint indicates an expected call of UpdateFlexBlueprint.
-func (mr *MockFilterClientMockRecorder) UpdateFlexBlueprint(ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, m, doSubmit, populationType, ifMatch interface{}) *gomock.Call {
+// SubmitFilter indicates an expected call of SubmitFilter.
+func (mr *MockFilterClientMockRecorder) SubmitFilter(ctx, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch, sfr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFlexBlueprint", reflect.TypeOf((*MockFilterClient)(nil).UpdateFlexBlueprint), ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, m, doSubmit, populationType, ifMatch)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitFilter", reflect.TypeOf((*MockFilterClient)(nil).SubmitFilter), ctx, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch, sfr)
 }
 
 // MockDatasetClient is a mock of DatasetClient interface.
