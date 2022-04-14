@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
+	coreModel "github.com/ONSdigital/dp-renderer/model"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
 )
@@ -28,6 +30,16 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 
 	logData := log.Data{
 		"filter_id": filterID,
+	}
+
+	basePage := rc.NewBasePageModel()
+
+	if req.Method == http.MethodPost {
+		if err := changeDimensionFn(req, fc, accessToken, collectionID); err == nil {
+			http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions/", filterID), http.StatusMovedPermanently)
+		}
+
+		basePage.Error = coreModel.Error{Title: "oh no"}
 	}
 
 	currentFilter, _, err := fc.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
@@ -51,8 +63,6 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	basePage := rc.NewBasePageModel()
-
 	if !isAreaType(filterDimension) {
 		selector := mapper.CreateSelector(req, basePage, filterDimension.Name, lang)
 		rc.BuildPage(w, selector, "selector")
@@ -68,6 +78,34 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 
 	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, dimensionName)
 	rc.BuildPage(w, selector, "selector")
+}
+
+func changeDimensionFn(req *http.Request, fc FilterClient, accessToken, collectionID string) error {
+	ctx := req.Context()
+	vars := mux.Vars(req)
+	filterID := vars["filterID"]
+	dimensionParam := vars["name"]
+
+	dimensionName, err := convertDimensionToName(dimensionParam)
+	if err != nil {
+		return err
+	}
+
+	form, err := parseChangeDimensionForm(req)
+	if err != nil {
+		return err
+	}
+
+	dimension := filter.Dimension{
+		Name:       form.Dimension,
+		IsAreaType: toBoolPtr(form.IsAreaType),
+	}
+
+	if _, _, err = fc.UpdateDimensions(ctx, accessToken, "", collectionID, filterID, dimensionName, "", dimension); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // isAreaType determines if the current dimension is an area type
