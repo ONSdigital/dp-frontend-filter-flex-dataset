@@ -8,6 +8,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
@@ -21,6 +22,16 @@ func DimensionsSelector(rc RenderClient, fc FilterClient, dimsc DimensionClient)
 }
 
 func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dimsc DimensionClient, collectionID, accessToken, lang string) {
+	selector, err := createDimensionsSelectorPage(req, rc, fc, dimsc, collectionID, accessToken, lang)
+	if err != nil {
+		setStatusCode(req, w, err)
+		return
+	}
+
+	rc.BuildPage(w, selector, "selector")
+}
+
+func createDimensionsSelectorPage(req *http.Request, rc RenderClient, fc FilterClient, dimsc DimensionClient, collectionID, accessToken, lang string) (model.Selector, error) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -33,41 +44,34 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 	currentFilter, _, err := fc.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
 	if err != nil {
 		log.Error(ctx, "failed to get job state", err, logData)
-		setStatusCode(req, w, err)
-		return
+		return model.Selector{}, err
 	}
 
 	dimensionName, err := convertDimensionToName(nameParam)
 	if err != nil {
 		log.Error(ctx, "failed to parse dimension name", err, logData)
-		setStatusCode(req, w, err)
-		return
+		return model.Selector{}, err
 	}
 
 	filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dimensionName)
 	if err != nil {
 		log.Error(ctx, "failed to find dimension in filter", err, logData)
-		setStatusCode(req, w, err)
-		return
+		return model.Selector{}, err
 	}
 
 	basePage := rc.NewBasePageModel()
 
 	if !isAreaType(filterDimension) {
-		selector := mapper.CreateSelector(req, basePage, filterDimension.Name, lang)
-		rc.BuildPage(w, selector, "selector")
-		return
+		return mapper.CreateSelector(req, basePage, filterDimension.Name, lang), nil
 	}
 
 	areaTypes, err := dimsc.GetAreaTypes(ctx, accessToken, "", currentFilter.PopulationType)
 	if err != nil {
 		log.Error(ctx, "failed to get geography dimensions", err, logData)
-		setStatusCode(req, w, err)
-		return
+		return model.Selector{}, err
 	}
 
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, dimensionName)
-	rc.BuildPage(w, selector, "selector")
+	return mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, dimensionName), nil
 }
 
 // isAreaType determines if the current dimension is an area type

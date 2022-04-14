@@ -8,18 +8,19 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-net/v2/handlers"
+	coreModel "github.com/ONSdigital/dp-renderer/model"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
 )
 
 // ChangeDimension Handler
-func ChangeDimension(fc FilterClient) http.HandlerFunc {
+func ChangeDimension(rc RenderClient, fc FilterClient, dimsc DimensionClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		changeDimension(w, req, fc, accessToken, collectionID)
+		changeDimension(w, req, rc, fc, dimsc, collectionID, accessToken, lang)
 	})
 }
 
-func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, accessToken, collectionID string) {
+func changeDimension(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dimsc DimensionClient, collectionID, accessToken, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -38,8 +39,17 @@ func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, 
 
 	form, err := parseChangeDimensionForm(req)
 	if err != nil {
-		log.Error(ctx, "failed to parse change dimension form", err, logData)
-		setStatusCode(req, w, err)
+		selector, err := createDimensionsSelectorPage(req, rc, fc, dimsc, collectionID, accessToken, lang)
+		if err != nil {
+			setStatusCode(req, w, err)
+			return
+		}
+
+		selector.Error = coreModel.Error{
+			Title: "Oh no",
+		}
+
+		rc.BuildPage(w, selector, "selector")
 		return
 	}
 

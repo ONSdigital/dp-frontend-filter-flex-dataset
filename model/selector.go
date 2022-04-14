@@ -11,6 +11,7 @@ type Selector struct {
 	Selections       []Selection
 	InitialSelection string
 	IsAreaType       bool
+	Error            coreModel.Error
 }
 
 // Selection represents a dimension selection (e.g. an Area-type of City)

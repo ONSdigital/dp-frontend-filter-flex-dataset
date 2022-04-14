@@ -33,5 +33,5 @@ func Setup(ctx context.Context, r *mux.Router, cfg *config.Config, c Clients) {
 
 	r.StrictSlash(true).Path("/filters/{filterID}/dimensions").Methods("GET").HandlerFunc(handlers.FilterFlexOverview(c.Render, c.Filter, c.Dataset))
 	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("GET").HandlerFunc(handlers.DimensionsSelector(c.Render, c.Filter, c.Dimension))
-	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("POST").HandlerFunc(handlers.ChangeDimension(c.Filter))
+	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("POST").HandlerFunc(handlers.ChangeDimension(c.Render, c.Filter, c.Dimension))
 }

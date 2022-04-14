@@ -139,7 +139,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang str
 	}
 
 	p.Selections = selections
-	p.InitialSelection = selectionName
+	//p.InitialSelection = selectionName
 	p.IsAreaType = true
 
 	return p
