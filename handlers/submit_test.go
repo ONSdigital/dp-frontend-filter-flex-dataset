@@ -21,17 +21,17 @@ func TestSubmitHandler(t *testing.T) {
 	Convey("test submit handler", t, func() {
 		Convey("test Submit handler, starts a filter-outputs job and redirects on success", func() {
 			mockFc := NewMockFilterClient(mockCtrl)
-			mockJobStateModel := &filter.GetFilterResponse{
+			mockFilter := &filter.GetFilterResponse{
 				Dataset: filter.Dataset{
 					DatasetID: "5678",
 					Edition:   "2021",
 					Version:   1,
 				},
 			}
-			mockFilterOutputModel := &filter.SubmitFilterResponse{}
-			mockFilterOutputModel.Links.FilterOutputs.ID = "abcde12345"
-			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockJobStateModel, nil)
-			mockFc.EXPECT().SubmitFilter(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterOutputModel, "", nil)
+			mockFilterResp := &filter.SubmitFilterResponse{}
+			mockFilterResp.Links.FilterOutputs.ID = "abcde12345"
+			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockFilter, nil)
+			mockFc.EXPECT().SubmitFilter(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterResp, "", nil)
 
 			w := testResponse(http.StatusFound, "/filters/12345/submit", mockFc)
 
@@ -48,14 +48,14 @@ func TestSubmitHandler(t *testing.T) {
 
 		Convey("test Submit handler returns 500 if unable to update flex blueprint", func() {
 			mockFc := NewMockFilterClient(mockCtrl)
-			mockJobStateModel := &filter.GetFilterResponse{
+			mockFilter := &filter.GetFilterResponse{
 				Dataset: filter.Dataset{
 					DatasetID: "5678",
 					Edition:   "2021",
 					Version:   1,
 				},
 			}
-			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockJobStateModel, nil)
+			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockFilter, nil)
 			mockFc.EXPECT().SubmitFilter(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, "", errors.New("failed to submit filter blueprint"))
 			testResponse(http.StatusInternalServerError, "/filters/12345/submit", mockFc)
 		})
