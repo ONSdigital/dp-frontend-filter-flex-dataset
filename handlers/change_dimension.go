@@ -37,6 +37,10 @@ func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, 
 	}
 
 	form, err := parseChangeDimensionForm(req)
+	if isValidationErr(err) {
+		http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions/%s?error=true", filterID, dimensionParam), http.StatusMovedPermanently)
+		return
+	}
 	if err != nil {
 		log.Error(ctx, "failed to parse change dimension form", err, logData)
 		setStatusCode(req, w, err)
@@ -54,7 +58,7 @@ func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, 
 		return
 	}
 
-	http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions/", filterID), http.StatusMovedPermanently)
+	http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions", filterID), http.StatusMovedPermanently)
 }
 
 // changeDimensionForm represents form-data for the ChangeDimension handler.
@@ -67,7 +71,7 @@ type changeDimensionForm struct {
 func parseChangeDimensionForm(req *http.Request) (changeDimensionForm, error) {
 	err := req.ParseForm()
 	if err != nil {
-		return changeDimensionForm{}, fmt.Errorf("erorr parsing form: %w", err)
+		return changeDimensionForm{}, fmt.Errorf("error parsing form: %w", err)
 	}
 
 	dimension := req.FormValue("dimension")
@@ -77,7 +81,7 @@ func parseChangeDimensionForm(req *http.Request) (changeDimensionForm, error) {
 
 	areaType, err := strconv.ParseBool(req.FormValue("is_area_type"))
 	if err != nil {
-		return changeDimensionForm{}, &validationErr{errors.New("missing or invalid value 'is_area_type', expected bool")}
+		return changeDimensionForm{}, &clientErr{errors.New("missing or invalid value 'is_area_type', expected bool")}
 	}
 
 	return changeDimensionForm{

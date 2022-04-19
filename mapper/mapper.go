@@ -123,9 +123,15 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang st
 }
 
 // CreateAreaTypeSelector maps data to the Overview model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, selectionName string) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, selectionName string, isValidationError bool) model.Selector {
 	p := CreateSelector(req, basePage, selectionName, lang)
 	p.Page.Metadata.Title = "Area Type"
+
+	if isValidationError {
+		p.Page.Error = coreModel.Error{
+			Title: "Error: Select an area type",
+		}
+	}
 
 	var selections []model.Selection
 	for _, area := range areaType {

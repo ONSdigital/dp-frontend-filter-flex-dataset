@@ -130,7 +130,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", areas, "")
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", areas, "", false)
 
 		expectedSelections := []model.Selection{
 			{Value: "One", Label: "One", TotalCount: 1},
@@ -145,7 +145,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, nil, "")
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, nil, "", false)
 
 		Convey("it sets page metadata", func() {
 			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
@@ -165,10 +165,19 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given a selection name", t, func() {
 		const selectionName = "test"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, selectionName)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, selectionName, false)
 
 		Convey("it returns the value as an initial selection", func() {
 			So(changeDimension.InitialSelection, ShouldEqual, selectionName)
+		})
+	})
+
+	Convey("Given a validation error", t, func() {
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, "", true)
+
+		Convey("it returns a populated error", func() {
+			So(changeDimension.Error.Title, ShouldNotBeEmpty)
 		})
 	})
 }

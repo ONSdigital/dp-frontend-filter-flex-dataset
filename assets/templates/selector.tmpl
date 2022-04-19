@@ -2,9 +2,24 @@
 <div class="ons-page__container ons-container">
     <div class="ons-grid ons-u-ml-no">
         {{ template "partials/breadcrumb" . }}
+
+        {{ if .Page.Error.Title }}
+            {{ template "partials/error-summary" .Page }}
+        {{ end}}
+
         <h1 class="ons-u-fs-xxxl ons-u-mt-s">{{ .Page.Metadata.Title }}</h1>
+
         <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
+                {{ if .Page.Error.Title }}
+                    <div class="ons-panel ons-panel--error ons-panel--no-title" id="{{ .Page.Error.Title }}">
+                        <span class="ons-u-vh">Error: </span>
+                        <div class="ons-panel__body">
+                            <p class="ons-panel__error">
+                                <strong>{{ localise "SelectAreaTypeError" .Language 1 }}</strong>
+                            </p>
+                {{ end }}
+
                 {{ if gt $length 0 }}
                     <form method="post">
                         <fieldset class="ons-fieldset">
@@ -14,11 +29,11 @@
                             <div class="ons-radios__items">
                                 {{ range $i, $selection := .Selections }}
                                     <span class="ons-radios__item ons-radios__item--no-border ons-u-mb-s">
-                                        <span class="ons-radio ons-radio--no-border">
-                                            <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }}checked{{ end }}>
-                                            <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">{{ .Label }} ({{ .TotalCount }})</label>
-                                        </span>
-                                    </span>
+                                <span class="ons-radio ons-radio--no-border">
+                                    <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }}checked{{ end }}>
+                                    <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">{{ .Label }} ({{ .TotalCount }})</label>
+                                </span>
+                            </span>
                                     {{ if notLastItem $length $i }}<br>{{ end }}
                                 {{ end }}
                             </div>
@@ -29,6 +44,11 @@
                         </button>
                     </form>
                 {{ end }}
+
+                {{ if .Error.Title}}
+                    </div>
+                {{ end }}
+                </div>
             </div>
         </div>
     </div>

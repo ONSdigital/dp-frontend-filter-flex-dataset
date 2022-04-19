@@ -13,6 +13,10 @@
 # Plural rules can be found here: http://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+[PageProblem]
+description = "There is a problem with this page"
+one = "There is a problem with this page"
+
 [Variable]
 description = "Variable"
 one = "Variable"
@@ -46,3 +50,7 @@ one = "Continue"
 [SelectAreaTypeLeadText]
 description = "Select area type"
 one = "Select area type"
+
+[SelectAreaTypeError]
+description = "Select an area type"
+one = "Select an area type"

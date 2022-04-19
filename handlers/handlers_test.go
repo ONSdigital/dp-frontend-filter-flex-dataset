@@ -487,6 +487,52 @@ func TestUnitHandlers(t *testing.T) {
 				})
 			})
 
+			Convey("Given a truthy error query param", func() {
+				req := httptest.NewRequest(http.MethodGet, "/filters/1234/dimensions/city?error=true", nil)
+
+				Convey("Then the page should contain a populated error", func() {
+					mockFilter := NewMockFilterClient(mockCtrl)
+					mockFilter.
+						EXPECT().
+						GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.Model{}, "", nil)
+					mockFilter.
+						EXPECT().
+						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.Dimension{IsAreaType: toBoolPtr(true)}, "", nil).
+						AnyTimes()
+
+					mockDimension := NewMockDimensionClient(mockCtrl)
+					mockDimension.EXPECT().
+						GetAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(dimension.GetAreaTypesResponse{}, nil).
+						AnyTimes()
+
+					mockRend := NewMockRenderClient(mockCtrl)
+					mockRend.
+						EXPECT().
+						NewBasePageModel().
+						Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+						AnyTimes()
+
+					mockRend.
+						EXPECT().
+						// Confirm the page contains an error
+						BuildPage(gomock.Any(), pageHasError{true}, gomock.Any())
+
+					selector := DimensionsSelector(mockRend, mockFilter, mockDimension)
+
+					w := httptest.NewRecorder()
+					router := mux.NewRouter()
+					router.HandleFunc("/filters/{filterID}/dimensions/{name}", selector)
+					router.ServeHTTP(w, req)
+
+					Convey("And the status code should be 200", func() {
+						So(w.Code, ShouldEqual, http.StatusOK)
+					})
+				})
+			})
+
 			Convey("When the dimension API responds with an error", func() {
 				mockFilter := NewMockFilterClient(mockCtrl)
 				mockFilter.EXPECT().
@@ -537,7 +583,7 @@ func TestUnitHandlers(t *testing.T) {
 				w := runChangeDimension(filterID, "city", stubFormData, ChangeDimension(filterClient))
 
 				Convey("Then the location header should match the review screen", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {
@@ -588,9 +634,30 @@ func TestUnitHandlers(t *testing.T) {
 		})
 
 		Convey("Given an invalid request", func() {
-			Convey("When the request is missing the required form values", func() {
+			Convey("When the area type has not been provided", func() {
+				formData := url.Values{}
+				formData.Add("is_area_type", "true")
+
+				w := runChangeDimension("test", "test", formData, ChangeDimension(NewMockFilterClient(mockCtrl)))
+
+				Convey("Then the client should be redirected with the error query param", func() {
+					location := w.Header().Get("Location")
+					So(location, ShouldNotBeEmpty)
+
+					parse, err := url.Parse(location)
+					So(err, ShouldBeNil)
+
+					query := parse.Query()
+					So(query["error"], ShouldNotBeEmpty)
+				})
+
+				Convey("And the status code should be 301", func() {
+					So(w.Code, ShouldEqual, http.StatusMovedPermanently)
+				})
+			})
+
+			Convey("When the request is missing the hidden required form values", func() {
 				tests := map[string]url.Values{
-					"Missing dimension":          {"is_area_type": []string{"true"}},
 					"Missing is_area_type":       {"dimension": []string{"country"}},
 					"Invalid is_area_type value": {"dimension": []string{"country"}, "is_area_type": []string{"no"}},
 				}
@@ -703,4 +770,27 @@ func (c pageIsAreaType) Matches(x interface{}) bool {
 
 func (c pageIsAreaType) String() string {
 	return fmt.Sprintf("is equal to %+v", c.expected)
+}
+
+// pageHasError is a gomock matcher that confirms a selection page
+// has a populated error.
+type pageHasError struct {
+	expected bool
+}
+
+func (p pageHasError) Matches(x interface{}) bool {
+	page, ok := x.(model.Selector)
+	if !ok {
+		return false
+	}
+
+	if p.expected {
+		return page.Error.Title != ""
+	}
+
+	return page.Error.Title == ""
+}
+
+func (p pageHasError) String() string {
+	return fmt.Sprintf("is equal to %+v", p.expected)
 }
