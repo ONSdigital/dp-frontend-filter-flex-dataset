@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -66,7 +67,8 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, nameParam)
+	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, dimensionName, isValidationError)
 	rc.BuildPage(w, selector, "selector")
 }
 

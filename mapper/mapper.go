@@ -123,14 +123,22 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang st
 }
 
 // CreateAreaTypeSelector maps data to the Overview model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, selectionName string) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, selectionName string, isValidationError bool) model.Selector {
 	p := CreateSelector(req, basePage, selectionName, lang)
 	p.Page.Metadata.Title = "Area Type"
+
+	if isValidationError {
+		p.Page.Error = coreModel.Error{
+			Title: "Error: Select an area type",
+		}
+	}
 
 	var selections []model.Selection
 	for _, area := range areaType {
 		selections = append(selections, model.Selection{
-			Value:      area.ID,
+			// Currently, labels are used instead of ID's, since dimensions are stored/queried using their
+			// display name. Once that changes we can use the area-type ID, knowing it will match the imported dimension.
+			Value:      area.Label,
 			Label:      area.Label,
 			TotalCount: area.TotalCount,
 		})
@@ -138,6 +146,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang str
 
 	p.Selections = selections
 	p.InitialSelection = selectionName
+	p.IsAreaType = true
 
 	return p
 }
