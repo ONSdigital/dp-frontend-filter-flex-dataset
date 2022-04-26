@@ -39,12 +39,11 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 
 	for _, dim := range dims.Items {
 		pageDim := model.Dimension{}
-		encodedName := url.QueryEscape(dim.Name)
-		pageDim.Name = dim.Name
+		pageDim.Name = dim.Label
 		pageDim.IsAreaType = *dim.IsAreaType
 		pageDim.OptionsCount = len(dim.Options)
-		pageDim.EncodedName = strings.ToLower(encodedName)
-		pageDim.URI = fmt.Sprintf("%s/%s", path, strings.ToLower(encodedName))
+		pageDim.ID = dim.ID
+		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
 		q := url.Values{}
 
 		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) {
@@ -73,8 +72,8 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		if q.Encode() != "" {
 			truncatePath += fmt.Sprintf("?%s", q.Encode())
 		}
-		if encodedName != "" {
-			truncatePath += fmt.Sprintf("#%s", strings.ToLower(encodedName))
+		if dim.ID != "" {
+			truncatePath += fmt.Sprintf("#%s", dim.ID)
 		}
 		pageDim.TruncateLink = truncatePath
 
@@ -123,8 +122,8 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang st
 }
 
 // CreateAreaTypeSelector maps data to the Overview model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, selectionName string, isValidationError bool) model.Selector {
-	p := CreateSelector(req, basePage, selectionName, lang)
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
+	p := CreateSelector(req, basePage, fDim.Label, lang)
 	p.Page.Metadata.Title = "Area Type"
 
 	if isValidationError {
@@ -136,16 +135,14 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang str
 	var selections []model.Selection
 	for _, area := range areaType {
 		selections = append(selections, model.Selection{
-			// Currently, labels are used instead of ID's, since dimensions are stored/queried using their
-			// display name. Once that changes we can use the area-type ID, knowing it will match the imported dimension.
-			Value:      area.Label,
+			Value:      area.ID,
 			Label:      area.Label,
 			TotalCount: area.TotalCount,
 		})
 	}
 
 	p.Selections = selections
-	p.InitialSelection = selectionName
+	p.InitialSelection = fDim.ID
 	p.IsAreaType = true
 
 	return p
