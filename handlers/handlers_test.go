@@ -292,8 +292,7 @@ func TestUnitHandlers(t *testing.T) {
 				})
 			})
 
-			// This can be removed once we start using the name/ID.
-			Convey("Then the dimensions API should be queried using the display name", func() {
+			Convey("Then the dimensions API should be queried using the dimension name", func() {
 				mockFilter := NewMockFilterClient(mockCtrl)
 				mockFilter.
 					EXPECT().
@@ -302,7 +301,7 @@ func TestUnitHandlers(t *testing.T) {
 					AnyTimes()
 				mockFilter.
 					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "Siblings").
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "siblings").
 					Return(stubDimension, "", nil).
 					AnyTimes()
 
@@ -354,9 +353,8 @@ func TestUnitHandlers(t *testing.T) {
 			}
 
 			Convey("When area types are returned", func() {
-				// Currently, labels are used instead of ID's, since dimensions are stored/queried using their
-				// display name. Once that changes we can use the area-type ID, knowing it will match the imported dimension.
 				Convey("Then the page should contain a list of area type selections", func() {
+					const dimensionID = "city"
 					const dimensionLabel = "City"
 
 					mockFilter := NewMockFilterClient(mockCtrl)
@@ -376,7 +374,7 @@ func TestUnitHandlers(t *testing.T) {
 						Return(
 							dimension.GetAreaTypesResponse{
 								AreaTypes: []dimension.AreaType{{
-									ID:         dimensionLabel,
+									ID:         dimensionID,
 									Label:      dimensionLabel,
 									TotalCount: 1,
 								}},
@@ -398,7 +396,7 @@ func TestUnitHandlers(t *testing.T) {
 							pageMatchesSelections{
 								selections: []model.Selection{
 									{
-										Value:      dimensionLabel,
+										Value:      dimensionID,
 										Label:      dimensionLabel,
 										TotalCount: 1,
 									},
@@ -593,25 +591,26 @@ func TestUnitHandlers(t *testing.T) {
 
 			Convey("When the filter client's `UpdateDimensions` method is called, it is passed the new dimension", func() {
 				const filterID = "1234"
-				const currentDimension = "City"
-				const newDimension = "Country"
+				const dimensionName = "geography"
+				const newDimension = "country"
 
 				expDimension := filter.Dimension{
-					Name:       newDimension,
+					Name:       "geography",
+					ID:         newDimension,
 					IsAreaType: toBoolPtr(true),
 				}
 
 				filterClient := NewMockFilterClient(mockCtrl)
 				filterClient.
 					EXPECT().
-					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), filterID, currentDimension, gomock.Any(), gomock.Eq(expDimension)).
+					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), filterID, dimensionName, gomock.Any(), gomock.Eq(expDimension)).
 					Return(filter.Dimension{}, "", nil)
 
 				formData := url.Values{}
 				formData.Add("dimension", newDimension)
 				formData.Add("is_area_type", "true")
 
-				runChangeDimension(filterID, currentDimension, formData, ChangeDimension(filterClient))
+				runChangeDimension(filterID, dimensionName, formData, ChangeDimension(filterClient))
 			})
 
 			Convey("When the filter API client responds with an error", func() {

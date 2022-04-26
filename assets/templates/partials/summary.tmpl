@@ -14,7 +14,7 @@
                 </thead>
                 {{ range $i, $dim := .Dimensions }}
                     <tbody class="ons-summary__item">
-                        <tr id="{{.EncodedName}}" class="ons-summary__row ons-summary__row--has-values ons-grid--flex@xxs@s ons-grid--between@xxs@s{{ if eq $i 0 }} ons-u-bt{{ end }}{{ if last $i $.Dimensions }} ons-u-bb{{ end }}">
+                        <tr id="{{.ID}}" class="ons-summary__row ons-summary__row--has-values ons-grid--flex@xxs@s ons-grid--between@xxs@s{{ if eq $i 0 }} ons-u-bt{{ end }}{{ if last $i $.Dimensions }} ons-u-bb{{ end }}">
                             <td class="ons-summary__item-title ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-order--1 ons-u-bb-no@xxs@s ons-u-flex--2@xxs@s">
                                 <div class="ons-summary__item--text ons-u-fw-b">{{ .Name }}</div>
                             </td>

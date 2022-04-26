@@ -23,22 +23,15 @@ func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, 
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
-	dimensionParam := vars["name"]
+	dimensionName := vars["name"]
 
 	logData := log.Data{
 		"filter_id": filterID,
 	}
 
-	dimensionName, err := convertDimensionToName(dimensionParam)
-	if err != nil {
-		log.Error(ctx, "failed to parse dimension name", err, logData)
-		setStatusCode(req, w, err)
-		return
-	}
-
 	form, err := parseChangeDimensionForm(req)
 	if isValidationErr(err) {
-		http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions/%s?error=true", filterID, dimensionParam), http.StatusMovedPermanently)
+		http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions/%s?error=true", filterID, dimensionName), http.StatusMovedPermanently)
 		return
 	}
 	if err != nil {
@@ -48,7 +41,8 @@ func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, 
 	}
 
 	dimension := filter.Dimension{
-		Name:       form.Dimension,
+		Name:       dimensionName,
+		ID:         form.Dimension,
 		IsAreaType: toBoolPtr(form.IsAreaType),
 	}
 
