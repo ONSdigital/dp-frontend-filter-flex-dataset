@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
@@ -22,13 +24,13 @@ func setStatusCode(req *http.Request, w http.ResponseWriter, err error) {
 }
 
 // FilterFlexOverview Handler
-func FilterFlexOverview(rc RenderClient, fc FilterClient, dc DatasetClient) http.HandlerFunc {
+func FilterFlexOverview(rc RenderClient, fc FilterClient, dc DatasetClient, dimsc DimensionClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		filterFlexOverview(w, req, rc, fc, dc, accessToken, collectionID, lang)
+		filterFlexOverview(w, req, rc, fc, dc, dimsc, accessToken, collectionID, lang)
 	})
 }
 
-func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, accessToken, collectionID, lang string) {
+func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, dimsc DimensionClient, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -54,27 +56,71 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
+	getDimensionOptions := func(dim filter.Dimension) ([]string, error) {
+		q := dataset.QueryParams{Offset: 0, Limit: 1000}
+
+		opts, err := dc.GetOptions(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, strconv.Itoa(filterJob.Dataset.Version), dim.Name, &q)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get options for dimension: %w", err)
+		}
+
+		var options []string
+		for _, opt := range opts.Items {
+			options = append(options, opt.Label)
+		}
+
+		return options, nil
+	}
+
+	getAreaOptions := func(dim filter.Dimension) ([]string, error) {
+		areas, err := dimsc.GetAreas(ctx, dimension.GetAreasInput{
+			UserAuthToken: accessToken,
+			DatasetID:     filterJob.PopulationType,
+			AreaTypeID:    dim.ID,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get dimension areas: %w", err)
+		}
+
+		var options []string
+		for _, area := range areas.Areas {
+			options = append(options, area.Label)
+		}
+
+		return options, nil
+	}
+
+	getOptions := func(dim filter.Dimension) ([]string, error) {
+		if dim.IsAreaType != nil && *dim.IsAreaType {
+			return getAreaOptions(dim)
+		}
+
+		return getDimensionOptions(dim)
+	}
+
 	for i, dim := range dims.Items {
-		// Needed to determine whether demension is_area_type
+		// Needed to determine whether dimension is_area_type
 		filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterJob.FilterID, dim.Name)
 		if err != nil {
 			log.Error(ctx, "failed to get dimension", err, log.Data{"dimension_name": dim.Name})
 			setStatusCode(req, w, err)
 			return
 		}
-		dims.Items[i].IsAreaType = filterDimension.IsAreaType
-		if len(dim.Options) == 0 {
-			q := dataset.QueryParams{Offset: 0, Limit: 1000}
-			opts, err := dc.GetOptions(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, strconv.Itoa(filterJob.Dataset.Version), dim.Name, &q)
-			if err != nil {
-				log.Error(ctx, "failed to get options for dimension", err, log.Data{"dimension_name": dim.Name})
-				setStatusCode(req, w, err)
-				return
-			}
-			for _, opt := range opts.Items {
-				dims.Items[i].Options = append(dims.Items[i].Options, opt.Label)
-			}
+		dim.IsAreaType = filterDimension.IsAreaType
+
+		if len(dim.Options) != 0 {
+			continue
 		}
+
+		options, err := getOptions(dim)
+		if err != nil {
+			log.Error(ctx, "failed to get options for dimension", err, log.Data{"dimension_name": dim.Name})
+			setStatusCode(req, w, err)
+			return
+		}
+
+		dim.Options = append(dims.Items[i].Options, options...)
+		dims.Items[i] = dim
 	}
 
 	basePage := rc.NewBasePageModel()
