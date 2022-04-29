@@ -309,3 +309,18 @@ func (mr *MockDimensionClientMockRecorder) GetAreaTypes(ctx, userAuthToken, serv
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreaTypes", reflect.TypeOf((*MockDimensionClient)(nil).GetAreaTypes), ctx, userAuthToken, serviceAuthToken, datasetID)
 }
+
+// GetAreas mocks base method.
+func (m *MockDimensionClient) GetAreas(ctx context.Context, input dimension.GetAreasInput) (dimension.GetAreasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAreas", ctx, input)
+	ret0, _ := ret[0].(dimension.GetAreasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAreas indicates an expected call of GetAreas.
+func (mr *MockDimensionClientMockRecorder) GetAreas(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreas", reflect.TypeOf((*MockDimensionClient)(nil).GetAreas), ctx, input)
+}

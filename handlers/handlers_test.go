@@ -45,7 +45,6 @@ func TestUnitHandlers(t *testing.T) {
 	}
 
 	Convey("test setStatusCode", t, func() {
-
 		Convey("test status code handles 404 response from client", func() {
 			req := httptest.NewRequest("GET", "http://localhost:20100", nil)
 			w := httptest.NewRecorder()
@@ -69,10 +68,10 @@ func TestUnitHandlers(t *testing.T) {
 
 	Convey("test filter flex overview", t, func() {
 		Convey("test filter flex overview page is successful", func() {
-			mockRend := NewMockRenderClient(mockCtrl)
-			mockDc := NewMockDatasetClient(mockCtrl)
-
 			Convey("options on filter job no additional call to get options", func() {
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockDc := NewMockDatasetClient(mockCtrl)
+
 				mockFc := NewMockFilterClient(mockCtrl)
 				dims := filter.Dimensions{
 					Items: []filter.Dimension{
@@ -93,7 +92,7 @@ func TestUnitHandlers(t *testing.T) {
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockDimensionClient(mockCtrl)))
 
 				router.ServeHTTP(w, req)
 
@@ -101,6 +100,8 @@ func TestUnitHandlers(t *testing.T) {
 			})
 
 			Convey("no options on filter job additional call to get options", func() {
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockDc := NewMockDatasetClient(mockCtrl)
 				mockFc := NewMockFilterClient(mockCtrl)
 				dims := filter.Dimensions{
 					Items: []filter.Dimension{
@@ -123,13 +124,196 @@ func TestUnitHandlers(t *testing.T) {
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockDimensionClient(mockCtrl)))
 
 				router.ServeHTTP(w, req)
 
 				So(w.Code, ShouldEqual, http.StatusOK)
 			})
 
+			Convey("Given an area type dimension", func() {
+				Convey("When the dimensions API responds with an error", func() {
+					filterDim := filter.Dimension{
+						Name:       "geography",
+						ID:         "city",
+						Label:      "City",
+						IsAreaType: toBoolPtr(true),
+					}
+
+					mockFc := NewMockFilterClient(mockCtrl)
+					mockFc.
+						EXPECT().
+						GetFilter(ctx, gomock.Any()).
+						Return(&filter.GetFilterResponse{}, nil).
+						AnyTimes()
+					mockFc.
+						EXPECT().
+						GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.Dimensions{Items: []filter.Dimension{filterDim}}, "", nil).
+						AnyTimes()
+					mockFc.
+						EXPECT().
+						GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filterDim, "", nil).
+						AnyTimes()
+
+					mockDimsc := NewMockDimensionClient(mockCtrl)
+					mockDimsc.
+						EXPECT().
+						GetAreas(ctx, gomock.Any()).
+						Return(dimension.GetAreasResponse{}, errors.New("internal error"))
+
+					w := httptest.NewRecorder()
+					req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+					FilterFlexOverview(NewMockRenderClient(mockCtrl), mockFc, NewMockDatasetClient(mockCtrl), mockDimsc).
+						ServeHTTP(w, req)
+
+					Convey("Then the status code should be 500", func() {
+						So(w.Code, ShouldEqual, http.StatusInternalServerError)
+					})
+				})
+
+				Convey("When the dimensions API responds successfully", func() {
+					Convey("Then the dimensions API should be called with the population type and area type ID", func() {
+						const (
+							cantabularPopType = "cantabular-flexible-example"
+							dimensionID       = "city"
+						)
+
+						filterDim := filter.Dimension{
+							Name:       "geography",
+							ID:         "city",
+							Label:      "City",
+							IsAreaType: toBoolPtr(true),
+						}
+
+						mockFc := NewMockFilterClient(mockCtrl)
+						mockFc.
+							EXPECT().
+							GetFilter(ctx, gomock.Any()).
+							Return(&filter.GetFilterResponse{PopulationType: cantabularPopType}, nil).
+							AnyTimes()
+						mockFc.
+							EXPECT().
+							GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(filter.Dimensions{Items: []filter.Dimension{filterDim}}, "", nil).
+							AnyTimes()
+						mockFc.
+							EXPECT().
+							GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(filterDim, "", nil).
+							AnyTimes()
+
+						expGetAreasInput := dimension.GetAreasInput{
+							DatasetID:  cantabularPopType,
+							AreaTypeID: dimensionID,
+						}
+
+						mockDimsc := NewMockDimensionClient(mockCtrl)
+						mockDimsc.
+							EXPECT().
+							GetAreas(ctx, gomock.Eq(expGetAreasInput)).
+							Return(dimension.GetAreasResponse{}, nil)
+
+						mockRend := NewMockRenderClient(mockCtrl)
+						mockRend.
+							EXPECT().
+							NewBasePageModel().
+							Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+							AnyTimes()
+						mockRend.
+							EXPECT().
+							BuildPage(gomock.Any(), gomock.Any(), "overview").
+							AnyTimes()
+
+						w := httptest.NewRecorder()
+						req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+						FilterFlexOverview(mockRend, mockFc, NewMockDatasetClient(mockCtrl), mockDimsc).
+							ServeHTTP(w, req)
+
+						Convey("Then the status code should be 200", func() {
+							So(w.Code, ShouldEqual, http.StatusOK)
+						})
+					})
+
+					Convey("Then area type dimensions are used as options", func() {
+						filterDim := filter.Dimension{
+							Name:       "geography",
+							ID:         "city",
+							Label:      "City",
+							IsAreaType: toBoolPtr(true),
+						}
+
+						mockFc := NewMockFilterClient(mockCtrl)
+						mockFc.
+							EXPECT().
+							GetFilter(ctx, gomock.Any()).
+							Return(&filter.GetFilterResponse{}, nil).
+							AnyTimes()
+						mockFc.
+							EXPECT().
+							GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(filter.Dimensions{Items: []filter.Dimension{filterDim}}, "", nil).
+							AnyTimes()
+						mockFc.
+							EXPECT().
+							GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(filterDim, "", nil).
+							AnyTimes()
+
+						areas := dimension.GetAreasResponse{
+							Areas: []dimension.Area{
+								{
+									ID:       "0",
+									Label:    "London",
+									AreaType: "city",
+								},
+							},
+						}
+
+						mockDimsc := NewMockDimensionClient(mockCtrl)
+						mockDimsc.
+							EXPECT().
+							GetAreas(ctx, gomock.Any()).
+							Return(areas, nil)
+
+						expPageDimensions := []model.Dimension{
+							{
+								ID:           "city",
+								Name:         "City",
+								Options:      []string{"London"},
+								IsTruncated:  false,
+								TruncateLink: "/test#city",
+								OptionsCount: 1,
+								URI:          "/test/geography",
+								IsAreaType:   true,
+							},
+						}
+
+						mockRend := NewMockRenderClient(mockCtrl)
+						mockRend.
+							EXPECT().
+							NewBasePageModel().
+							Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+							AnyTimes()
+						mockRend.
+							EXPECT().
+							BuildPage(gomock.Any(), pageMatchesOverviewDimensions{dimensions: expPageDimensions}, "overview")
+
+						w := httptest.NewRecorder()
+						req := httptest.NewRequest(http.MethodGet, "/test", nil)
+
+						FilterFlexOverview(mockRend, mockFc, NewMockDatasetClient(mockCtrl), mockDimsc).
+							ServeHTTP(w, req)
+
+						Convey("Then the status code should be 200", func() {
+							So(w.Code, ShouldEqual, http.StatusOK)
+						})
+					})
+				})
+			})
 		})
 
 		Convey("test filter flex overview errors", func() {
@@ -144,7 +328,7 @@ func TestUnitHandlers(t *testing.T) {
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockDimensionClient(mockCtrl)))
 
 				router.ServeHTTP(w, req)
 
@@ -792,4 +976,23 @@ func (p pageHasError) Matches(x interface{}) bool {
 
 func (p pageHasError) String() string {
 	return fmt.Sprintf("is equal to %+v", p.expected)
+}
+
+// pageMatchesOverviewDimensions is a gomock matcher that confirms a review page
+// contains the correct dimensions.
+type pageMatchesOverviewDimensions struct {
+	dimensions []model.Dimension
+}
+
+func (p pageMatchesOverviewDimensions) Matches(x interface{}) bool {
+	page, ok := x.(model.Overview)
+	if !ok {
+		return false
+	}
+
+	return reflect.DeepEqual(p.dimensions, page.Dimensions)
+}
+
+func (p pageMatchesOverviewDimensions) String() string {
+	return fmt.Sprintf("dimensions equal to %+v", p.dimensions)
 }

@@ -42,5 +42,6 @@ type DatasetClient interface {
 
 // DimensionClient is an interface with methods required for a dimension client
 type DimensionClient interface {
+	GetAreas(ctx context.Context, input dimension.GetAreasInput) (dimension.GetAreasResponse, error)
 	GetAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (dimension.GetAreaTypesResponse, error)
 }
