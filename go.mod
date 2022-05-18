@@ -3,7 +3,7 @@ module github.com/ONSdigital/dp-frontend-filter-flex-dataset
 go 1.17
 
 require (
-	github.com/ONSdigital/dp-api-clients-go/v2 v2.135.0
+	github.com/ONSdigital/dp-api-clients-go/v2 v2.137.0
 	github.com/ONSdigital/dp-cookies v0.3.3
 	github.com/ONSdigital/dp-healthcheck v1.3.0
 	github.com/ONSdigital/dp-net/v2 v2.3.0

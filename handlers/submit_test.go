@@ -29,7 +29,7 @@ func TestSubmitHandler(t *testing.T) {
 				},
 			}
 			mockFilterResp := &filter.SubmitFilterResponse{}
-			mockFilterResp.Links.FilterOutputs.ID = "abcde12345"
+			mockFilterResp.FilterOutputID = "abcde12345"
 			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockFilter, nil)
 			mockFc.EXPECT().SubmitFilter(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterResp, "", nil)
 
