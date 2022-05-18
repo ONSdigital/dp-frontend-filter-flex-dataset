@@ -18,14 +18,16 @@
                             <td class="ons-summary__item-title ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-order--1 ons-u-bb-no@xxs@s ons-u-flex--2@xxs@s">
                                 <div class="ons-summary__item--text ons-u-fw-b">{{ .Name }}</div>
                             </td>
-                            <td class="ons-summary__values ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-pl-no@xxs@s ons-u-order--3 ons-u-fw@xxs@s ons-u-pt-no@xxs@s ons-u-bb-no@xxs@s ons-u-d-b@xxs@s">
+                            <td class="ons-summary__values ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-pl-no@xxs@s ons-u-order--3 ons-u-fw@xxs@s
+                                    ons-u-pt-no@xxs@s ons-u-bb-no@xxs@s ons-u-d-b@xxs@s">
                                 {{ $length := len .Options }}
                                 {{ $strOptCount := intToString .OptionsCount }}
                                 {{ $isTruncated := .IsTruncated }}
                                 {{ if eq .IsAreaType false }}
                                     {{ localise "HasSelectedCategories" $lang 1 $strOptCount }}
                                     <div class="ons-u-mt-s ons-u-fs-s ons-list--container">
-                                        <ul class="ons-list{{ if $isTruncated }}--truncated{{end}}{{ if or (gt $length 9) ($isTruncated) }} ons-u-mb-xs{{else}} ons-u-m-no{{end}}">
+                                        <ul class="ons-list{{ if $isTruncated }}--truncated{{end}}{{ if or (gt $length 9) ($isTruncated) }} ons-u-mb-xs{{else}}
+                                                ons-u-m-no{{end}}">
                                             {{ range $i, $opt := .Options }}
                                                 <li class="ons-list__item{{ if $isTruncated }}--truncated{{end}}">
                                                     {{ . }}
@@ -66,7 +68,9 @@
                     </tbody>
                 {{ end }}
             </table>
-            {{ template "partials/collapsible" . }}
+            {{ if .Collapsible.CollapsibleItems }}
+                {{ template "partials/collapsible" . }}
+            {{ end }}
         </div>
     </div>
 </section>

@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-cookies/cookies"
@@ -18,7 +19,7 @@ import (
 const queryStrKey = "showAll"
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, dims filter.Dimensions) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims filter.Dimensions, datasetDims dataset.VersionDimensions) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
@@ -37,7 +38,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		},
 	}
 
-	for _, dim := range dims.Items {
+	for _, dim := range filterDims.Items {
 		pageDim := model.Dimension{}
 		pageDim.Name = dim.Label
 		pageDim.IsAreaType = *dim.IsAreaType
@@ -80,20 +81,23 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		p.Dimensions = append(p.Dimensions, pageDim)
 	}
 
-	// TODO: Get this from dataset client
-	p.Collapsible = coreModel.Collapsible{
-		LocaliseKey:       "VariableExplanation",
-		LocalisePluralInt: 4,
-		CollapsibleItems: []coreModel.CollapsibleItem{
-			{
-				Subheading: "This is a subheading",
-				Content:    []string{"a string"},
+	var collapsibleContentItems []coreModel.CollapsibleItem
+	for _, dims := range datasetDims.Items {
+		if dims.Description != "" {
+			var collapsibleContent coreModel.CollapsibleItem
+			collapsibleContent.Subheading = dims.Label
+			collapsibleContent.Content = strings.Split(dims.Description, "\n")
+			collapsibleContentItems = append(collapsibleContentItems, collapsibleContent)
+		}
+	}
+	if len(collapsibleContentItems) > 0 {
+		p.Collapsible = coreModel.Collapsible{
+			Title: coreModel.Localisation{
+				LocaleKey: "VariableExplanation",
+				Plural:    4,
 			},
-			{
-				Subheading: "This is another subheading",
-				Content:    []string{"another string", "and another"},
-			},
-		},
+			CollapsibleItems: collapsibleContentItems,
+		}
 	}
 
 	return p

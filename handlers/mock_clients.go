@@ -272,6 +272,21 @@ func (mr *MockDatasetClientMockRecorder) GetOptions(ctx, userAuthToken, serviceA
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOptions", reflect.TypeOf((*MockDatasetClient)(nil).GetOptions), ctx, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension, q)
 }
 
+// GetVersionDimensions mocks base method.
+func (m *MockDatasetClient) GetVersionDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version string) (dataset.VersionDimensions, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVersionDimensions", ctx, userAuthToken, serviceAuthToken, collectionID, id, edition, version)
+	ret0, _ := ret[0].(dataset.VersionDimensions)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVersionDimensions indicates an expected call of GetVersionDimensions.
+func (mr *MockDatasetClientMockRecorder) GetVersionDimensions(ctx, userAuthToken, serviceAuthToken, collectionID, id, edition, version interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersionDimensions", reflect.TypeOf((*MockDatasetClient)(nil).GetVersionDimensions), ctx, userAuthToken, serviceAuthToken, collectionID, id, edition, version)
+}
+
 // MockDimensionClient is a mock of DimensionClient interface.
 type MockDimensionClient struct {
 	ctrl     *gomock.Controller
