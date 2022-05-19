@@ -49,7 +49,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	dims, _, err := fc.GetDimensions(ctx, accessToken, "", collectionID, filterID, &filter.QueryParams{Limit: 500})
+	filterDims, _, err := fc.GetDimensions(ctx, accessToken, "", collectionID, filterID, &filter.QueryParams{Limit: 500})
 	if err != nil {
 		log.Error(ctx, "failed to get dimensions", err, log.Data{"filter_id": filterID})
 		setStatusCode(req, w, err)
@@ -98,7 +98,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return getDimensionOptions(dim)
 	}
 
-	for i, dim := range dims.Items {
+	for i, dim := range filterDims.Items {
 		// Needed to determine whether dimension is_area_type
 		filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterJob.FilterID, dim.Name)
 		if err != nil {
@@ -119,13 +119,24 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 			return
 		}
 
-		dim.Options = append(dims.Items[i].Options, options...)
-		dims.Items[i] = dim
+		dim.Options = append(filterDims.Items[i].Options, options...)
+		filterDims.Items[i] = dim
+	}
+
+	datasetDims, err := dc.GetVersionDimensions(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, fmt.Sprint(filterJob.Dataset.Version))
+	if err != nil {
+		log.Error(ctx, "failed to get versions dimensions", err, log.Data{
+			"dataset": filterJob.Dataset.DatasetID,
+			"edition": filterJob.Dataset.Edition,
+			"version": fmt.Sprint(filterJob.Dataset.Version),
+		})
+		setStatusCode(req, w, err)
+		return
 	}
 
 	basePage := rc.NewBasePageModel()
 	showAll := req.URL.Query()["showAll"]
 	path := req.URL.Path
-	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, dims)
+	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, filterDims, datasetDims)
 	rc.BuildPage(w, m, "overview")
 }

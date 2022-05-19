@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
@@ -19,7 +21,7 @@ func TestUnitMapper(t *testing.T) {
 	lang := "en"
 	showAll := []string{}
 	filterJob := filter.GetFilterResponse{}
-	dims := filter.Dimensions{
+	filterDims := filter.Dimensions{
 		Items: []filter.Dimension{
 			{
 				Name:       "Dim 1",
@@ -70,32 +72,53 @@ func TestUnitMapper(t *testing.T) {
 			},
 		},
 	}
+	datasetDims := dataset.VersionDimensions{
+		Items: []dataset.VersionDimension{
+			{
+				Description: "A description on one line",
+				Label:       "Dimension 1",
+			},
+			{
+				Description: "A description on one line \n Then a line break",
+				Label:       "Dimension 2",
+			},
+			{
+				Description: "",
+				Label:       "Only a name - I shouldn't map",
+			},
+		},
+	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, dims)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-overview")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
 		So(m.Language, ShouldEqual, lang)
-		So(m.Dimensions[0].Name, ShouldEqual, dims.Items[0].Label)
+		So(m.Dimensions[0].Name, ShouldEqual, filterDims.Items[0].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeFalse)
-		So(m.Dimensions[0].Options, ShouldResemble, dims.Items[0].Options)
+		So(m.Dimensions[0].Options, ShouldResemble, filterDims.Items[0].Options)
 		So(m.Dimensions[0].OptionsCount, ShouldEqual, 2)
-		So(m.Dimensions[0].ID, ShouldEqual, dims.Items[0].ID)
-		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", dims.Items[0].Name))
+		So(m.Dimensions[0].ID, ShouldEqual, filterDims.Items[0].ID)
+		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[0].Name))
 		So(m.Dimensions[0].IsTruncated, ShouldBeFalse)
+		So(m.Collapsible.CollapsibleItems[0].Subheading, ShouldEqual, datasetDims.Items[0].Label)
+		So(m.Collapsible.CollapsibleItems[0].Content[0], ShouldEqual, datasetDims.Items[0].Description)
+		So(m.Collapsible.CollapsibleItems[1].Subheading, ShouldEqual, datasetDims.Items[1].Label)
+		So(m.Collapsible.CollapsibleItems[1].Content, ShouldResemble, strings.Split(datasetDims.Items[1].Description, "\n"))
+		So(m.Collapsible.CollapsibleItems, ShouldHaveLength, 2)
 	})
 
 	Convey("test truncation maps as expected", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, dims)
-		So(m.Dimensions[1].OptionsCount, ShouldEqual, len(dims.Items[1].Options))
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims)
+		So(m.Dimensions[1].OptionsCount, ShouldEqual, len(filterDims.Items[1].Options))
 		So(m.Dimensions[1].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[1].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
 		So(m.Dimensions[1].Options[3:6], ShouldResemble, []string{"Opt 9", "Opt 10", "Opt 11"})
 		So(m.Dimensions[1].Options[6:], ShouldResemble, []string{"Opt 18", "Opt 19", "Opt 20"})
 		So(m.Dimensions[1].IsTruncated, ShouldBeTrue)
 
-		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(dims.Items[2].Options))
+		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
 		So(m.Dimensions[2].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[2].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
 		So(m.Dimensions[2].Options[3:6], ShouldResemble, []string{"Opt 5", "Opt 6", "Opt 7"})
@@ -104,8 +127,8 @@ func TestUnitMapper(t *testing.T) {
 	})
 
 	Convey("test truncation shows all when parameter given", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, dims)
-		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(dims.Items[2].Options))
+		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims)
+		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
 		So(m.Dimensions[2].Options, ShouldHaveLength, 12)
 		So(m.Dimensions[2].IsTruncated, ShouldBeFalse)
 	})

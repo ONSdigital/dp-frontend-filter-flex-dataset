@@ -53,6 +53,6 @@ func submit(w http.ResponseWriter, req *http.Request, accessToken, collectionID 
 	dsID := dataset.DatasetID
 	ed := dataset.Edition
 	v := strconv.Itoa(dataset.Version)
-	foID := resp.Links.FilterOutputs.ID
+	foID := resp.FilterOutputID
 	http.Redirect(w, req, fmt.Sprintf("/datasets/%s/editions/%s/versions/%s/filter-outputs/%s", dsID, ed, v, foID), http.StatusFound)
 }
