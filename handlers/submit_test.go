@@ -37,7 +37,7 @@ func TestSubmitHandler(t *testing.T) {
 
 			location := w.Header().Get("Location")
 			So(location, ShouldNotBeEmpty)
-			So(location, ShouldEqual, "/datasets/5678/editions/2021/versions/1/filter-outputs/abcde12345")
+			So(location, ShouldEqual, "/datasets/5678/editions/2021/versions/1/filter-outputs/abcde12345#get-data")
 		})
 
 		Convey("test Submit handler returns 500 if unable to get job state", func() {
