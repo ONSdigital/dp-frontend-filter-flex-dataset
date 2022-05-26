@@ -10,6 +10,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	gomock "github.com/golang/mock/gomock"
@@ -86,7 +87,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 			stubDimension := filter.Dimension{
 				Name:       dimensionName,
-				IsAreaType: toBoolPtr(false),
+				IsAreaType: helpers.ToBoolPtr(false),
 			}
 
 			// This will change, but represents the current non-area-type behaviour.
@@ -217,7 +218,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 			stubAreaTypeDimension := filter.Dimension{
 				Name:       dimensionName,
-				IsAreaType: toBoolPtr(true),
+				IsAreaType: helpers.ToBoolPtr(true),
 			}
 
 			Convey("When area types are returned", func() {
@@ -365,7 +366,7 @@ func TestDimensionsHandler(t *testing.T) {
 					mockFilter.
 						EXPECT().
 						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(filter.Dimension{IsAreaType: toBoolPtr(true)}, "", nil).
+						Return(filter.Dimension{IsAreaType: helpers.ToBoolPtr(true)}, "", nil).
 						AnyTimes()
 
 					mockDimension := NewMockDimensionClient(mockCtrl)

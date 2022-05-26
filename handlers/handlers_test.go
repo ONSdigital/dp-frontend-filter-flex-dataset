@@ -12,6 +12,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	gomock "github.com/golang/mock/gomock"
@@ -139,7 +140,7 @@ func TestUnitHandlers(t *testing.T) {
 						Name:       "geography",
 						ID:         "city",
 						Label:      "City",
-						IsAreaType: toBoolPtr(true),
+						IsAreaType: helpers.ToBoolPtr(true),
 					}
 
 					mockFc := NewMockFilterClient(mockCtrl)
@@ -187,7 +188,7 @@ func TestUnitHandlers(t *testing.T) {
 							Name:       "geography",
 							ID:         "city",
 							Label:      "City",
-							IsAreaType: toBoolPtr(true),
+							IsAreaType: helpers.ToBoolPtr(true),
 						}
 
 						mockFc := NewMockFilterClient(mockCtrl)
@@ -251,7 +252,7 @@ func TestUnitHandlers(t *testing.T) {
 							Name:       "geography",
 							ID:         "city",
 							Label:      "City",
-							IsAreaType: toBoolPtr(true),
+							IsAreaType: helpers.ToBoolPtr(true),
 						}
 
 						mockFc := NewMockFilterClient(mockCtrl)
