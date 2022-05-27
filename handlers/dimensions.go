@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
+	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
@@ -24,7 +22,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
-	nameParam := vars["name"]
+	dimensionName := vars["name"]
 
 	logData := log.Data{
 		"filter_id": filterID,
@@ -37,7 +35,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	filterDimension, err := findDimension(nameParam, currentFilter.Dimensions)
+	filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dimensionName)
 	if err != nil {
 		log.Error(ctx, "failed to find dimension in filter", err, logData)
 		setStatusCode(req, w, err)
@@ -59,51 +57,16 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, nameParam)
+	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, filterDimension, isValidationError)
 	rc.BuildPage(w, selector, "selector")
 }
 
 // isAreaType determines if the current dimension is an area type
-func isAreaType(dimension *filter.ModelDimension) bool {
-	if dimension == nil {
-		return false
-	}
-
+func isAreaType(dimension filter.Dimension) bool {
 	if dimension.IsAreaType == nil {
 		return false
 	}
 
 	return *dimension.IsAreaType
-}
-
-// findDimension attempts to find a dimension based on the dimension value in a URL param.
-func findDimension(selectionParam string, dimensions []filter.ModelDimension) (*filter.ModelDimension, error) {
-	// Params are matched by name, and therefore may contain spaces/escaped punctuation.
-	selection, err := url.QueryUnescape(selectionParam)
-	if err != nil {
-		return nil, fmt.Errorf("error escaping selection (%s): %w", selectionParam, err)
-	}
-
-	for _, dimension := range dimensions {
-		if err == nil && selection == strings.ToLower(dimension.Name) {
-			return &dimension, nil
-		}
-	}
-
-	return nil, dimensionNotFoundErr{dimensions, selection}
-}
-
-// dimensionNotFoundErr is an error provided when a matching dimension cannot be found
-// in the current filter using a dimension route parameter.
-type dimensionNotFoundErr struct {
-	list      []filter.ModelDimension
-	dimension string
-}
-
-func (d dimensionNotFoundErr) Error() string {
-	return fmt.Sprintf("could not find dimension with name %s in list (%+v)", d.dimension, d.list)
-}
-
-func (d dimensionNotFoundErr) Code() int {
-	return http.StatusNotFound
 }

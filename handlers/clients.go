@@ -27,7 +27,12 @@ type RenderClient interface {
 
 // FilterClient is an interface with the methods required for a filter client
 type FilterClient interface {
+	GetFilter(ctx context.Context, input filter.GetFilterInput) (f *filter.GetFilterResponse, err error)
 	GetJobState(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID string) (f filter.Model, eTag string, err error)
+	GetDimension(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name string) (dim filter.Dimension, eTag string, err error)
+	GetDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID string, q *filter.QueryParams) (dims filter.Dimensions, eTag string, err error)
+	UpdateDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch string, dimension filter.Dimension) (dim filter.Dimension, eTag string, err error)
+	SubmitFilter(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch string, sfr filter.SubmitFilterRequest) (resp *filter.SubmitFilterResponse, eTag string, err error)
 }
 
 // DatasetClient is an interface with methods required for a dataset client
@@ -37,5 +42,6 @@ type DatasetClient interface {
 
 // DimensionClient is an interface with methods required for a dimension client
 type DimensionClient interface {
+	GetAreas(ctx context.Context, input dimension.GetAreasInput) (dimension.GetAreasResponse, error)
 	GetAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (dimension.GetAreaTypesResponse, error)
 }

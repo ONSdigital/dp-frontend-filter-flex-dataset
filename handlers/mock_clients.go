@@ -139,6 +139,53 @@ func (m *MockFilterClient) EXPECT() *MockFilterClientMockRecorder {
 	return m.recorder
 }
 
+// GetDimension mocks base method.
+func (m *MockFilterClient) GetDimension(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name string) (filter.Dimension, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDimension", ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name)
+	ret0, _ := ret[0].(filter.Dimension)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetDimension indicates an expected call of GetDimension.
+func (mr *MockFilterClientMockRecorder) GetDimension(ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimension", reflect.TypeOf((*MockFilterClient)(nil).GetDimension), ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name)
+}
+
+// GetDimensions mocks base method.
+func (m *MockFilterClient) GetDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID string, q *filter.QueryParams) (filter.Dimensions, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDimensions", ctx, userAuthToken, serviceAuthToken, collectionID, filterID, q)
+	ret0, _ := ret[0].(filter.Dimensions)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetDimensions indicates an expected call of GetDimensions.
+func (mr *MockFilterClientMockRecorder) GetDimensions(ctx, userAuthToken, serviceAuthToken, collectionID, filterID, q interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimensions", reflect.TypeOf((*MockFilterClient)(nil).GetDimensions), ctx, userAuthToken, serviceAuthToken, collectionID, filterID, q)
+}
+
+// GetFilter mocks base method.
+func (m *MockFilterClient) GetFilter(ctx context.Context, input filter.GetFilterInput) (*filter.GetFilterResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFilter", ctx, input)
+	ret0, _ := ret[0].(*filter.GetFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFilter indicates an expected call of GetFilter.
+func (mr *MockFilterClientMockRecorder) GetFilter(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilter", reflect.TypeOf((*MockFilterClient)(nil).GetFilter), ctx, input)
+}
+
 // GetJobState mocks base method.
 func (m *MockFilterClient) GetJobState(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID string) (filter.Model, string, error) {
 	m.ctrl.T.Helper()
@@ -153,6 +200,38 @@ func (m *MockFilterClient) GetJobState(ctx context.Context, userAuthToken, servi
 func (mr *MockFilterClientMockRecorder) GetJobState(ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobState", reflect.TypeOf((*MockFilterClient)(nil).GetJobState), ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID)
+}
+
+// SubmitFilter mocks base method.
+func (m *MockFilterClient) SubmitFilter(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch string, sfr filter.SubmitFilterRequest) (*filter.SubmitFilterResponse, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubmitFilter", ctx, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch, sfr)
+	ret0, _ := ret[0].(*filter.SubmitFilterResponse)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SubmitFilter indicates an expected call of SubmitFilter.
+func (mr *MockFilterClientMockRecorder) SubmitFilter(ctx, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch, sfr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitFilter", reflect.TypeOf((*MockFilterClient)(nil).SubmitFilter), ctx, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch, sfr)
+}
+
+// UpdateDimensions mocks base method.
+func (m *MockFilterClient) UpdateDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch string, dimension filter.Dimension) (filter.Dimension, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateDimensions", ctx, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch, dimension)
+	ret0, _ := ret[0].(filter.Dimension)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UpdateDimensions indicates an expected call of UpdateDimensions.
+func (mr *MockFilterClientMockRecorder) UpdateDimensions(ctx, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch, dimension interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDimensions", reflect.TypeOf((*MockFilterClient)(nil).UpdateDimensions), ctx, userAuthToken, serviceAuthToken, collectionID, id, name, ifMatch, dimension)
 }
 
 // MockDatasetClient is a mock of DatasetClient interface.
@@ -229,4 +308,19 @@ func (m *MockDimensionClient) GetAreaTypes(ctx context.Context, userAuthToken, s
 func (mr *MockDimensionClientMockRecorder) GetAreaTypes(ctx, userAuthToken, serviceAuthToken, datasetID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreaTypes", reflect.TypeOf((*MockDimensionClient)(nil).GetAreaTypes), ctx, userAuthToken, serviceAuthToken, datasetID)
+}
+
+// GetAreas mocks base method.
+func (m *MockDimensionClient) GetAreas(ctx context.Context, input dimension.GetAreasInput) (dimension.GetAreasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAreas", ctx, input)
+	ret0, _ := ret[0].(dimension.GetAreasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAreas indicates an expected call of GetAreas.
+func (mr *MockDimensionClientMockRecorder) GetAreas(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreas", reflect.TypeOf((*MockDimensionClient)(nil).GetAreas), ctx, input)
 }

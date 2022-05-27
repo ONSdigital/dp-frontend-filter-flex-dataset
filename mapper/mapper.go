@@ -18,7 +18,7 @@ import (
 const queryStrKey = "showAll"
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.Model) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, dims filter.Dimensions) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
@@ -28,6 +28,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	p.Type = "filter-flex-overview"
 	p.Metadata.Title = "Review changes"
 	p.Language = lang
+	p.FilterID = filterJob.FilterID
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
@@ -36,14 +37,13 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		},
 	}
 
-	for _, dim := range filterJob.Dimensions {
+	for _, dim := range dims.Items {
 		pageDim := model.Dimension{}
-		encodedName := url.QueryEscape(dim.Name)
-		pageDim.Name = dim.Name
+		pageDim.Name = dim.Label
 		pageDim.IsAreaType = *dim.IsAreaType
 		pageDim.OptionsCount = len(dim.Options)
-		pageDim.EncodedName = encodedName
-		pageDim.URI = fmt.Sprintf("%s/%s", path, encodedName)
+		pageDim.ID = dim.ID
+		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
 		q := url.Values{}
 
 		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) {
@@ -72,8 +72,8 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		if q.Encode() != "" {
 			truncatePath += fmt.Sprintf("?%s", q.Encode())
 		}
-		if encodedName != "" {
-			truncatePath += fmt.Sprintf("#%s", encodedName)
+		if dim.ID != "" {
+			truncatePath += fmt.Sprintf("#%s", dim.ID)
 		}
 		pageDim.TruncateLink = truncatePath
 
@@ -122,9 +122,15 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang st
 }
 
 // CreateAreaTypeSelector maps data to the Overview model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, selectionName string) model.Selector {
-	p := CreateSelector(req, basePage, selectionName, lang)
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
+	p := CreateSelector(req, basePage, fDim.Label, lang)
 	p.Page.Metadata.Title = "Area Type"
+
+	if isValidationError {
+		p.Page.Error = coreModel.Error{
+			Title: "Error: Select an area type",
+		}
+	}
 
 	var selections []model.Selection
 	for _, area := range areaType {
@@ -136,7 +142,8 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang str
 	}
 
 	p.Selections = selections
-	p.InitialSelection = selectionName
+	p.InitialSelection = fDim.ID
+	p.IsAreaType = true
 
 	return p
 }

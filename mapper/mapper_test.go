@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
@@ -19,8 +18,9 @@ func TestUnitMapper(t *testing.T) {
 	req := httptest.NewRequest("", "/", nil)
 	lang := "en"
 	showAll := []string{}
-	filterJob := filter.Model{
-		Dimensions: []filter.ModelDimension{
+	filterJob := filter.GetFilterResponse{}
+	dims := filter.Dimensions{
+		Items: []filter.Dimension{
 			{
 				Name:       "Dim 1",
 				IsAreaType: new(bool),
@@ -72,31 +72,30 @@ func TestUnitMapper(t *testing.T) {
 	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob)
-		mockEncodedName := url.QueryEscape(filterJob.Dimensions[0].Name)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, dims)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-overview")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
 		So(m.Language, ShouldEqual, lang)
-		So(m.Dimensions[0].Name, ShouldEqual, filterJob.Dimensions[0].Name)
+		So(m.Dimensions[0].Name, ShouldEqual, dims.Items[0].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeFalse)
-		So(m.Dimensions[0].Options, ShouldResemble, filterJob.Dimensions[0].Options)
+		So(m.Dimensions[0].Options, ShouldResemble, dims.Items[0].Options)
 		So(m.Dimensions[0].OptionsCount, ShouldEqual, 2)
-		So(m.Dimensions[0].EncodedName, ShouldEqual, mockEncodedName)
-		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", mockEncodedName))
+		So(m.Dimensions[0].ID, ShouldEqual, dims.Items[0].ID)
+		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", dims.Items[0].Name))
 		So(m.Dimensions[0].IsTruncated, ShouldBeFalse)
 	})
 
 	Convey("test truncation maps as expected", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob)
-		So(m.Dimensions[1].OptionsCount, ShouldEqual, len(filterJob.Dimensions[1].Options))
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, dims)
+		So(m.Dimensions[1].OptionsCount, ShouldEqual, len(dims.Items[1].Options))
 		So(m.Dimensions[1].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[1].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
 		So(m.Dimensions[1].Options[3:6], ShouldResemble, []string{"Opt 9", "Opt 10", "Opt 11"})
 		So(m.Dimensions[1].Options[6:], ShouldResemble, []string{"Opt 18", "Opt 19", "Opt 20"})
 		So(m.Dimensions[1].IsTruncated, ShouldBeTrue)
 
-		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(filterJob.Dimensions[2].Options))
+		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(dims.Items[2].Options))
 		So(m.Dimensions[2].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[2].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
 		So(m.Dimensions[2].Options[3:6], ShouldResemble, []string{"Opt 5", "Opt 6", "Opt 7"})
@@ -105,8 +104,8 @@ func TestUnitMapper(t *testing.T) {
 	})
 
 	Convey("test truncation shows all when parameter given", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob)
-		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(filterJob.Dimensions[2].Options))
+		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, dims)
+		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(dims.Items[2].Options))
 		So(m.Dimensions[2].Options, ShouldHaveLength, 12)
 		So(m.Dimensions[2].IsTruncated, ShouldBeFalse)
 	})
@@ -128,7 +127,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", areas, "")
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", areas, filter.Dimension{}, false)
 
 		expectedSelections := []model.Selection{
 			{Value: "one", Label: "One", TotalCount: 1},
@@ -143,7 +142,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, nil, "")
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, nil, filter.Dimension{}, false)
 
 		Convey("it sets page metadata", func() {
 			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
@@ -154,15 +153,28 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		Convey("it sets the title to Area Type", func() {
 			So(changeDimension.Metadata.Title, ShouldEqual, "Area Type")
 		})
+
+		Convey("it sets IsAreaType to true", func() {
+			So(changeDimension.IsAreaType, ShouldBeTrue)
+		})
 	})
 
-	Convey("Given a selection name", t, func() {
+	Convey("Given the current filter dimension", t, func() {
 		const selectionName = "test"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, selectionName)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, filter.Dimension{ID: selectionName}, false)
 
 		Convey("it returns the value as an initial selection", func() {
 			So(changeDimension.InitialSelection, ShouldEqual, selectionName)
+		})
+	})
+
+	Convey("Given a validation error", t, func() {
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, filter.Dimension{}, true)
+
+		Convey("it returns a populated error", func() {
+			So(changeDimension.Error.Title, ShouldNotBeEmpty)
 		})
 	})
 }

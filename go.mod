@@ -3,12 +3,12 @@ module github.com/ONSdigital/dp-frontend-filter-flex-dataset
 go 1.17
 
 require (
-	github.com/ONSdigital/dp-api-clients-go/v2 v2.110.0
+	github.com/ONSdigital/dp-api-clients-go/v2 v2.124.0
 	github.com/ONSdigital/dp-cookies v0.3.3
 	github.com/ONSdigital/dp-healthcheck v1.3.0
-	github.com/ONSdigital/dp-net/v2 v2.0.0
+	github.com/ONSdigital/dp-net/v2 v2.3.0
 	github.com/ONSdigital/dp-renderer v1.20.1
-	github.com/ONSdigital/log.go/v2 v2.1.0
+	github.com/ONSdigital/log.go/v2 v2.2.0
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -19,7 +19,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/ONSdigital/dp-api-clients-go v1.43.0 // indirect
 	github.com/ONSdigital/dp-net v1.4.1 // indirect
-	github.com/aws/aws-sdk-go v1.42.47 // indirect
+	github.com/aws/aws-sdk-go v1.43.38 // indirect
 	github.com/c2h5oh/datasize v0.0.0-20200825124411-48ed595a09d2 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
@@ -38,7 +38,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/smartystreets/assertions v1.2.1 // indirect
 	github.com/unrolled/render v1.4.0 // indirect
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
-	golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a // indirect
+	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
 	golang.org/x/text v0.3.7 // indirect
 )
