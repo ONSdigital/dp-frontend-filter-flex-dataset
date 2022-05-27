@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -80,6 +81,10 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 
 		p.Dimensions = append(p.Dimensions, pageDim)
 	}
+
+	sort.Slice(p.Dimensions, func(i, j int) bool {
+		return p.Dimensions[i].IsAreaType == true
+	})
 
 	var collapsibleContentItems []coreModel.CollapsibleItem
 	for _, dims := range datasetDims.Items {

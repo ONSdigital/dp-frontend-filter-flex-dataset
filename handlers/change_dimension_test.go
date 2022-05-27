@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	. "github.com/smartystreets/goconvey/convey"
@@ -54,7 +55,7 @@ func TestChangeDimensionHandler(t *testing.T) {
 				expDimension := filter.Dimension{
 					Name:       "geography",
 					ID:         newDimension,
-					IsAreaType: toBoolPtr(true),
+					IsAreaType: helpers.ToBoolPtr(true),
 				}
 
 				filterClient := NewMockFilterClient(mockCtrl)
