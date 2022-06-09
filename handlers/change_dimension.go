@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
@@ -43,7 +44,7 @@ func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, 
 	dimension := filter.Dimension{
 		Name:       dimensionName,
 		ID:         form.Dimension,
-		IsAreaType: toBoolPtr(form.IsAreaType),
+		IsAreaType: helpers.ToBoolPtr(form.IsAreaType),
 	}
 
 	if _, _, err = fc.UpdateDimensions(ctx, accessToken, "", collectionID, filterID, dimensionName, "", dimension); err != nil {

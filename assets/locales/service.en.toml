@@ -54,3 +54,7 @@ one = "Select area type"
 [SelectAreaTypeError]
 description = "Select an area type"
 one = "Select an area type"
+
+[AreaTypeDescription]
+description = "Area type"
+one = "Area type"
