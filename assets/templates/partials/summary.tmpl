@@ -35,7 +35,7 @@
                                         <ul class="ons-list{{ if $isTruncated }}--truncated{{end}}{{ if or (gt $length 9) ($isTruncated) }} ons-u-mb-xs{{else}}
                                                 ons-u-m-no{{end}}">
                                             {{ range $i, $opt := .Options }}
-                                                <li class="ons-list__item{{ if $isTruncated }}--truncated{{end}}">
+                                                <li class="ons-list__item{{ if $isTruncated }}--truncated{{end}} ons-u-mb-no">
                                                     {{ . }}
                                                 </li>
                                             {{ end }}
