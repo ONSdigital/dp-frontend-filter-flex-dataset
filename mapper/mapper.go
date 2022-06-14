@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-cookies/cookies"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
@@ -131,7 +131,7 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang st
 }
 
 // CreateAreaTypeSelector maps data to the Overview model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []dimension.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []population.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
 	p := CreateSelector(req, basePage, fDim.Label, lang)
 	p.Page.Metadata.Title = "Area Type"
 

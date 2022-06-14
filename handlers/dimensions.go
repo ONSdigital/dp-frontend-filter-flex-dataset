@@ -12,13 +12,13 @@ import (
 )
 
 // DimensionsSelector Handler
-func DimensionsSelector(rc RenderClient, fc FilterClient, dimsc DimensionClient) http.HandlerFunc {
+func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		dimensionsSelector(w, req, rc, fc, dimsc, collectionID, accessToken, lang)
+		dimensionsSelector(w, req, rc, fc, pc, collectionID, accessToken, lang)
 	})
 }
 
-func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dimsc DimensionClient, collectionID, accessToken, lang string) {
+func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, pc PopulationClient, collectionID, accessToken, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -50,9 +50,9 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	areaTypes, err := dimsc.GetAreaTypes(ctx, accessToken, "", currentFilter.PopulationType)
+	areaTypes, err := pc.GetPopulationAreaTypes(ctx, accessToken, "", currentFilter.PopulationType)
 	if err != nil {
-		log.Error(ctx, "failed to get geography dimensions", err, logData)
+		log.Error(ctx, "failed to get population area types", err, logData)
 		setStatusCode(req, w, err)
 		return
 	}
