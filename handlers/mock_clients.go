@@ -12,6 +12,7 @@ import (
 	dataset "github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	dimension "github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	filter "github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	population "github.com/ONSdigital/dp-api-clients-go/v2/population"
 	model "github.com/ONSdigital/dp-renderer/model"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -310,21 +311,6 @@ func (m *MockDimensionClient) EXPECT() *MockDimensionClientMockRecorder {
 	return m.recorder
 }
 
-// GetAreaTypes mocks base method.
-func (m *MockDimensionClient) GetAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (dimension.GetAreaTypesResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAreaTypes", ctx, userAuthToken, serviceAuthToken, datasetID)
-	ret0, _ := ret[0].(dimension.GetAreaTypesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAreaTypes indicates an expected call of GetAreaTypes.
-func (mr *MockDimensionClientMockRecorder) GetAreaTypes(ctx, userAuthToken, serviceAuthToken, datasetID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreaTypes", reflect.TypeOf((*MockDimensionClient)(nil).GetAreaTypes), ctx, userAuthToken, serviceAuthToken, datasetID)
-}
-
 // GetAreas mocks base method.
 func (m *MockDimensionClient) GetAreas(ctx context.Context, input dimension.GetAreasInput) (dimension.GetAreasResponse, error) {
 	m.ctrl.T.Helper()
@@ -338,4 +324,42 @@ func (m *MockDimensionClient) GetAreas(ctx context.Context, input dimension.GetA
 func (mr *MockDimensionClientMockRecorder) GetAreas(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreas", reflect.TypeOf((*MockDimensionClient)(nil).GetAreas), ctx, input)
+}
+
+// MockPopulationClient is a mock of PopulationClient interface.
+type MockPopulationClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockPopulationClientMockRecorder
+}
+
+// MockPopulationClientMockRecorder is the mock recorder for MockPopulationClient.
+type MockPopulationClientMockRecorder struct {
+	mock *MockPopulationClient
+}
+
+// NewMockPopulationClient creates a new mock instance.
+func NewMockPopulationClient(ctrl *gomock.Controller) *MockPopulationClient {
+	mock := &MockPopulationClient{ctrl: ctrl}
+	mock.recorder = &MockPopulationClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPopulationClient) EXPECT() *MockPopulationClientMockRecorder {
+	return m.recorder
+}
+
+// GetPopulationAreaTypes mocks base method.
+func (m *MockPopulationClient) GetPopulationAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (population.GetAreaTypesResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPopulationAreaTypes", ctx, userAuthToken, serviceAuthToken, datasetID)
+	ret0, _ := ret[0].(population.GetAreaTypesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPopulationAreaTypes indicates an expected call of GetPopulationAreaTypes.
+func (mr *MockPopulationClientMockRecorder) GetPopulationAreaTypes(ctx, userAuthToken, serviceAuthToken, datasetID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPopulationAreaTypes", reflect.TypeOf((*MockPopulationClient)(nil).GetPopulationAreaTypes), ctx, userAuthToken, serviceAuthToken, datasetID)
 }
