@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -11,17 +12,26 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
+	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestUnitMapper(t *testing.T) {
+	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	mdl := coreModel.Page{}
 	req := httptest.NewRequest("", "/", nil)
 	lang := "en"
 	showAll := []string{}
-	filterJob := filter.GetFilterResponse{}
+	filterJob := filter.GetFilterResponse{
+		Dataset: filter.Dataset{
+			DatasetID: "example",
+			Edition:   "2021",
+			Version:   1,
+		},
+	}
 	filterDims := filter.Dimensions{
 		Items: []filter.Dimension{
 			{
@@ -99,6 +109,11 @@ func TestUnitMapper(t *testing.T) {
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-overview")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
+		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
+		So(m.Breadcrumb[0].URI, ShouldEqual, fmt.Sprintf("/datasets/%s/editions/%s/versions/%s",
+			filterJob.Dataset.DatasetID,
+			filterJob.Dataset.Edition,
+			strconv.Itoa(filterJob.Dataset.Version)))
 		So(m.Language, ShouldEqual, lang)
 		So(m.Dimensions[0].Name, ShouldEqual, filterDims.Items[3].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
@@ -151,11 +166,13 @@ func TestUnitMapper(t *testing.T) {
 	})
 
 	Convey("test create selector maps correctly", t, func() {
-		m := CreateSelector(req, mdl, "dimensionName", lang)
+		m := CreateSelector(req, mdl, "dimensionName", lang, "12345")
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-selector")
 		So(m.Metadata.Title, ShouldEqual, "DimensionName")
 		So(m.Language, ShouldEqual, lang)
+		So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
+		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
 	})
 }
 
@@ -167,7 +184,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", areas, filter.Dimension{}, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, false)
 
 		expectedSelections := []model.Selection{
 			{Value: "one", Label: "One", TotalCount: 1},
@@ -182,7 +199,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, nil, filter.Dimension{}, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, "12345", nil, filter.Dimension{}, false)
 
 		Convey("it sets page metadata", func() {
 			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
@@ -202,7 +219,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given the current filter dimension", t, func() {
 		const selectionName = "test"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, filter.Dimension{ID: selectionName}, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{ID: selectionName}, false)
 
 		Convey("it returns the value as an initial selection", func() {
 			So(changeDimension.InitialSelection, ShouldEqual, selectionName)
@@ -211,7 +228,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given a validation error", t, func() {
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", nil, filter.Dimension{}, true)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, true)
 
 		Convey("it returns a populated error", func() {
 			So(changeDimension.Error.Title, ShouldNotBeEmpty)
