@@ -9,6 +9,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/health"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/assets"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/routes"
@@ -55,12 +56,18 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *E
 		return fmt.Errorf("failed to create dimensions API client: %w", err)
 	}
 
+	populationClient, err := population.NewWithHealthClient(svc.routerHealthClient)
+	if err != nil {
+		return fmt.Errorf("failed to create population API client: %w", err)
+	}
+
 	// Initialise clients
 	clients := routes.Clients{
-		Render:    render.NewWithDefaultClient(assets.Asset, assets.AssetNames, cfg.PatternLibraryAssetsPath, cfg.SiteDomain),
-		Filter:    filter.NewWithHealthClient(svc.routerHealthClient),
-		Dataset:   dataset.NewWithHealthClient(svc.routerHealthClient),
-		Dimension: dimensionClient,
+		Render:     render.NewWithDefaultClient(assets.Asset, assets.AssetNames, cfg.PatternLibraryAssetsPath, cfg.SiteDomain),
+		Filter:     filter.NewWithHealthClient(svc.routerHealthClient),
+		Dataset:    dataset.NewWithHealthClient(svc.routerHealthClient),
+		Dimension:  dimensionClient,
+		Population: populationClient,
 	}
 
 	// Get healthcheck with checkers

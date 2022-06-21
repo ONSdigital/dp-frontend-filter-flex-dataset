@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
@@ -161,7 +161,7 @@ func TestUnitMapper(t *testing.T) {
 
 func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given a slice of geography areas", t, func() {
-		areas := []dimension.AreaType{
+		areas := []population.AreaType{
 			{ID: "one", Label: "One", TotalCount: 1},
 			{ID: "two", Label: "Two", TotalCount: 2},
 		}
