@@ -26,12 +26,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	p := model.Overview{
 		Page: basePage,
 	}
-	mapCookiePreferences(req, &p.Page.CookiesPreferencesSet, &p.Page.CookiesPolicy)
-
-	p.BetaBannerEnabled = true
-	p.Type = "filter-flex-overview"
-	p.Metadata.Title = "Review changes"
-	p.Language = lang
+	mapCommonProps(req, &p.Page, "filter-flex-overview", "Review changes", lang)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 
@@ -119,13 +114,7 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 	p := model.Selector{
 		Page: basePage,
 	}
-	mapCookiePreferences(req, &p.Page.CookiesPreferencesSet, &p.Page.CookiesPolicy)
-
-	p.BetaBannerEnabled = true
-	p.Type = "filter-flex-selector"
-	p.Metadata.Title = strings.Title(dimName)
-	p.Language = lang
-
+	mapCommonProps(req, &p.Page, "filter-flex-selector", strings.Title(dimName), lang)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
@@ -136,10 +125,10 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 	return p
 }
 
-// CreateAreaTypeSelector maps data to the Overview model
+// CreateAreaTypeSelector maps data to the Selector model
 func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
 	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
-	p.Page.Metadata.Title = "Area Type"
+	p.Page.Metadata.Title = "Area type"
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
@@ -161,6 +150,31 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 	p.IsAreaType = true
 
 	return p
+}
+
+// CreateGetCoverage maps data to the coverage model
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID string) model.Coverage {
+	p := model.Coverage{
+		Page: basePage,
+	}
+	mapCommonProps(req, &p.Page, "filter-flex-coverage", "Coverage", lang)
+	p.Breadcrumb = []coreModel.TaxonomyNode{
+		{
+			Title: helper.Localise("Back", lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
+		},
+	}
+
+	return p
+}
+
+// mapCommonProps maps common properties on all filter/flex pages
+func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang string) {
+	mapCookiePreferences(req, &p.CookiesPreferencesSet, &p.CookiesPolicy)
+	p.BetaBannerEnabled = true
+	p.Type = pageType
+	p.Metadata.Title = title
+	p.Language = lang
 }
 
 // mapCookiePreferences reads cookie policy and preferences cookies and then maps the values to the page model
