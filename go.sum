@@ -70,8 +70,6 @@ github.com/ONSdigital/dp-net/v2 v2.0.0/go.mod h1:Pv/35rM5tCLYdVdIZ5KoGu2EUXv/87f
 github.com/ONSdigital/dp-net/v2 v2.2.0/go.mod h1:Pv/35rM5tCLYdVdIZ5KoGu2EUXv/87fWTptlVTlS5MY=
 github.com/ONSdigital/dp-net/v2 v2.3.0 h1:Qm4OmtLRS5RDVk/1uC6NvKJVsTJL+nLUWWjl4S7PQaw=
 github.com/ONSdigital/dp-net/v2 v2.3.0/go.mod h1:8X7E1wiJxL59qaDFt3ShDfFLfIGs4WMRPx1sZIgAqbU=
-github.com/ONSdigital/dp-renderer v1.33.0 h1:tAynGlnNnUVrpDoo7gZ0bM4/LJl/1QRDtenlAVMQtxE=
-github.com/ONSdigital/dp-renderer v1.33.0/go.mod h1:odKmVudLXN9WaenfrKgGGrfmZARZFemSNtSy6gxTue8=
 github.com/ONSdigital/dp-renderer v1.33.1 h1:xWIUkYLfGFg3gkP2Yn9a/1ZS1Tfd76IpO4kea790yHU=
 github.com/ONSdigital/dp-renderer v1.33.1/go.mod h1:odKmVudLXN9WaenfrKgGGrfmZARZFemSNtSy6gxTue8=
 github.com/ONSdigital/go-ns v0.0.0-20191104121206-f144c4ec2e58/go.mod h1:iWos35il+NjbvDEqwtB736pyHru0MPFE/LqcwkV1wDc=
@@ -129,6 +127,8 @@ github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
+github.com/gertd/go-pluralize v0.2.1 h1:M3uASbVjMnTsPb0PNqg+E/24Vwigyo/tvyMTtAlLgiA=
+github.com/gertd/go-pluralize v0.2.1/go.mod h1:rbYaKDbsXxmRfr8uygAEKhOWsjyrrqrkHVpZvoOp8zk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=

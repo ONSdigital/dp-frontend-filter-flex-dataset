@@ -9,6 +9,7 @@ require (
 	github.com/ONSdigital/dp-net/v2 v2.3.0
 	github.com/ONSdigital/dp-renderer v1.33.1
 	github.com/ONSdigital/log.go/v2 v2.2.0
+	github.com/gertd/go-pluralize v0.2.1
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0

@@ -50,3 +50,7 @@ type DimensionClient interface {
 type PopulationClient interface {
 	GetPopulationAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (population.GetAreaTypesResponse, error)
 }
+
+type PluralizeClient interface {
+	Plural(word string) string
+}
