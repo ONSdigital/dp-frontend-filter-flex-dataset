@@ -207,8 +207,8 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 			So(changeDimension.Language, ShouldEqual, lang)
 		})
 
-		Convey("it sets the title to Area Type", func() {
-			So(changeDimension.Metadata.Title, ShouldEqual, "Area Type")
+		Convey("it sets the title to Area type", func() {
+			So(changeDimension.Metadata.Title, ShouldEqual, "Area type")
 		})
 
 		Convey("it sets IsAreaType to true", func() {
@@ -232,6 +232,25 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 		Convey("it returns a populated error", func() {
 			So(changeDimension.Error.Title, ShouldNotBeEmpty)
+		})
+	})
+}
+
+func TestGetCoverage(t *testing.T) {
+	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
+	Convey("Given a valid page", t, func() {
+		const lang = "en"
+		req := httptest.NewRequest("", "/", nil)
+		coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345")
+
+		Convey("it sets page metadata", func() {
+			So(coverage.BetaBannerEnabled, ShouldBeTrue)
+			So(coverage.Type, ShouldEqual, "filter-flex-coverage")
+			So(coverage.Language, ShouldEqual, lang)
+		})
+
+		Convey("it sets the title to Coverage", func() {
+			So(coverage.Metadata.Title, ShouldEqual, "Coverage")
 		})
 	})
 }
