@@ -10,15 +10,27 @@
                         <div class="ons-radios__items">
                             <span class="ons-radios__item ons-radios__item--no-border">
                                 <span class="ons-radio ons-radio--no-border">
-                                    <input type="radio" id="coverage-default" class="ons-radio__input ons-js-radio" value="coverage-default" name="coverage" checked>
+                                    <input type="radio" 
+                                        id="coverage-default" 
+                                        class="ons-radio__input ons-js-radio" 
+                                        value="coverage-default"
+                                        name="coverage" 
+                                        checked>
                                     <label class=" ons-radio__label" for="coverage-default">{{- localise "CoverageDefault" .Language 1 .Geography -}}</label>
                                 </span>
                             </span>
                             <br>
                             <span class="ons-radios__item ons-radios__item--no-border ons-u-fw">
                                 <span class="ons-radio ons-radio--no-border">
-                                    <input type="radio" id="coverage-search" class="ons-radio__input ons-js-radio ons-js-other" value="coverage-search" name="coverage" aria-controls="other-radio-other-wrap" aria-haspopup="true">
-                                    <label class=" ons-radio__label " for="coverage-search">{{- localise "CoverageSearch" .Language 1 .Geography -}}</label>
+                                    <input 
+                                        type="radio" 
+                                        id="coverage-search" 
+                                        class="ons-radio__input ons-js-radio ons-js-other" 
+                                        value="coverage-search" 
+                                        name="coverage" 
+                                        aria-controls="other-radio-other-wrap" 
+                                        aria-haspopup="true">
+                                    <label class="ons-radio__label" for="coverage-search">{{- localise "CoverageSearch" .Language 1 .Geography -}}</label>
                                     <span class="ons-radio__other" id="other-radio-other-wrap">
                                         <span class="ons-field">
                                             <label class="ons-label ons-u-pb-xs" for="search-field">{{- localise "CoverageSearchLabel" .Language 1 -}}</label>
@@ -38,7 +50,7 @@
                         </div>
                     </fieldset>
                     <button type="submit" class="ons-btn ons-u-mt-xl ons-u-mb-s">
-                        <span class="ons-btn__inner">{{ localise "Continue" .Language 1 }}</span>
+                        <span class="ons-btn__inner">{{- localise "Continue" .Language 1 -}}</span>
                     </button>
                 </form>
             </div>
