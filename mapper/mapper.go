@@ -153,7 +153,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID string) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName string) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -164,6 +164,8 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
 		},
 	}
+
+	p.Geography = strings.ToLower(geogName)
 
 	return p
 }

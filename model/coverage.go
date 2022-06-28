@@ -7,4 +7,5 @@ import (
 // Coverage represents the data to display the coverage page
 type Coverage struct {
 	coreModel.Page
+	Geography string `json:"geography"`
 }

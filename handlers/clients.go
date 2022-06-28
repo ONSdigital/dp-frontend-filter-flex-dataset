@@ -47,6 +47,7 @@ type DimensionClient interface {
 	GetAreas(ctx context.Context, input dimension.GetAreasInput) (dimension.GetAreasResponse, error)
 }
 
+// PopulationClient is an interface with methods required for a population client
 type PopulationClient interface {
 	GetPopulationAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (population.GetAreaTypesResponse, error)
 }

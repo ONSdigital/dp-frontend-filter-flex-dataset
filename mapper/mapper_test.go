@@ -241,7 +241,7 @@ func TestGetCoverage(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345")
+		coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Geography Label")
 
 		Convey("it sets page metadata", func() {
 			So(coverage.BetaBannerEnabled, ShouldBeTrue)
@@ -251,6 +251,10 @@ func TestGetCoverage(t *testing.T) {
 
 		Convey("it sets the title to Coverage", func() {
 			So(coverage.Metadata.Title, ShouldEqual, "Coverage")
+		})
+
+		Convey("it sets the geography to geography label", func() {
+			So(coverage.Geography, ShouldEqual, "geography label")
 		})
 	})
 }
