@@ -15,7 +15,6 @@ import (
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/routes"
 	render "github.com/ONSdigital/dp-renderer"
 	"github.com/ONSdigital/log.go/v2/log"
-	"github.com/gertd/go-pluralize"
 	"github.com/gorilla/mux"
 )
 
@@ -69,7 +68,6 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *E
 		Dataset:    dataset.NewWithHealthClient(svc.routerHealthClient),
 		Dimension:  dimensionClient,
 		Population: populationClient,
-		Pluralize:  pluralize.NewClient(),
 	}
 
 	// Get healthcheck with checkers

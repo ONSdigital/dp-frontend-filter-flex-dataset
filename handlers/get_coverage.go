@@ -9,13 +9,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetCoverage(rc RenderClient, fc FilterClient, p PluralizeClient) http.HandlerFunc {
+func GetCoverage(rc RenderClient, fc FilterClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		getCoverage(w, req, rc, fc, p, lang, accessToken, collectionID)
+		getCoverage(w, req, rc, fc, lang, accessToken, collectionID)
 	})
 }
 
-func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, p PluralizeClient, lang, accessToken, collectionID string) {
+func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, lang, accessToken, collectionID string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -27,9 +27,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		return
 	}
 
-	geog := p.Plural(geography.Label)
-
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geog)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geography.Label)
 	rc.BuildPage(w, m, "coverage")
 }

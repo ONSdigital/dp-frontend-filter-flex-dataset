@@ -11,7 +11,6 @@ import (
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/handlers"
 	render "github.com/ONSdigital/dp-renderer"
-	"github.com/gertd/go-pluralize"
 
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
@@ -25,7 +24,6 @@ type Clients struct {
 	Dataset            *dataset.Client
 	Dimension          *dimension.Client
 	Population         *population.Client
-	Pluralize          *pluralize.Client
 }
 
 // Setup registers routes for the service
@@ -38,5 +36,5 @@ func Setup(ctx context.Context, r *mux.Router, cfg *config.Config, c Clients) {
 	r.StrictSlash(true).Path("/filters/{filterID}/dimensions").Methods("GET").HandlerFunc(handlers.FilterFlexOverview(c.Render, c.Filter, c.Dataset, c.Dimension))
 	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("GET").HandlerFunc(handlers.DimensionsSelector(c.Render, c.Filter, c.Population))
 	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("POST").HandlerFunc(handlers.ChangeDimension(c.Filter))
-	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/geography/coverage").Methods("GET").HandlerFunc(handlers.GetCoverage(c.Render, c.Filter, c.Pluralize))
+	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/geography/coverage").Methods("GET").HandlerFunc(handlers.GetCoverage(c.Render, c.Filter))
 }

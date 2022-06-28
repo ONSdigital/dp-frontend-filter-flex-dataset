@@ -58,3 +58,23 @@ one = "Select an area type"
 [AreaTypeDescription]
 description = "Area type"
 one = "Area type"
+
+[CoverageLegend]
+description = "Select the geography you would like your dataset to cover"
+one = "Select the geography you would like your dataset to cover"
+
+[CoverageDefault]
+description = "All {{.Geography}} within England and Wales"
+one = "All {{.arg0}} within England and Wales"
+
+[CoverageSearch]
+description = "Search for {{.Geography}} by name"
+one = "Search for {{.arg0}} by name"
+
+[CoverageSearchLabel]
+description = "Enter an area name or code"
+one = "Enter an area name or code"
+
+[CoverageSearchButtonText]
+description = "Search"
+one = "Search"
