@@ -1,9 +1,12 @@
 package helpers
 
 import (
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
+	"github.com/ONSdigital/dp-renderer/helper"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -61,5 +64,51 @@ func TestToBoolPtr(t *testing.T) {
 		So(ToBoolPtr(false), ShouldNotBeNil)
 		truePtr := func(b bool) *bool { return &b }(true)
 		So(ToBoolPtr(true), ShouldResemble, truePtr)
+	})
+}
+
+func TestPluralise(t *testing.T) {
+	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
+	req := httptest.NewRequest("GET", "http://localhost:20100", nil)
+
+	Convey("Given a valid key with lookup prefix", t, func() {
+		input := "Country"
+		expectedOutput := "Countries"
+		lookupPrefix := "AreaType"
+		sut := Pluralise(req, input, "en", lookupPrefix, 4)
+
+		Convey("Then pluralised value is returned", func() {
+			So(sut, ShouldEqual, expectedOutput)
+		})
+	})
+
+	Convey("Given a valid key without lookup prefix", t, func() {
+		input := "Test"
+		expectedOutput := "Tests"
+		sut := Pluralise(req, input, "en", "", 4)
+
+		Convey("Then pluralised value is returned", func() {
+			So(sut, ShouldEqual, expectedOutput)
+		})
+	})
+
+	Convey("Given a valid key without lookup prefix in Welsh", t, func() {
+		input := "Test"
+		expectedOutput := "Tests (cy)"
+		sut := Pluralise(req, input, "cy", "", 4)
+
+		Convey("Then pluralised value is returned", func() {
+			So(sut, ShouldEqual, expectedOutput)
+		})
+	})
+
+	Convey("Given an invalid key", t, func() {
+		input := "Blah blah"
+		expectedOutput := ""
+		sut := Pluralise(req, input, "", "", 1)
+
+		Convey("Then empty string is returned", func() {
+			So(sut, ShouldEqual, expectedOutput)
+		})
 	})
 }

@@ -5,11 +5,23 @@ import "strings"
 var cyLocale = []string{
 	"[Back]",
 	"one = \"Back\"",
+	"[AreaTypeCountry]",
+	"one = \"Country\"",
+	"other = \"Countries\"",
+	"[Test]",
+	"one = \"Test (cy)\"",
+	"other = \"Tests (cy)\"",
 }
 
 var enLocale = []string{
 	"[Back]",
 	"one = \"Back\"",
+	"[AreaTypeCountry]",
+	"one = \"Country\"",
+	"other = \"Countries\"",
+	"[Test]",
+	"one = \"Test\"",
+	"other = \"Tests\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes
