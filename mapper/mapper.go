@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -13,6 +14,7 @@ import (
 	"github.com/ONSdigital/dp-cookies/cookies"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
+	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 )
 
@@ -24,18 +26,17 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	p := model.Overview{
 		Page: basePage,
 	}
-	mapCookiePreferences(req, &p.Page.CookiesPreferencesSet, &p.Page.CookiesPolicy)
-
-	p.BetaBannerEnabled = true
-	p.Type = "filter-flex-overview"
-	p.Metadata.Title = "Review changes"
-	p.Language = lang
+	mapCommonProps(req, &p.Page, "filter-flex-overview", "Review changes", lang)
 	p.FilterID = filterJob.FilterID
+	dataset := filterJob.Dataset
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
-			Title: "Back",
-			URI:   "#",
+			Title: helper.Localise("Back", lang, 1),
+			URI: fmt.Sprintf("/datasets/%s/editions/%s/versions/%s",
+				dataset.DatasetID,
+				dataset.Edition,
+				strconv.Itoa(dataset.Version)),
 		},
 	}
 
@@ -109,31 +110,25 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 }
 
 // CreateSelector maps data to the Selector model
-func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang string) model.Selector {
+func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, filterID string) model.Selector {
 	p := model.Selector{
 		Page: basePage,
 	}
-	mapCookiePreferences(req, &p.Page.CookiesPreferencesSet, &p.Page.CookiesPolicy)
-
-	p.BetaBannerEnabled = true
-	p.Type = "filter-flex-selector"
-	p.Metadata.Title = strings.Title(dimName)
-	p.Language = lang
-
+	mapCommonProps(req, &p.Page, "filter-flex-selector", strings.Title(dimName), lang)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
-			Title: "Back",
-			URI:   "../dimensions",
+			Title: helper.Localise("Back", lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
 		},
 	}
 
 	return p
 }
 
-// CreateAreaTypeSelector maps data to the Overview model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang string, areaType []population.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
-	p := CreateSelector(req, basePage, fDim.Label, lang)
-	p.Page.Metadata.Title = "Area Type"
+// CreateAreaTypeSelector maps data to the Selector model
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
+	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
+	p.Page.Metadata.Title = "Area type"
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
@@ -155,6 +150,31 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang str
 	p.IsAreaType = true
 
 	return p
+}
+
+// CreateGetCoverage maps data to the coverage model
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID string) model.Coverage {
+	p := model.Coverage{
+		Page: basePage,
+	}
+	mapCommonProps(req, &p.Page, "filter-flex-coverage", "Coverage", lang)
+	p.Breadcrumb = []coreModel.TaxonomyNode{
+		{
+			Title: helper.Localise("Back", lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
+		},
+	}
+
+	return p
+}
+
+// mapCommonProps maps common properties on all filter/flex pages
+func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang string) {
+	mapCookiePreferences(req, &p.CookiesPreferencesSet, &p.CookiesPolicy)
+	p.BetaBannerEnabled = true
+	p.Type = pageType
+	p.Metadata.Title = title
+	p.Language = lang
 }
 
 // mapCookiePreferences reads cookie policy and preferences cookies and then maps the values to the page model

@@ -70,8 +70,10 @@ github.com/ONSdigital/dp-net/v2 v2.0.0/go.mod h1:Pv/35rM5tCLYdVdIZ5KoGu2EUXv/87f
 github.com/ONSdigital/dp-net/v2 v2.2.0/go.mod h1:Pv/35rM5tCLYdVdIZ5KoGu2EUXv/87fWTptlVTlS5MY=
 github.com/ONSdigital/dp-net/v2 v2.3.0 h1:Qm4OmtLRS5RDVk/1uC6NvKJVsTJL+nLUWWjl4S7PQaw=
 github.com/ONSdigital/dp-net/v2 v2.3.0/go.mod h1:8X7E1wiJxL59qaDFt3ShDfFLfIGs4WMRPx1sZIgAqbU=
-github.com/ONSdigital/dp-renderer v1.28.0 h1:BInquwPyselv6PnkOWWwAqbabqm0XJWbPlhMwzP+wCs=
-github.com/ONSdigital/dp-renderer v1.28.0/go.mod h1:Z5sbyS0ApY6D8ikGDt2KIl5bt2p5kk73PeeMxGs1pEM=
+github.com/ONSdigital/dp-renderer v1.33.0 h1:tAynGlnNnUVrpDoo7gZ0bM4/LJl/1QRDtenlAVMQtxE=
+github.com/ONSdigital/dp-renderer v1.33.0/go.mod h1:odKmVudLXN9WaenfrKgGGrfmZARZFemSNtSy6gxTue8=
+github.com/ONSdigital/dp-renderer v1.33.1 h1:xWIUkYLfGFg3gkP2Yn9a/1ZS1Tfd76IpO4kea790yHU=
+github.com/ONSdigital/dp-renderer v1.33.1/go.mod h1:odKmVudLXN9WaenfrKgGGrfmZARZFemSNtSy6gxTue8=
 github.com/ONSdigital/go-ns v0.0.0-20191104121206-f144c4ec2e58/go.mod h1:iWos35il+NjbvDEqwtB736pyHru0MPFE/LqcwkV1wDc=
 github.com/ONSdigital/log.go v1.0.0/go.mod h1:UnGu9Q14gNC+kz0DOkdnLYGoqugCvnokHBRBxFRpVoQ=
 github.com/ONSdigital/log.go v1.0.1-0.20200805084515-ee61165ea36a/go.mod h1:dDnQATFXCBOknvj6ZQuKfmDhbOWf3e8mtV+dPEfWJqs=

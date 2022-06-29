@@ -45,7 +45,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 	basePage := rc.NewBasePageModel()
 
 	if !isAreaType(filterDimension) {
-		selector := mapper.CreateSelector(req, basePage, filterDimension.Name, lang)
+		selector := mapper.CreateSelector(req, basePage, filterDimension.Name, lang, filterID)
 		rc.BuildPage(w, selector, "selector")
 		return
 	}
@@ -58,7 +58,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 	}
 
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, areaTypes.AreaTypes, filterDimension, isValidationError)
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, isValidationError)
 	rc.BuildPage(w, selector, "selector")
 }
 
