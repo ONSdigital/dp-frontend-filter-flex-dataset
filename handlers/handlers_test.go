@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
@@ -97,7 +97,7 @@ func TestUnitHandlers(t *testing.T) {
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockDimensionClient(mockCtrl)))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
 
 				router.ServeHTTP(w, req)
 
@@ -130,7 +130,7 @@ func TestUnitHandlers(t *testing.T) {
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockDimensionClient(mockCtrl)))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
 
 				router.ServeHTTP(w, req)
 
@@ -163,16 +163,16 @@ func TestUnitHandlers(t *testing.T) {
 						Return(filterDim, "", nil).
 						AnyTimes()
 
-					mockDimsc := NewMockDimensionClient(mockCtrl)
-					mockDimsc.
+					mockPc := NewMockPopulationClient(mockCtrl)
+					mockPc.
 						EXPECT().
 						GetAreas(ctx, gomock.Any()).
-						Return(dimension.GetAreasResponse{}, errors.New("internal error"))
+						Return(population.GetAreasResponse{}, errors.New("internal error"))
 
 					w := httptest.NewRecorder()
 					req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-					FilterFlexOverview(NewMockRenderClient(mockCtrl), mockFc, NewMockDatasetClient(mockCtrl), mockDimsc).
+					FilterFlexOverview(NewMockRenderClient(mockCtrl), mockFc, NewMockDatasetClient(mockCtrl), mockPc).
 						ServeHTTP(w, req)
 
 					Convey("Then the status code should be 500", func() {
@@ -211,16 +211,16 @@ func TestUnitHandlers(t *testing.T) {
 							Return(filterDim, "", nil).
 							AnyTimes()
 
-						expGetAreasInput := dimension.GetAreasInput{
+						expGetAreasInput := population.GetAreasInput{
 							DatasetID:  cantabularPopType,
 							AreaTypeID: dimensionID,
 						}
 
-						mockDimsc := NewMockDimensionClient(mockCtrl)
-						mockDimsc.
+						mockPc := NewMockPopulationClient(mockCtrl)
+						mockPc.
 							EXPECT().
 							GetAreas(ctx, gomock.Eq(expGetAreasInput)).
-							Return(dimension.GetAreasResponse{}, nil)
+							Return(population.GetAreasResponse{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -242,7 +242,7 @@ func TestUnitHandlers(t *testing.T) {
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockDimsc).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -275,8 +275,8 @@ func TestUnitHandlers(t *testing.T) {
 							Return(filterDim, "", nil).
 							AnyTimes()
 
-						areas := dimension.GetAreasResponse{
-							Areas: []dimension.Area{
+						areas := population.GetAreasResponse{
+							Areas: []population.Area{
 								{
 									ID:       "0",
 									Label:    "London",
@@ -285,8 +285,8 @@ func TestUnitHandlers(t *testing.T) {
 							},
 						}
 
-						mockDimsc := NewMockDimensionClient(mockCtrl)
-						mockDimsc.
+						mockPc := NewMockPopulationClient(mockCtrl)
+						mockPc.
 							EXPECT().
 							GetAreas(ctx, gomock.Any()).
 							Return(areas, nil)
@@ -323,7 +323,7 @@ func TestUnitHandlers(t *testing.T) {
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockDimsc).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -346,7 +346,7 @@ func TestUnitHandlers(t *testing.T) {
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockDimensionClient(mockCtrl)))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
 
 				router.ServeHTTP(w, req)
 
@@ -356,7 +356,7 @@ func TestUnitHandlers(t *testing.T) {
 			Convey("test FilterFlexOverview returns 500 if client GetVersionDimensions returns an error", func() {
 				mockFc := NewMockFilterClient(mockCtrl)
 				mockDc := NewMockDatasetClient(mockCtrl)
-				mockDimsC := NewMockDimensionClient(mockCtrl)
+				mockPc := NewMockPopulationClient(mockCtrl)
 
 				mockFilterDims := filter.Dimensions{
 					Items: []filter.Dimension{
@@ -377,7 +377,7 @@ func TestUnitHandlers(t *testing.T) {
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockDimsC))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc))
 
 				router.ServeHTTP(w, req)
 
