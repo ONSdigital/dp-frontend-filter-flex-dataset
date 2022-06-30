@@ -92,6 +92,16 @@ func TestPluralise(t *testing.T) {
 		})
 	})
 
+	Convey("Given a valid key with spaces and mixed case, without lookup prefix", t, func() {
+		input := "aRea tYPE Country"
+		expectedOutput := "Countries"
+		sut := Pluralise(req, input, "en", "", 4)
+
+		Convey("Then pluralised value is returned", func() {
+			So(sut, ShouldEqual, expectedOutput)
+		})
+	})
+
 	Convey("Given a valid key without lookup prefix in Welsh", t, func() {
 		input := "Test"
 		expectedOutput := "Tests (cy)"
