@@ -59,6 +59,61 @@ one = "Select an area type"
 description = "Area type"
 one = "Area type"
 
+[AreaTypeNationalCode]
+description = "National code"
+one = "National code"
+other = "National codes"
+
+[AreaTypeCountryCode]
+description = "Country code"
+one = "Country code"
+other = "Country codes"
+
+[AreaTypeRegionCode]
+description = "Region code"
+one = "Region code"
+other = "Region codes"
+
+[AreaTypeLocalAuthorityCode]
+description = "Local Authority code"
+one = "Local Authority code"
+other = "Local Authority codes"
+
+[AreaTypeMiddleSuperOutputAreaCode]
+description = "Middle Super Output Area code"
+one = "Middle Super Output Area code"
+other = "Middle Super Output Area codes"
+
+[AreaTypeLowerSuperOutputAreaCode]
+description = "Lower Super Output Area code"
+one = "Lower Super Output Area code"
+other = "Lower Super Output Area codes"
+
+[AreaTypeOutputAreaCode]
+description = "Output Area code"
+one = "Output Area code"
+other = "Output Area codes"
+
+[AreaTypeElectoralWardsOrDivision]
+description = "Electoral Wards or Division"
+one = "Electoral Wards or Division"
+other = "Electoral Wards or Divisions"
+
+[AreaTypeCountry]
+description = "Country"
+one = "Country"
+other = "Countries"
+
+[AreaTypeCity]
+description = "City"
+one = "City"
+other = "Cities"
+
+[AreaTypeRegion]
+description = "Region"
+one = "Region"
+other = "Regions"
+
 [CoverageLegend]
 description = "Select the geography you would like your dataset to cover"
 one = "Select the geography you would like your dataset to cover"

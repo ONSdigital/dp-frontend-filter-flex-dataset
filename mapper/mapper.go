@@ -16,10 +16,17 @@ import (
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
+	"github.com/ONSdigital/log.go/v2/log"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Constants...
-const queryStrKey = "showAll"
+const (
+	queryStrKey    = "showAll"
+	areaTypePrefix = "AreaType"
+	pluralInt      = 4
+)
 
 // CreateFilterFlexOverview maps data to the Overview model
 func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims filter.Dimensions, datasetDims dataset.VersionDimensions) model.Overview {
@@ -114,7 +121,7 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 	p := model.Selector{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-selector", strings.Title(dimName), lang)
+	mapCommonProps(req, &p.Page, "filter-flex-selector", cases.Title(language.English).String(dimName), lang)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
@@ -165,7 +172,15 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		},
 	}
 
-	p.Geography = strings.ToLower(geogName)
+	geography := helpers.Pluralise(req, geogName, lang, areaTypePrefix, pluralInt)
+	if geography == "" {
+		log.Info(req.Context(), "pluralisation lookup failed, reverting to initial input", log.Data{
+			"initial_input": geogName,
+		})
+		geography = geogName
+	}
+
+	p.Geography = strings.ToLower(geography)
 
 	return p
 }

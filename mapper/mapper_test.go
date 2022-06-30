@@ -166,10 +166,10 @@ func TestUnitMapper(t *testing.T) {
 	})
 
 	Convey("test create selector maps correctly", t, func() {
-		m := CreateSelector(req, mdl, "dimensionName", lang, "12345")
+		m := CreateSelector(req, mdl, "dimension Name", lang, "12345")
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-selector")
-		So(m.Metadata.Title, ShouldEqual, "DimensionName")
+		So(m.Metadata.Title, ShouldEqual, "Dimension Name")
 		So(m.Language, ShouldEqual, lang)
 		So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
 		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
@@ -241,20 +241,29 @@ func TestGetCoverage(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Geography Label")
 
-		Convey("it sets page metadata", func() {
-			So(coverage.BetaBannerEnabled, ShouldBeTrue)
-			So(coverage.Type, ShouldEqual, "filter-flex-coverage")
-			So(coverage.Language, ShouldEqual, lang)
+		Convey("When the parameters are valid", func() {
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Country")
+			Convey("it sets page metadata", func() {
+				So(coverage.BetaBannerEnabled, ShouldBeTrue)
+				So(coverage.Type, ShouldEqual, "filter-flex-coverage")
+				So(coverage.Language, ShouldEqual, lang)
+			})
+
+			Convey("it sets the title to Coverage", func() {
+				So(coverage.Metadata.Title, ShouldEqual, "Coverage")
+			})
+
+			Convey("it sets the geography to countries", func() {
+				So(coverage.Geography, ShouldEqual, "countries")
+			})
 		})
 
-		Convey("it sets the title to Coverage", func() {
-			So(coverage.Metadata.Title, ShouldEqual, "Coverage")
-		})
-
-		Convey("it sets the geography to geography label", func() {
-			So(coverage.Geography, ShouldEqual, "geography label")
+		Convey("When an unknown geography parameter is given", func() {
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Unknown geography")
+			Convey("Then it sets the geography to unknown geography", func() {
+				So(coverage.Geography, ShouldEqual, "unknown geography")
+			})
 		})
 	})
 }
