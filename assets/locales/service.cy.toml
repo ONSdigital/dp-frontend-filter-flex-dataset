@@ -133,3 +133,19 @@ one = "Enter an area name or code"
 [CoverageSearchButtonText]
 description = "Search"
 one = "Search"
+
+[AreaTypeCoverageTitle]
+description = "Coverage"
+one = "Coverage"
+
+[AreaTypeDefaultCoverage]
+description = "England and Wales"
+one = "England and Wales"
+
+[TruncateShowAll]
+description = "Show all {{$strOptCount}} categories"
+one = "Show all {{.arg0}} categories"
+
+[TruncateShowFewer]
+description = "Show less categories"
+one = "Show less categories"

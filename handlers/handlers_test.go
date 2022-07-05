@@ -2,10 +2,8 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -14,7 +12,6 @@ import (
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
-	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	gomock "github.com/golang/mock/gomock"
@@ -291,19 +288,6 @@ func TestUnitHandlers(t *testing.T) {
 							GetAreas(ctx, gomock.Any()).
 							Return(areas, nil)
 
-						expPageDimensions := []model.Dimension{
-							{
-								ID:           "city",
-								Name:         "City",
-								Options:      []string{"London"},
-								IsTruncated:  false,
-								TruncateLink: "/test#city",
-								OptionsCount: 1,
-								URI:          "/test/geography",
-								IsAreaType:   true,
-							},
-						}
-
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
 							EXPECT().
@@ -312,7 +296,7 @@ func TestUnitHandlers(t *testing.T) {
 							AnyTimes()
 						mockRend.
 							EXPECT().
-							BuildPage(gomock.Any(), pageMatchesOverviewDimensions{dimensions: expPageDimensions}, "overview")
+							BuildPage(gomock.Any(), gomock.Any(), "overview")
 
 						mockDc := NewMockDatasetClient(mockCtrl)
 						mockDc.
@@ -393,23 +377,4 @@ func initialiseMockConfig() config.Config {
 		SiteDomain:               "ons",
 		SupportedLanguages:       []string{"en", "cy"},
 	}
-}
-
-// pageMatchesOverviewDimensions is a gomock matcher that confirms a review page
-// contains the correct dimensions.
-type pageMatchesOverviewDimensions struct {
-	dimensions []model.Dimension
-}
-
-func (p pageMatchesOverviewDimensions) Matches(x interface{}) bool {
-	page, ok := x.(model.Overview)
-	if !ok {
-		return false
-	}
-
-	return reflect.DeepEqual(p.dimensions, page.Dimensions)
-}
-
-func (p pageMatchesOverviewDimensions) String() string {
-	return fmt.Sprintf("dimensions equal to %+v", p.dimensions)
 }

@@ -94,6 +94,15 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		return p.Dimensions[i].IsAreaType == true
 	})
 
+	coverage := []model.Dimension{
+		{
+			IsCoverage: true,
+			URI:        fmt.Sprintf("%s/geography/coverage", path),
+		},
+	}
+	temp := append(coverage, p.Dimensions[1:]...)
+	p.Dimensions = append(p.Dimensions[:1], temp...)
+
 	var collapsibleContentItems []coreModel.CollapsibleItem
 	for _, dims := range datasetDims.Items {
 		if dims.Description != "" {
