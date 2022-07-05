@@ -37,13 +37,12 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 			setStatusCode(req, w, err)
 			return
 		}
-		dim.IsAreaType = filterDimension.IsAreaType
-		filterDims.Items[i] = dim
+		filterDims.Items[i].IsAreaType = filterDimension.IsAreaType
 	}
 
 	// Only one dimension with `is_area_type=true'
 	sort.Search(len(filterDims.Items), func(i int) bool {
-		return *filterDims.Items[i].IsAreaType == true
+		return *filterDims.Items[i].IsAreaType
 	})
 
 	basePage := rc.NewBasePageModel()
