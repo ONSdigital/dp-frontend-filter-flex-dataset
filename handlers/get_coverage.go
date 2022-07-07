@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"sort"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
@@ -29,23 +28,22 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		return
 	}
 
-	for i, dim := range filterDims.Items {
+	var geogLabel string
+	for _, dim := range filterDims.Items {
 		// Needed to determine whether dimension is_area_type
+		// Only one dimension will be is_area_type=true
 		filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dim.Name)
 		if err != nil {
 			log.Error(ctx, "failed to get dimension", err, log.Data{"dimension_name": dim.Name})
 			setStatusCode(req, w, err)
 			return
 		}
-		filterDims.Items[i].IsAreaType = filterDimension.IsAreaType
+		if *filterDimension.IsAreaType {
+			geogLabel = filterDimension.Label
+		}
 	}
 
-	// Only one dimension with `is_area_type=true'
-	sort.Search(len(filterDims.Items), func(i int) bool {
-		return *filterDims.Items[i].IsAreaType
-	})
-
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, filterDims.Items[0].Label)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel)
 	rc.BuildPage(w, m, "coverage")
 }
