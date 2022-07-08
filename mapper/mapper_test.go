@@ -256,7 +256,7 @@ func TestGetCoverage(t *testing.T) {
 		req := httptest.NewRequest("", "/", nil)
 
 		Convey("When the parameters are valid", func() {
-			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Country")
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Country", "", population.GetAreasResponse{}, false)
 			Convey("it sets page metadata", func() {
 				So(coverage.BetaBannerEnabled, ShouldBeTrue)
 				So(coverage.Type, ShouldEqual, "filter-flex-coverage")
@@ -270,12 +270,69 @@ func TestGetCoverage(t *testing.T) {
 			Convey("it sets the geography to countries", func() {
 				So(coverage.Geography, ShouldEqual, "countries")
 			})
+
+			Convey("it sets IsSearch property", func() {
+				So(coverage.IsSearch, ShouldBeFalse)
+			})
 		})
 
 		Convey("When an unknown geography parameter is given", func() {
-			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Unknown geography")
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Unknown geography", "", population.GetAreasResponse{}, false)
 			Convey("Then it sets the geography to unknown geography", func() {
 				So(coverage.Geography, ShouldEqual, "unknown geography")
+			})
+		})
+
+		Convey("When a valid search is performed", func() {
+			mockedSearchResults := population.GetAreasResponse{
+				Areas: []population.Area{
+					{
+						Label: "area one",
+						ID:    "area ID",
+					},
+				},
+			}
+
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"search",
+				mockedSearchResults,
+				true)
+			Convey("Then it sets IsSearch property", func() {
+				So(coverage.IsSearch, ShouldBeTrue)
+			})
+
+			Convey("Then it maps the search results", func() {
+				expectedResult := []model.SearchResult{
+					{
+						Label: mockedSearchResults.Areas[0].Label,
+						ID:    mockedSearchResults.Areas[0].ID,
+					},
+				}
+				So(coverage.SearchResults, ShouldResemble, expectedResult)
+			})
+		})
+
+		Convey("When an invalid search is performed", func() {
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"search",
+				population.GetAreasResponse{},
+				false)
+			Convey("Then it sets IsSearch property correctly", func() {
+				So(coverage.IsSearch, ShouldBeFalse)
+			})
+
+			Convey("Then search results struct is empty", func() {
+				So(coverage.SearchResults, ShouldResemble, []model.SearchResult(nil))
 			})
 		})
 	})

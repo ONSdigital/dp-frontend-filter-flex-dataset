@@ -169,7 +169,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName string) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, query string, areas population.GetAreasResponse, isSearch bool) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -190,6 +190,17 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	}
 
 	p.Geography = strings.ToLower(geography)
+	p.IsSearch = isSearch
+	p.Search = query
+
+	var results []model.SearchResult
+	for _, area := range areas.Areas {
+		results = append(results, model.SearchResult{
+			Label: area.Label,
+			ID:    area.ID,
+		})
+	}
+	p.SearchResults = results
 
 	return p
 }

@@ -149,3 +149,13 @@ one = "Show all {{.arg0}} categories"
 [TruncateShowFewer]
 description = "Show less categories"
 one = "Show less categories"
+
+[SearchResults]
+description = "Results"
+one = "Result"
+other = "Results"
+
+[SearchNoResults]
+description = "No results found"
+one = "No result found"
+other = "No results found"
