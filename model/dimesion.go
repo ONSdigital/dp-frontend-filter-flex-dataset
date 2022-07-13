@@ -10,4 +10,5 @@ type Dimension struct {
 	ID           string   `json:"id"`
 	URI          string   `json:"uri"`
 	IsAreaType   bool     `json:"is_area_type"`
+	IsCoverage   bool     `json:"is_coverage"`
 }

@@ -10,7 +10,6 @@ import (
 	reflect "reflect"
 
 	dataset "github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	dimension "github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	filter "github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	population "github.com/ONSdigital/dp-api-clients-go/v2/population"
 	model "github.com/ONSdigital/dp-renderer/model"
@@ -288,44 +287,6 @@ func (mr *MockDatasetClientMockRecorder) GetVersionDimensions(ctx, userAuthToken
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersionDimensions", reflect.TypeOf((*MockDatasetClient)(nil).GetVersionDimensions), ctx, userAuthToken, serviceAuthToken, collectionID, id, edition, version)
 }
 
-// MockDimensionClient is a mock of DimensionClient interface.
-type MockDimensionClient struct {
-	ctrl     *gomock.Controller
-	recorder *MockDimensionClientMockRecorder
-}
-
-// MockDimensionClientMockRecorder is the mock recorder for MockDimensionClient.
-type MockDimensionClientMockRecorder struct {
-	mock *MockDimensionClient
-}
-
-// NewMockDimensionClient creates a new mock instance.
-func NewMockDimensionClient(ctrl *gomock.Controller) *MockDimensionClient {
-	mock := &MockDimensionClient{ctrl: ctrl}
-	mock.recorder = &MockDimensionClientMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockDimensionClient) EXPECT() *MockDimensionClientMockRecorder {
-	return m.recorder
-}
-
-// GetAreas mocks base method.
-func (m *MockDimensionClient) GetAreas(ctx context.Context, input dimension.GetAreasInput) (dimension.GetAreasResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAreas", ctx, input)
-	ret0, _ := ret[0].(dimension.GetAreasResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAreas indicates an expected call of GetAreas.
-func (mr *MockDimensionClientMockRecorder) GetAreas(ctx, input interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreas", reflect.TypeOf((*MockDimensionClient)(nil).GetAreas), ctx, input)
-}
-
 // MockPopulationClient is a mock of PopulationClient interface.
 type MockPopulationClient struct {
 	ctrl     *gomock.Controller
@@ -347,6 +308,21 @@ func NewMockPopulationClient(ctrl *gomock.Controller) *MockPopulationClient {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockPopulationClient) EXPECT() *MockPopulationClientMockRecorder {
 	return m.recorder
+}
+
+// GetAreas mocks base method.
+func (m *MockPopulationClient) GetAreas(ctx context.Context, input population.GetAreasInput) (population.GetAreasResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAreas", ctx, input)
+	ret0, _ := ret[0].(population.GetAreasResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAreas indicates an expected call of GetAreas.
+func (mr *MockPopulationClientMockRecorder) GetAreas(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreas", reflect.TypeOf((*MockPopulationClient)(nil).GetAreas), ctx, input)
 }
 
 // GetPopulationAreaTypes mocks base method.

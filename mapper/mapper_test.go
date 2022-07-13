@@ -115,25 +115,38 @@ func TestUnitMapper(t *testing.T) {
 			filterJob.Dataset.Edition,
 			strconv.Itoa(filterJob.Dataset.Version)))
 		So(m.Language, ShouldEqual, lang)
+
 		So(m.Dimensions[0].Name, ShouldEqual, filterDims.Items[3].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
+		So(m.Dimensions[0].IsCoverage, ShouldBeFalse)
 		So(m.Dimensions[0].Options, ShouldResemble, filterDims.Items[3].Options)
 		So(m.Dimensions[0].OptionsCount, ShouldEqual, 0)
 		So(m.Dimensions[0].ID, ShouldEqual, filterDims.Items[3].ID)
 		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[3].Name))
 		So(m.Dimensions[0].IsTruncated, ShouldBeFalse)
-		So(m.Dimensions[1].Name, ShouldEqual, filterDims.Items[0].Label)
+
+		So(m.Dimensions[1].Name, ShouldBeBlank)
 		So(m.Dimensions[1].IsAreaType, ShouldBeFalse)
-		So(m.Dimensions[1].Options, ShouldResemble, filterDims.Items[0].Options)
-		So(m.Dimensions[1].OptionsCount, ShouldEqual, 2)
-		So(m.Dimensions[1].ID, ShouldEqual, filterDims.Items[0].ID)
-		So(m.Dimensions[1].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[0].Name))
+		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
+		So(m.Dimensions[1].Options, ShouldBeEmpty)
+		So(m.Dimensions[1].OptionsCount, ShouldEqual, 0)
+		So(m.Dimensions[1].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", "geography/coverage"))
 		So(m.Dimensions[1].IsTruncated, ShouldBeFalse)
-		So(m.Dimensions[2].Name, ShouldEqual, filterDims.Items[1].Label)
+
+		So(m.Dimensions[2].Name, ShouldEqual, filterDims.Items[0].Label)
 		So(m.Dimensions[2].IsAreaType, ShouldBeFalse)
-		So(m.Dimensions[2].ID, ShouldEqual, filterDims.Items[1].ID)
-		So(m.Dimensions[2].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[1].Name))
-		So(m.Dimensions[2].IsTruncated, ShouldBeTrue)
+		So(m.Dimensions[2].IsCoverage, ShouldBeFalse)
+		So(m.Dimensions[2].ID, ShouldEqual, filterDims.Items[0].ID)
+		So(m.Dimensions[2].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[0].Name))
+		So(m.Dimensions[2].IsTruncated, ShouldBeFalse)
+
+		So(m.Dimensions[3].Name, ShouldEqual, filterDims.Items[1].Label)
+		So(m.Dimensions[3].IsAreaType, ShouldBeFalse)
+		So(m.Dimensions[3].IsCoverage, ShouldBeFalse)
+		So(m.Dimensions[3].ID, ShouldEqual, filterDims.Items[1].ID)
+		So(m.Dimensions[3].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[1].Name))
+		So(m.Dimensions[3].IsTruncated, ShouldBeTrue)
+
 		So(m.Collapsible.CollapsibleItems[0].Subheading, ShouldEqual, datasetDims.Items[0].Label)
 		So(m.Collapsible.CollapsibleItems[0].Content[0], ShouldEqual, datasetDims.Items[0].Description)
 		So(m.Collapsible.CollapsibleItems[1].Subheading, ShouldEqual, datasetDims.Items[1].Label)
@@ -143,33 +156,33 @@ func TestUnitMapper(t *testing.T) {
 
 	Convey("test truncation maps as expected", t, func() {
 		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims)
-		So(m.Dimensions[2].OptionsCount, ShouldEqual, len(filterDims.Items[1].Options))
-		So(m.Dimensions[2].Options, ShouldHaveLength, 9)
-		So(m.Dimensions[2].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
-		So(m.Dimensions[2].Options[3:6], ShouldResemble, []string{"Opt 9", "Opt 10", "Opt 11"})
-		So(m.Dimensions[2].Options[6:], ShouldResemble, []string{"Opt 18", "Opt 19", "Opt 20"})
-		So(m.Dimensions[2].IsTruncated, ShouldBeTrue)
-
-		So(m.Dimensions[3].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
+		So(m.Dimensions[3].OptionsCount, ShouldEqual, len(filterDims.Items[1].Options))
 		So(m.Dimensions[3].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[3].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
-		So(m.Dimensions[3].Options[3:6], ShouldResemble, []string{"Opt 5", "Opt 6", "Opt 7"})
-		So(m.Dimensions[3].Options[6:], ShouldResemble, []string{"Opt 10", "Opt 11", "Opt 12"})
+		So(m.Dimensions[3].Options[3:6], ShouldResemble, []string{"Opt 9", "Opt 10", "Opt 11"})
+		So(m.Dimensions[3].Options[6:], ShouldResemble, []string{"Opt 18", "Opt 19", "Opt 20"})
 		So(m.Dimensions[3].IsTruncated, ShouldBeTrue)
+
+		So(m.Dimensions[4].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
+		So(m.Dimensions[4].Options, ShouldHaveLength, 9)
+		So(m.Dimensions[4].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
+		So(m.Dimensions[4].Options[3:6], ShouldResemble, []string{"Opt 5", "Opt 6", "Opt 7"})
+		So(m.Dimensions[4].Options[6:], ShouldResemble, []string{"Opt 10", "Opt 11", "Opt 12"})
+		So(m.Dimensions[4].IsTruncated, ShouldBeTrue)
 	})
 
 	Convey("test truncation shows all when parameter given", t, func() {
 		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims)
-		So(m.Dimensions[3].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
-		So(m.Dimensions[3].Options, ShouldHaveLength, 12)
-		So(m.Dimensions[3].IsTruncated, ShouldBeFalse)
+		So(m.Dimensions[4].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
+		So(m.Dimensions[4].Options, ShouldHaveLength, 12)
+		So(m.Dimensions[4].IsTruncated, ShouldBeFalse)
 	})
 
 	Convey("test create selector maps correctly", t, func() {
-		m := CreateSelector(req, mdl, "dimensionName", lang, "12345")
+		m := CreateSelector(req, mdl, "dimension Name", lang, "12345")
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-selector")
-		So(m.Metadata.Title, ShouldEqual, "DimensionName")
+		So(m.Metadata.Title, ShouldEqual, "Dimension Name")
 		So(m.Language, ShouldEqual, lang)
 		So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
 		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
@@ -241,16 +254,29 @@ func TestGetCoverage(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345")
 
-		Convey("it sets page metadata", func() {
-			So(coverage.BetaBannerEnabled, ShouldBeTrue)
-			So(coverage.Type, ShouldEqual, "filter-flex-coverage")
-			So(coverage.Language, ShouldEqual, lang)
+		Convey("When the parameters are valid", func() {
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Country")
+			Convey("it sets page metadata", func() {
+				So(coverage.BetaBannerEnabled, ShouldBeTrue)
+				So(coverage.Type, ShouldEqual, "filter-flex-coverage")
+				So(coverage.Language, ShouldEqual, lang)
+			})
+
+			Convey("it sets the title to Coverage", func() {
+				So(coverage.Metadata.Title, ShouldEqual, "Coverage")
+			})
+
+			Convey("it sets the geography to countries", func() {
+				So(coverage.Geography, ShouldEqual, "countries")
+			})
 		})
 
-		Convey("it sets the title to Coverage", func() {
-			So(coverage.Metadata.Title, ShouldEqual, "Coverage")
+		Convey("When an unknown geography parameter is given", func() {
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Unknown geography")
+			Convey("Then it sets the geography to unknown geography", func() {
+				So(coverage.Geography, ShouldEqual, "unknown geography")
+			})
 		})
 	})
 }

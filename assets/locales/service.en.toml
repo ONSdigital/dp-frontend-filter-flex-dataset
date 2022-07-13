@@ -58,3 +58,94 @@ one = "Select an area type"
 [AreaTypeDescription]
 description = "Area type"
 one = "Area type"
+
+[AreaTypeNationalCode]
+description = "National code"
+one = "National code"
+other = "National codes"
+
+[AreaTypeCountryCode]
+description = "Country code"
+one = "Country code"
+other = "Country codes"
+
+[AreaTypeRegionCode]
+description = "Region code"
+one = "Region code"
+other = "Region codes"
+
+[AreaTypeLocalAuthorityCode]
+description = "Local Authority code"
+one = "Local Authority code"
+other = "Local Authority codes"
+
+[AreaTypeMiddleSuperOutputAreaCode]
+description = "Middle Super Output Area code"
+one = "Middle Super Output Area code"
+other = "Middle Super Output Area codes"
+
+[AreaTypeLowerSuperOutputAreaCode]
+description = "Lower Super Output Area code"
+one = "Lower Super Output Area code"
+other = "Lower Super Output Area codes"
+
+[AreaTypeOutputAreaCode]
+description = "Output Area code"
+one = "Output Area code"
+other = "Output Area codes"
+
+[AreaTypeElectoralWardsOrDivision]
+description = "Electoral Wards or Division"
+one = "Electoral Wards or Division"
+other = "Electoral Wards or Divisions"
+
+[AreaTypeCountry]
+description = "Country"
+one = "Country"
+other = "Countries"
+
+[AreaTypeCity]
+description = "City"
+one = "City"
+other = "Cities"
+
+[AreaTypeRegion]
+description = "Region"
+one = "Region"
+other = "Regions"
+
+[CoverageLegend]
+description = "Select the geography you would like your dataset to cover"
+one = "Select the geography you would like your dataset to cover"
+
+[CoverageDefault]
+description = "All {{.Geography}} within England and Wales"
+one = "All {{.arg0}} within England and Wales"
+
+[CoverageSearch]
+description = "Search for {{.Geography}} by name"
+one = "Search for {{.arg0}} by name"
+
+[CoverageSearchLabel]
+description = "Enter an area name or code"
+one = "Enter an area name or code"
+
+[CoverageSearchButtonText]
+description = "Search"
+one = "Search"
+
+[AreaTypeCoverageTitle]
+description = "Coverage"
+one = "Coverage"
+
+[AreaTypeDefaultCoverage]
+description = "England and Wales"
+one = "England and Wales"
+
+[TruncateShowAll]
+description = "Show all {{$strOptCount}} categories"
+one = "Show all {{.arg0}} categories"
+
+[TruncateShowFewer]
+description = "Show less categories"
+one = "Show less categories"

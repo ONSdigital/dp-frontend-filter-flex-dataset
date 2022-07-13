@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -24,13 +24,13 @@ func setStatusCode(req *http.Request, w http.ResponseWriter, err error) {
 }
 
 // FilterFlexOverview Handler
-func FilterFlexOverview(rc RenderClient, fc FilterClient, dc DatasetClient, dimsc DimensionClient) http.HandlerFunc {
+func FilterFlexOverview(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		filterFlexOverview(w, req, rc, fc, dc, dimsc, accessToken, collectionID, lang)
+		filterFlexOverview(w, req, rc, fc, dc, pc, accessToken, collectionID, lang)
 	})
 }
 
-func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, dimsc DimensionClient, accessToken, collectionID, lang string) {
+func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -73,7 +73,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	}
 
 	getAreaOptions := func(dim filter.Dimension) ([]string, error) {
-		areas, err := dimsc.GetAreas(ctx, dimension.GetAreasInput{
+		areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 			UserAuthToken: accessToken,
 			DatasetID:     filterJob.PopulationType,
 			AreaTypeID:    dim.ID,

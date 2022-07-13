@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	"github.com/ONSdigital/dp-api-clients-go/v2/dimension"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-renderer/model"
@@ -42,11 +41,8 @@ type DatasetClient interface {
 	GetVersionDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version string) (m dataset.VersionDimensions, err error)
 }
 
-// DimensionClient is an interface with methods required for a dimension client
-type DimensionClient interface {
-	GetAreas(ctx context.Context, input dimension.GetAreasInput) (dimension.GetAreasResponse, error)
-}
-
+// PopulationClient is an interface with methods required for a population client
 type PopulationClient interface {
 	GetPopulationAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (population.GetAreaTypesResponse, error)
+	GetAreas(ctx context.Context, input population.GetAreasInput) (population.GetAreasResponse, error)
 }
