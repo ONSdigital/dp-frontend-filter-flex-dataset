@@ -7,5 +7,14 @@ import (
 // Coverage represents the data to display the coverage page
 type Coverage struct {
 	coreModel.Page
-	Geography string `json:"geography"`
+	Geography     string         `json:"geography"`
+	IsSearch      bool           `json:"is_search"`
+	Search        string         `json:"search"`
+	SearchResults []SearchResult `json:"search_results"`
+}
+
+// SearchResult represents the data required to display a search result
+type SearchResult struct {
+	Label string `json:"label"`
+	ID    string `json:"id"`
 }
