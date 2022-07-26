@@ -195,9 +195,17 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 
 	var results []model.SearchResult
 	for _, area := range areas.Areas {
+		var isSelected bool
+		for _, added := range p.AreasAdded {
+			if strings.EqualFold(added, area.Label) {
+				isSelected = true
+			}
+		}
+
 		results = append(results, model.SearchResult{
-			Label: area.Label,
-			ID:    area.ID,
+			Label:      area.Label,
+			ID:         area.ID,
+			IsSelected: isSelected,
 		})
 	}
 	p.SearchResults = results
