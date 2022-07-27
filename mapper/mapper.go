@@ -199,6 +199,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		for _, added := range p.AreasAdded {
 			if strings.EqualFold(added, area.Label) {
 				isSelected = true
+				break
 			}
 		}
 
