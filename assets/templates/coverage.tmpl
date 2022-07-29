@@ -9,14 +9,14 @@
                     <div class="ons-radios__items">
                         <span class="ons-radios__item ons-radios__item--no-border">
                             <span class="ons-radio ons-radio--no-border">
-                                <input type="radio" id="coverage-default" class="ons-radio__input ons-js-radio" value="coverage-default" name="coverage" {{ if eq .IsSearch false }} checked="checked" {{ end }}>
+                                <input type="radio" id="coverage-default" class="ons-radio__input ons-js-radio" value="coverage-default" name="coverage" {{ if eq .DisplaySearch false }} checked="checked" {{ end }}>
                                 <label class=" ons-radio__label" for="coverage-default">{{- localise "CoverageDefault" .Language 1 .Geography -}}</label>
                             </span>
                         </span>
                         <br>
                         <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
                             <div class="ons-radio ons-radio--no-border">
-                                <input type="radio" id="coverage-search" class="ons-radio__input ons-js-radio ons-js-other" value="coverage-search" name="coverage" {{ if .IsSearch }} checked="checked" {{ end }}>
+                                <input type="radio" id="coverage-search" class="ons-radio__input ons-js-radio ons-js-other" value="coverage-search" name="coverage" {{ if .DisplaySearch }} checked="checked" {{ end }}>
                                 <label class="ons-radio__label" for="coverage-search">{{- localise "CoverageSearch" .Language 1 .Geography -}}</label>
                                 <div class="ons-radio__other ons-u-pb-no" id="other-radio-other-wrap">
                                     <form class="ons-u-pb-xs">
@@ -33,31 +33,35 @@
                                             </span>
                                         </span>
                                     </form>
-                                    {{ if .IsSearch }}
+                                    {{ if .DisplaySearch }}
                                         {{ if .SearchResults }}
                                             <div class="ons-u-mt-xs ons-u-mb-xs ons-u-fw-b">{{- localise "SearchResults" .Language 4 -}}</div>
-                                            <ul class="ons-list--bare ons-u-mb-no coverage-search">
-                                                {{ range .SearchResults }}
-                                                    <li class="ons-u-bt ons-list__item coverage-search__results">
-                                                        {{- .Label -}}
-                                                        <button type="button" class="ons-btn ons-btn--secondary ons-btn--small">
-                                                            <span class="ons-btn__inner">
-                                                                {{ if .IsSelected }}
-                                                                    <span class="ons-btn__text">{{- localise "SearchResultsRemove" $.Language 1 -}}</span>
-                                                                {{ else }}
-                                                                    <span class="ons-btn__text">{{- localise "SearchResultsAdd" $.Language 1 -}}</span>
-                                                                {{ end }}
-                                                                <span class="ons-u-vh">{{ .Label -}}</span>
-                                                            </span>
-                                                        </button>
-                                                    </li>
-                                                {{ end }}
-                                            </ul>
-                                        {{ else }}
+                                            <form method="post">
+                                                <input type="hidden" name="dimension" value="{{- .Dimension -}}">
+                                                <ul class="ons-list--bare ons-u-mb-no coverage-search">
+                                                    {{ range .SearchResults }}
+                                                        <li class="ons-u-bt ons-list__item coverage-search__results">
+                                                            {{- .Label -}}
+                                                            <button type="submit" name="option" value="{{- .ID -}}" class="ons-btn ons-btn--secondary ons-btn--small">
+                                                                <span class="ons-btn__inner">
+                                                                    {{ if .IsSelected }}
+                                                                        <span class="ons-btn__text">{{- localise "SearchResultsRemove" $.Language 1 -}}</span>
+                                                                    {{ else }}
+                                                                        <span class="ons-btn__text">{{- localise "SearchResultsAdd" $.Language 1 -}}</span>
+                                                                    {{ end }}
+                                                                    <span class="ons-u-vh">{{ .Label -}}</span>
+                                                                </span>
+                                                            </button>
+                                                        </li>
+                                                    {{ end }}
+                                                </ul>
+                                            </form>
+                                        {{ end }}
+                                        {{ if .HasNoResults }}
                                             <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
                                         {{ end }}
-                                        {{ if .AreasAdded }}
-                                            {{ $len := len .AreasAdded }}
+                                        {{ if .Options }}
+                                            {{ $len := len .Options }}
                                             <div class="ons-u-fw-b ons-u-pt-s ons-u-mb-xs">
                                                 {{ if eq $len 1 }}
                                                     {{- localise "AreasAddedTitle" .Language 1 -}}
@@ -67,12 +71,12 @@
                                             </div>
                                             <form class="ons-u-pb-xs">
                                                 <ul class="ons-list--bare ons-u-mb-no coverage-selection">
-                                                    {{ range .AreasAdded }}
+                                                    {{ range .Options }}
                                                         <li class="ons-u-mb-no coverage-selection__selected">
                                                             <button type="button" class="ons-btn ons-btn--secondary">
                                                                 <span class="ons-btn__inner">
                                                                     <span class="ons-u-vh">{{- localise "SearchResultsRemove" $.Language 1 -}}</span>
-                                                                    <span class="ons-btn__text">{{ . }}</span>
+                                                                    <span class="ons-btn__text">{{ .Label }}</span>
                                                                     <span class="ons-u-pl-xs">
                                                                         {{ template "icons/cross" . }}
                                                                     </span>
