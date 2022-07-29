@@ -233,6 +233,21 @@ func (mr *MockFilterClientMockRecorder) GetJobState(ctx, userAuthToken, serviceA
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobState", reflect.TypeOf((*MockFilterClient)(nil).GetJobState), ctx, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterID)
 }
 
+// RemoveDimensionValue mocks base method.
+func (m *MockFilterClient) RemoveDimensionValue(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name, value, ifMatch string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveDimensionValue", ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name, value, ifMatch)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveDimensionValue indicates an expected call of RemoveDimensionValue.
+func (mr *MockFilterClientMockRecorder) RemoveDimensionValue(ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name, value, ifMatch interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDimensionValue", reflect.TypeOf((*MockFilterClient)(nil).RemoveDimensionValue), ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name, value, ifMatch)
+}
+
 // SubmitFilter mocks base method.
 func (m *MockFilterClient) SubmitFilter(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch string, sfr filter.SubmitFilterRequest) (*filter.SubmitFilterResponse, string, error) {
 	m.ctrl.T.Helper()

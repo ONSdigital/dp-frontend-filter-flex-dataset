@@ -31,13 +31,25 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 		return
 	}
 
-	if _, err = fc.AddDimensionValue(ctx, accessToken, "", collectionID, filterID, form.Dimension, form.Option, ""); err != nil {
-		log.Error(ctx, "failed to add dimension value", err, log.Data{
-			"dimension": form.Dimension,
-			"option":    form.Option,
-		})
-		setStatusCode(req, w, err)
-		return
+	if form.IsDeleteOption {
+		_, err := fc.RemoveDimensionValue(ctx, accessToken, "", collectionID, filterID, form.Dimension, form.Option, "")
+		if err != nil {
+			log.Error(ctx, "failed to remove dimension value", err, log.Data{
+				"dimension": form.Dimension,
+				"option":    form.Option,
+			})
+			setStatusCode(req, w, err)
+			return
+		}
+	} else {
+		if _, err = fc.AddDimensionValue(ctx, accessToken, "", collectionID, filterID, form.Dimension, form.Option, ""); err != nil {
+			log.Error(ctx, "failed to add dimension value", err, log.Data{
+				"dimension": form.Dimension,
+				"option":    form.Option,
+			})
+			setStatusCode(req, w, err)
+			return
+		}
 	}
 
 	http.Redirect(w, req, fmt.Sprint(req.URL), http.StatusMovedPermanently)
@@ -45,8 +57,9 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 
 // updateCoverageForm represents form-data for the UpdateCoverage handler.
 type updateCoverageForm struct {
-	Dimension string
-	Option    string
+	Dimension      string
+	Option         string
+	IsDeleteOption bool
 }
 
 // parseUpdateCoverageForm parses form data from a http.Request into a updateCoverageForm.
@@ -61,13 +74,15 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 		return updateCoverageForm{}, &clientErr{errors.New("missing required value 'dimension'")}
 	}
 
-	option := req.FormValue("option")
-	if option == "" {
-		return updateCoverageForm{}, &clientErr{errors.New("missing required value 'option'")}
+	addOption := req.FormValue("add-option")
+	deleteOption := req.FormValue("delete-option")
+	if addOption == "" && deleteOption == "" {
+		return updateCoverageForm{}, &clientErr{errors.New("missing required value 'add-option' or 'delete-option'")}
 	}
 
 	return updateCoverageForm{
-		Dimension: dimension,
-		Option:    option,
+		Dimension:      dimension,
+		Option:         addOption + deleteOption,
+		IsDeleteOption: deleteOption != "",
 	}, nil
 }

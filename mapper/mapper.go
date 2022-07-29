@@ -194,6 +194,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	p.DisplaySearch = isSearch || len(opts) > 0
 	p.Search = query
 	p.Options = opts
+	p.ContinueURI = fmt.Sprintf("/filters/%s/dimensions", filterID)
 
 	var results []model.SearchResult
 	for _, area := range areas.Areas {
@@ -223,6 +224,7 @@ func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang 
 	p.Type = pageType
 	p.Metadata.Title = title
 	p.Language = lang
+	p.URI = req.URL.Path
 }
 
 // mapCookiePreferences reads cookie policy and preferences cookies and then maps the values to the page model
