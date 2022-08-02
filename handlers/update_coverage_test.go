@@ -19,11 +19,11 @@ func TestUpdateCoverageHandler(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 
 	Convey("Update coverage", t, func() {
-		stubFormData := url.Values{}
-		stubFormData.Add("dimension", "geography")
-		stubFormData.Add("option", "0")
+		Convey("Given a valid add option request", func() {
+			stubFormData := url.Values{}
+			stubFormData.Add("dimension", "geography")
+			stubFormData.Add("add-option", "0")
 
-		Convey("Given a valid geography", func() {
 			Convey("When the user is redirected to the get coverage screen", func() {
 				const filterID = "1234"
 
@@ -63,11 +63,56 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			})
 		})
 
+		Convey("Given a valid delete option request", func() {
+			stubFormData := url.Values{}
+			stubFormData.Add("dimension", "geography")
+			stubFormData.Add("delete-option", "0")
+
+			Convey("When the user is redirected to the get coverage screen", func() {
+				const filterID = "1234"
+
+				filterClient := NewMockFilterClient(mockCtrl)
+				filterClient.
+					EXPECT().
+					RemoveDimensionValue(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return("", nil)
+
+				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+
+				Convey("Then the location header should match the get coverage screen", func() {
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
+				})
+
+				Convey("And the status code should be 301", func() {
+					So(w.Code, ShouldEqual, http.StatusMovedPermanently)
+				})
+			})
+
+			Convey("When the filter API client responds with an error", func() {
+				filterClient := NewMockFilterClient(mockCtrl)
+				filterClient.
+					EXPECT().
+					RemoveDimensionValue(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return("", errors.New("internal error"))
+
+				w := runUpdateCoverage("test", "test", stubFormData, UpdateCoverage(filterClient))
+
+				Convey("Then the client should not be redirected", func() {
+					So(w.Header().Get("Location"), ShouldBeEmpty)
+				})
+
+				Convey("And the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+		})
+
 		Convey("Given an invalid request", func() {
 			Convey("When the request is missing the hidden required form values", func() {
 				tests := map[string]url.Values{
-					"Missing dimension": {"option": []string{"0"}},
-					"Missing option":    {"dimension": []string{"geography"}},
+					"Missing dimension":   {"add-option": []string{"0"}},
+					"Missing option":      {"dimension": []string{"geography"}},
+					"Invalid option name": {"option": []string{"0"}},
 				}
 
 				for name, formData := range tests {

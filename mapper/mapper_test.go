@@ -261,6 +261,7 @@ func TestGetCoverage(t *testing.T) {
 				So(coverage.BetaBannerEnabled, ShouldBeTrue)
 				So(coverage.Type, ShouldEqual, "filter-flex-coverage")
 				So(coverage.Language, ShouldEqual, lang)
+				So(coverage.URI, ShouldEqual, "/")
 			})
 
 			Convey("it sets the title to Coverage", func() {
@@ -281,6 +282,10 @@ func TestGetCoverage(t *testing.T) {
 
 			Convey("it sets Dimension property", func() {
 				So(coverage.Dimension, ShouldEqual, "dim")
+			})
+
+			Convey("it sets ContinueURI property", func() {
+				So(coverage.ContinueURI, ShouldEqual, "/filters/12345/dimensions")
 			})
 		})
 

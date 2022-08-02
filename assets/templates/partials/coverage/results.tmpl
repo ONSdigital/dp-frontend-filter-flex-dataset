@@ -1,0 +1,30 @@
+<fieldset>
+    <legend class="ons-u-mt-xs ons-u-mb-xs ons-u-fw-b">
+        {{- localise "SearchResults" .Language 4 -}}
+    </legend>
+    <ul class="ons-list--bare ons-u-mb-no coverage-search">
+        {{ range .SearchResults }}
+            <li class="ons-u-bt ons-list__item coverage-search__results">
+                {{- .Label -}}
+                <button 
+                    type="submit" 
+                    name="{{ if .IsSelected }}delete{{ else }}add{{ end }}-option" 
+                    value="{{- .ID -}}" 
+                    class="ons-btn ons-btn--secondary ons-btn--small">
+                    <span class="ons-btn__inner">
+                        {{ if .IsSelected }}
+                            <span class="ons-btn__text">
+                                {{- localise "SearchResultsRemove" $.Language 1 -}}
+                            </span>
+                        {{ else }}
+                            <span class="ons-btn__text">
+                                {{- localise "SearchResultsAdd" $.Language 1 -}}
+                            </span>
+                        {{ end }}
+                        <span class="ons-u-vh">{{ .Label -}}</span>
+                    </span>
+                </button>
+            </li>
+        {{ end }}
+    </ul>
+</fieldset>
