@@ -169,7 +169,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, query string, areas population.GetAreasResponse, isSearch bool) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, query, dim string, areas population.GetAreasResponse, opts []model.Option, isSearch bool) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -190,17 +190,29 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	}
 
 	p.Geography = strings.ToLower(geography)
-	p.IsSearch = isSearch
+	p.Dimension = dim
+	p.DisplaySearch = isSearch || len(opts) > 0
 	p.Search = query
+	p.Options = opts
+	p.ContinueURI = fmt.Sprintf("/filters/%s/dimensions", filterID)
 
 	var results []model.SearchResult
 	for _, area := range areas.Areas {
+		var isSelected bool
+		for _, opt := range opts {
+			if opt.ID == area.ID {
+				isSelected = true
+				break
+			}
+		}
 		results = append(results, model.SearchResult{
-			Label: area.Label,
-			ID:    area.ID,
+			Label:      area.Label,
+			ID:         area.ID,
+			IsSelected: isSelected,
 		})
 	}
 	p.SearchResults = results
+	p.HasNoResults = isSearch && len(p.SearchResults) == 0
 
 	return p
 }
@@ -212,6 +224,7 @@ func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang 
 	p.Type = pageType
 	p.Metadata.Title = title
 	p.Language = lang
+	p.URI = req.URL.Path
 }
 
 // mapCookiePreferences reads cookie policy and preferences cookies and then maps the values to the page model

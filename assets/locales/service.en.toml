@@ -159,3 +159,16 @@ other = "Results"
 description = "No results found"
 one = "No result found"
 other = "No results found"
+
+[SearchResultsAdd]
+description = "Add"
+one = "Add"
+
+[SearchResultsRemove]
+description = "Remove"
+one = "Remove"
+
+[AreasAddedTitle]
+description = "Areas added"
+one = "Area added"
+other = "Areas added"

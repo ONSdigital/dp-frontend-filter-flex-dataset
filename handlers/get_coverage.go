@@ -8,6 +8,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
@@ -47,7 +48,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		return
 	}
 
-	var geogLabel, geogID string
+	var geogLabel, geogID, dimension string
 	for _, dim := range filterDims.Items {
 		// Needed to determine whether dimension is_area_type
 		// Only one dimension will be is_area_type=true
@@ -60,7 +61,44 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		if *filterDimension.IsAreaType {
 			geogLabel = filterDimension.Label
 			geogID = filterDimension.ID
+			dimension = filterDimension.Name
 		}
+	}
+
+	opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimension, &filter.QueryParams{})
+	if err != nil {
+		log.Error(ctx, "failed to get dimension options", err, log.Data{"dimension_name": dimension})
+		setStatusCode(req, w, err)
+		return
+	}
+
+	options := []model.Option{}
+	for _, opt := range opts.Items {
+		var option model.Option
+		// TODO: Temporary fix until GetArea endpoint is created
+		areas, err := pc.GetAreas(ctx, population.GetAreasInput{
+			UserAuthToken: accessToken,
+			DatasetID:     filterJob.PopulationType,
+			AreaTypeID:    geogID,
+			Text:          opt.Option,
+		})
+		if err != nil {
+			log.Error(ctx, "failed to get area", err, log.Data{
+				"area": geogID,
+				"ID":   opt.Option,
+			})
+			setStatusCode(req, w, err)
+			return
+		}
+		option.ID = opt.Option
+		// needed to ensure label matches the ID
+		for _, area := range areas.Areas {
+			if area.ID == option.ID {
+				option.Label = area.Label
+				break
+			}
+		}
+		options = append(options, option)
 	}
 
 	areas := population.GetAreasResponse{}
@@ -79,6 +117,6 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, areas, isSearch)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, dimension, areas, options, isSearch)
 	rc.BuildPage(w, m, "coverage")
 }

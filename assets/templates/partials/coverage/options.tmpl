@@ -1,0 +1,36 @@
+<fieldset>
+    {{ $len := len .Options }}
+    <legend class="ons-u-fw-b ons-u-pt-s ons-u-mb-xs">
+        {{ if eq $len 1 }}
+            {{- localise "AreasAddedTitle" .Language 1 -}}
+        {{ else }}
+            {{- localise "AreasAddedTitle" .Language 4 -}}
+        {{ end }}
+    </legend>
+    <div class="ons-u-pb-xs">
+        <ul class="ons-list--bare ons-u-mb-no coverage-selection">
+            {{ range .Options }}
+                <li class="ons-u-mb-no coverage-selection__selected">
+                    <button 
+                        type="submit" 
+                        name="delete-option" 
+                        value="{{- .ID -}}" 
+                        class="ons-btn ons-btn--secondary"
+                        >
+                        <span class="ons-btn__inner">
+                            <span class="ons-u-vh">
+                                {{- localise "SearchResultsRemove" $.Language 1 -}}
+                            </span>
+                            <span class="ons-btn__text">
+                                {{ .Label }}
+                            </span>
+                            <span class="ons-u-pl-xs">
+                                {{ template "icons/cross" . }}
+                            </span>
+                        </span>
+                    </button>
+                </li>
+            {{ end }}
+        </ul>
+    </div>
+</fieldset>

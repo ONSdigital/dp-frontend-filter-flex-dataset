@@ -1,0 +1,27 @@
+<form method="get" class="ons-u-pb-xs">
+    <span class="ons-field">
+        <label class="ons-label ons-u-pb-xs" for="search-field">
+            {{- localise "CoverageSearchLabel" .Language 1 -}}
+        </label>
+        <span class="ons-grid--flex ons-search">
+            <input 
+                type="search" 
+                id="search-field" 
+                name="q" 
+                value="{{- .Search -}}" 
+                class="ons-input ons-search__input"
+                >
+            <button 
+                type="submit" 
+                class="ons-btn ons-btn--secondary ons-search__btn ons-u-mt-xs@xxs@s ons-btn--small"
+                >
+                <span class="ons-btn__inner">
+                    {{ template "icons/search" }}
+                    <span class="ons-u-ml-xs">
+                        {{- localise "CoverageSearchButtonText" .Language 1 -}}
+                    </span>
+                </span>
+            </button>
+        </span>
+    </span>
+</form>

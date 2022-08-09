@@ -256,11 +256,12 @@ func TestGetCoverage(t *testing.T) {
 		req := httptest.NewRequest("", "/", nil)
 
 		Convey("When the parameters are valid", func() {
-			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Country", "", population.GetAreasResponse{}, false)
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Country", "", "dim", population.GetAreasResponse{}, []model.Option{}, false)
 			Convey("it sets page metadata", func() {
 				So(coverage.BetaBannerEnabled, ShouldBeTrue)
 				So(coverage.Type, ShouldEqual, "filter-flex-coverage")
 				So(coverage.Language, ShouldEqual, lang)
+				So(coverage.URI, ShouldEqual, "/")
 			})
 
 			Convey("it sets the title to Coverage", func() {
@@ -271,13 +272,25 @@ func TestGetCoverage(t *testing.T) {
 				So(coverage.Geography, ShouldEqual, "countries")
 			})
 
-			Convey("it sets IsSearch property", func() {
-				So(coverage.IsSearch, ShouldBeFalse)
+			Convey("it sets DisplaySearch property", func() {
+				So(coverage.DisplaySearch, ShouldBeFalse)
+			})
+
+			Convey("it sets HasNoResults property", func() {
+				So(coverage.HasNoResults, ShouldBeFalse)
+			})
+
+			Convey("it sets Dimension property", func() {
+				So(coverage.Dimension, ShouldEqual, "dim")
+			})
+
+			Convey("it sets ContinueURI property", func() {
+				So(coverage.ContinueURI, ShouldEqual, "/filters/12345/dimensions")
 			})
 		})
 
 		Convey("When an unknown geography parameter is given", func() {
-			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Unknown geography", "", population.GetAreasResponse{}, false)
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Unknown geography", "", "", population.GetAreasResponse{}, []model.Option{}, false)
 			Convey("Then it sets the geography to unknown geography", func() {
 				So(coverage.Geography, ShouldEqual, "unknown geography")
 			})
@@ -300,10 +313,16 @@ func TestGetCoverage(t *testing.T) {
 				"12345",
 				"Unknown geography",
 				"search",
+				"",
 				mockedSearchResults,
+				[]model.Option{},
 				true)
-			Convey("Then it sets IsSearch property", func() {
-				So(coverage.IsSearch, ShouldBeTrue)
+			Convey("Then it sets DisplaySearch property", func() {
+				So(coverage.DisplaySearch, ShouldBeTrue)
+			})
+
+			Convey("Then it sets HasNoResults property", func() {
+				So(coverage.HasNoResults, ShouldBeFalse)
 			})
 
 			Convey("Then it maps the search results", func() {
@@ -325,14 +344,145 @@ func TestGetCoverage(t *testing.T) {
 				"12345",
 				"Unknown geography",
 				"search",
+				"",
 				population.GetAreasResponse{},
-				false)
-			Convey("Then it sets IsSearch property correctly", func() {
-				So(coverage.IsSearch, ShouldBeFalse)
+				[]model.Option{},
+				true)
+			Convey("Then it sets DisplaySearch property correctly", func() {
+				So(coverage.DisplaySearch, ShouldBeTrue)
+			})
+
+			Convey("Then it sets HasNoResults property correctly", func() {
+				So(coverage.HasNoResults, ShouldBeTrue)
 			})
 
 			Convey("Then search results struct is empty", func() {
 				So(coverage.SearchResults, ShouldResemble, []model.SearchResult(nil))
+			})
+		})
+
+		Convey("When an option is added", func() {
+			mockedOpt := []model.Option{
+				{
+					Label: "label",
+					ID:    "0",
+				},
+			}
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"search",
+				"",
+				population.GetAreasResponse{},
+				mockedOpt,
+				true)
+			Convey("Then it sets DisplaySearch property correctly", func() {
+				So(coverage.DisplaySearch, ShouldBeTrue)
+			})
+
+			Convey("Then it sets Options property correctly", func() {
+				So(coverage.Options, ShouldResemble, mockedOpt)
+			})
+		})
+
+		Convey("When an option is added during a search", func() {
+			mockedSearchResults := population.GetAreasResponse{
+				Areas: []population.Area{
+					{
+						Label: "area one",
+						ID:    "area ID",
+					},
+				},
+			}
+			mockedOpt := []model.Option{
+				{
+					Label: "label",
+					ID:    "0",
+				},
+			}
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"search",
+				"",
+				mockedSearchResults,
+				mockedOpt,
+				true)
+			Convey("Then it sets DisplaySearch property correctly", func() {
+				So(coverage.DisplaySearch, ShouldBeTrue)
+			})
+
+			Convey("Then it sets Options property correctly", func() {
+				So(coverage.Options, ShouldResemble, mockedOpt)
+			})
+
+			Convey("Then it sets HasNoResults property", func() {
+				So(coverage.HasNoResults, ShouldBeFalse)
+			})
+		})
+
+		Convey("When a search is performed with one of the results already added as an option", func() {
+			mockedSearchResults := population.GetAreasResponse{
+				Areas: []population.Area{
+					{
+						Label: "area one",
+						ID:    "0",
+					},
+					{
+						Label: "area two",
+						ID:    "1",
+					},
+				},
+			}
+			mockedOpt := []model.Option{
+				{
+					Label: "area one",
+					ID:    "0",
+				},
+			}
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"search",
+				"",
+				mockedSearchResults,
+				mockedOpt,
+				true)
+			Convey("Then it sets DisplaySearch property correctly", func() {
+				So(coverage.DisplaySearch, ShouldBeTrue)
+			})
+
+			Convey("Then it sets Options property correctly", func() {
+				So(coverage.Options, ShouldResemble, mockedOpt)
+			})
+
+			Convey("Then it sets HasNoResults property", func() {
+				So(coverage.HasNoResults, ShouldBeFalse)
+			})
+
+			Convey("Then it maps the search results", func() {
+				expectedResults := []model.SearchResult{
+					{
+						Label:      mockedSearchResults.Areas[0].Label,
+						ID:         mockedSearchResults.Areas[0].ID,
+						IsSelected: true,
+					},
+					{
+						Label:      mockedSearchResults.Areas[1].Label,
+						ID:         mockedSearchResults.Areas[1].ID,
+						IsSelected: false,
+					},
+				}
+				So(coverage.SearchResults, ShouldResemble, expectedResults)
 			})
 		})
 	})
