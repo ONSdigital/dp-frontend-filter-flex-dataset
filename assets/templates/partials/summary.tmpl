@@ -49,16 +49,23 @@
                                         {{ end }}
                                     </div>
                                 {{ else }}
-                                    {{ range $i, $opt := .Options }}
-                                        {{ if eq $dim.IsAreaType false }}
-                                            <li>{{ . }}</li>
-                                        {{ end }}
-                                    {{ end }}
-                                    {{ if or (.IsAreaType) (.IsCoverage) }}
-                                        {{ if .IsCoverage }}
+                                    {{ if or (.IsAreaType) (.IsDefaultCoverage) }}
+                                        {{ if .IsDefaultCoverage }}
                                             {{- localise "AreaTypeDefaultCoverage" $lang 1 -}}
-                                        {{ else }}
+                                        {{ else if .IsAreaType }}
                                             {{- .Name }} ({{ .OptionsCount -}})
+                                        {{ end }}
+                                    {{ else }}
+                                        {{ if .Options }}
+                                            {{ if gt $length 1 }}
+                                                <ul class="ons-list ons-u-mb-no">
+                                                    {{ range $i, $opt := .Options }}
+                                                        <li class="ons-list__item">{{- . -}}</li>
+                                                    {{ end }}
+                                                </ul>
+                                            {{ else }}
+                                                {{- index .Options 0 -}}
+                                            {{ end }}
                                         {{ end }}
                                     {{ end }}
                                 {{ end }}
@@ -67,6 +74,13 @@
                                 {{ if or (.IsAreaType) (.IsCoverage) }}
                                     <a href="{{ .URI }}" class="ons-summary__button">
                                         {{ localise "Change" $lang 1 }}
+                                        <span class="ons-u-vh">
+                                            {{ if .IsAreaType }}
+                                                {{- localise "AreaTypeDescription" $lang 1 -}}
+                                            {{ else }}
+                                                {{- localise "AreaTypeCoverageTitle" $lang 1 -}}
+                                            {{ end }}
+                                        </span>
                                     </a>
                                 {{ end }}
                             </td>
