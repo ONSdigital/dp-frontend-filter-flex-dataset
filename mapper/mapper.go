@@ -29,7 +29,7 @@ const (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims filter.Dimensions, datasetDims dataset.VersionDimensions) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims filter.Dimensions, datasetDims dataset.VersionDimensions, hasNoAreaOptions bool) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
@@ -96,8 +96,11 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 
 	coverage := []model.Dimension{
 		{
-			IsCoverage: true,
-			URI:        fmt.Sprintf("%s/geography/coverage", path),
+			IsCoverage:        true,
+			IsDefaultCoverage: hasNoAreaOptions,
+			URI:               fmt.Sprintf("%s/geography/coverage", path),
+			Options:           p.Dimensions[0].Options,
+			ID:                "coverage",
 		},
 	}
 	temp := append(coverage, p.Dimensions[1:]...)
