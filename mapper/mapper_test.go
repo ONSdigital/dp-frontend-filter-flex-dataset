@@ -87,6 +87,14 @@ func TestOverview(t *testing.T) {
 				Options: []string{
 					"area 1",
 					"area 2",
+					"area 3",
+					"area 4",
+					"area 5",
+					"area 6",
+					"area 7",
+					"area 8",
+					"area 9",
+					"area 10",
 				},
 			}},
 	}
@@ -123,7 +131,7 @@ func TestOverview(t *testing.T) {
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
 		So(m.Dimensions[0].IsCoverage, ShouldBeFalse)
 		So(m.Dimensions[0].Options, ShouldResemble, filterDims.Items[3].Options)
-		So(m.Dimensions[0].OptionsCount, ShouldEqual, 2)
+		So(m.Dimensions[0].OptionsCount, ShouldEqual, 10)
 		So(m.Dimensions[0].ID, ShouldEqual, filterDims.Items[3].ID)
 		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[3].Name))
 		So(m.Dimensions[0].IsTruncated, ShouldBeFalse)
@@ -179,6 +187,13 @@ func TestOverview(t *testing.T) {
 		So(m.Dimensions[4].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
 		So(m.Dimensions[4].Options, ShouldHaveLength, 12)
 		So(m.Dimensions[4].IsTruncated, ShouldBeFalse)
+	})
+
+	Convey("test area type dimension options do not truncate and map to 'coverage' dimension", t, func() {
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
+		So(m.Dimensions[1].Options, ShouldHaveLength, 10)
+		So(m.Dimensions[1].IsTruncated, ShouldBeFalse)
+		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
 	})
 
 	Convey("given hasNoAreaOptions parameter", t, func() {
