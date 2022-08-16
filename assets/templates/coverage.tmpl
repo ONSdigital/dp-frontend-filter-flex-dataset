@@ -4,48 +4,46 @@
         <h1 class="ons-u-fs-xxxl ons-u-mt-s ons-u-fw-b">{{ .Page.Metadata.Title }}</h1>
         <div class="ons-grid__col ons-col-7@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
-                <fieldset class="ons-fieldset">
-                    <legend class="ons-fieldset__legend">{{- localise "CoverageLegend" .Language 1 -}}</legend>
-                    <div class="ons-radios__items">
-                        <span class="ons-radios__item ons-radios__item--no-border">
-                            <span class="ons-radio ons-radio--no-border">
-                                <input type="radio" id="coverage-default" class="ons-radio__input ons-js-radio" value="coverage-default" name="coverage" {{ if eq .DisplaySearch false }} checked="checked" {{ end }}>
-                                <label class=" ons-radio__label" for="coverage-default">{{- localise "CoverageDefault" .Language 1 .Geography -}}</label>
+                <form method="post">
+                    <input type="hidden" name="dimension" value="{{- .Dimension -}}">
+                    <fieldset class="ons-fieldset">
+                        <legend class="ons-fieldset__legend">{{- localise "CoverageLegend" .Language 1 -}}</legend>
+                        <div class="ons-radios__items">
+                            <span class="ons-radios__item ons-radios__item--no-border">
+                                <span class="ons-radio ons-radio--no-border">
+                                    <input type="radio" id="coverage-default" class="ons-radio__input ons-js-radio" value="default" name="coverage" {{ if eq .DisplaySearch false }} checked="checked" {{ end }}>
+                                    <label class="ons-radio__label" for="coverage-default">{{- localise "CoverageDefault" .Language 1 .Geography -}}</label>
+                                </span>
                             </span>
-                        </span>
-                        <br>
-                        <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
-                            <div class="ons-radio ons-radio--no-border">
-                                <input type="radio" id="coverage-search" class="ons-radio__input ons-js-radio ons-js-other" value="coverage-search" name="coverage" {{ if .DisplaySearch }} checked="checked" {{ end }}>
-                                <label class="ons-radio__label" for="coverage-search">{{- localise "CoverageSearch" .Language 1 .Geography -}}</label>
-                                <div class="ons-radio__other ons-u-pb-no" id="other-radio-other-wrap">
-                                    {{ template "partials/coverage/search" . }}
-                                    {{ if .DisplaySearch }}
-                                        <form method="post" class="ons-u-mt-xs">
-                                            <input type="hidden" name="dimension" value="{{- .Dimension -}}">
-                                            {{ if .SearchResults }}
-                                                {{ template "partials/coverage/results" . }}
-                                            {{ end }}
-                                            {{ if .HasNoResults }}
-                                                <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
-                                            {{ end }}
-                                            {{ if .Options }}
-                                                {{ template "partials/coverage/options" . }}
-                                            {{ end }}
-                                        </form>
-                                    {{ end }}
+                            <br>
+                            <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
+                                <div class="ons-radio ons-radio--no-border">
+                                    <input type="radio" id="coverage-search" class="ons-radio__input ons-js-radio ons-js-other" value="name-search" name="coverage" {{ if .DisplaySearch }} checked="checked" {{ end }}>
+                                    <label class="ons-radio__label" for="coverage-search">{{- localise "CoverageSearch" .Language 1 .Geography -}}</label>
+                                    <div class="ons-radio__other ons-u-pb-no" id="other-radio-other-wrap">
+                                        {{ template "partials/coverage/search" . }}
+                                        {{ if .DisplaySearch }}
+                                            <div class="ons-u-mt-xs">
+                                                {{ if .SearchResults }}
+                                                    {{ template "partials/coverage/results" . }}
+                                                {{ end }}
+                                                {{ if .HasNoResults }}
+                                                    <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
+                                                {{ end }}
+                                                {{ if .Options }}
+                                                    {{ template "partials/coverage/options" . }}
+                                                {{ end }}
+                                            </div>
+                                        {{ end }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </fieldset>
-                <a href="{{ .ContinueURI }}" role="button" class="ons-btn ons-btn--link ons-u-mt-xl ons-u-mb-s">
-                    <span class="ons-btn__inner">
-                        <span class="ons-btn__text">
-                            {{- localise "Continue" .Language 1 -}}
-                        </span>
-                    </span>
-                </a>
+                    </fieldset>
+                    <button type="submit" class="ons-btn ons-u-mt-xl ons-u-mb-s">
+                        <span class="ons-btn__inner">{{- localise "Continue" .Language 1 -}}</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>

@@ -154,6 +154,21 @@ func (mr *MockFilterClientMockRecorder) AddDimensionValue(ctx, userAuthToken, se
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddDimensionValue", reflect.TypeOf((*MockFilterClient)(nil).AddDimensionValue), ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name, value, ifMatch)
 }
 
+// DeleteDimensionOptions mocks base method.
+func (m *MockFilterClient) DeleteDimensionOptions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteDimensionOptions", ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteDimensionOptions indicates an expected call of DeleteDimensionOptions.
+func (mr *MockFilterClientMockRecorder) DeleteDimensionOptions(ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDimensionOptions", reflect.TypeOf((*MockFilterClient)(nil).DeleteDimensionOptions), ctx, userAuthToken, serviceAuthToken, collectionID, filterID, name)
+}
+
 // GetDimension mocks base method.
 func (m *MockFilterClient) GetDimension(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name string) (filter.Dimension, string, error) {
 	m.ctrl.T.Helper()
