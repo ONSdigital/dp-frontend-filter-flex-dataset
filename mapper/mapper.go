@@ -56,7 +56,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
 		q := url.Values{}
 
-		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) {
+		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) && !*dim.IsAreaType {
 			firstSlice := dim.Options[:3]
 
 			mid := len(dim.Options) / 2
