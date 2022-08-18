@@ -19,7 +19,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestUnitMapper(t *testing.T) {
+func TestOverview(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	mdl := coreModel.Page{}
 	req := httptest.NewRequest("", "/", nil)
@@ -84,7 +84,18 @@ func TestUnitMapper(t *testing.T) {
 			{
 				Name:       "An area dim",
 				IsAreaType: helpers.ToBoolPtr(true),
-				Options:    []string{},
+				Options: []string{
+					"area 1",
+					"area 2",
+					"area 3",
+					"area 4",
+					"area 5",
+					"area 6",
+					"area 7",
+					"area 8",
+					"area 9",
+					"area 10",
+				},
 			}},
 	}
 	datasetDims := dataset.VersionDimensions{
@@ -105,7 +116,7 @@ func TestUnitMapper(t *testing.T) {
 	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "filter-flex-overview")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
@@ -120,7 +131,7 @@ func TestUnitMapper(t *testing.T) {
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
 		So(m.Dimensions[0].IsCoverage, ShouldBeFalse)
 		So(m.Dimensions[0].Options, ShouldResemble, filterDims.Items[3].Options)
-		So(m.Dimensions[0].OptionsCount, ShouldEqual, 0)
+		So(m.Dimensions[0].OptionsCount, ShouldEqual, 10)
 		So(m.Dimensions[0].ID, ShouldEqual, filterDims.Items[3].ID)
 		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[3].Name))
 		So(m.Dimensions[0].IsTruncated, ShouldBeFalse)
@@ -128,8 +139,8 @@ func TestUnitMapper(t *testing.T) {
 		So(m.Dimensions[1].Name, ShouldBeBlank)
 		So(m.Dimensions[1].IsAreaType, ShouldBeFalse)
 		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
-		So(m.Dimensions[1].Options, ShouldBeEmpty)
-		So(m.Dimensions[1].OptionsCount, ShouldEqual, 0)
+		So(m.Dimensions[1].IsDefaultCoverage, ShouldBeFalse)
+		So(m.Dimensions[1].Options, ShouldResemble, filterDims.Items[3].Options)
 		So(m.Dimensions[1].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", "geography/coverage"))
 		So(m.Dimensions[1].IsTruncated, ShouldBeFalse)
 
@@ -155,7 +166,7 @@ func TestUnitMapper(t *testing.T) {
 	})
 
 	Convey("test truncation maps as expected", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
 		So(m.Dimensions[3].OptionsCount, ShouldEqual, len(filterDims.Items[1].Options))
 		So(m.Dimensions[3].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[3].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
@@ -172,12 +183,40 @@ func TestUnitMapper(t *testing.T) {
 	})
 
 	Convey("test truncation shows all when parameter given", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims, false)
 		So(m.Dimensions[4].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
 		So(m.Dimensions[4].Options, ShouldHaveLength, 12)
 		So(m.Dimensions[4].IsTruncated, ShouldBeFalse)
 	})
 
+	Convey("test area type dimension options do not truncate and map to 'coverage' dimension", t, func() {
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
+		So(m.Dimensions[1].Options, ShouldHaveLength, 10)
+		So(m.Dimensions[1].IsTruncated, ShouldBeFalse)
+		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
+	})
+
+	Convey("given hasNoAreaOptions parameter", t, func() {
+		Convey("when parameter is true", func() {
+			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, true)
+			Convey("then isDefaultCoverage is set to true", func() {
+				So(m.Dimensions[1].IsDefaultCoverage, ShouldBeTrue)
+			})
+		})
+		Convey("when parameter is false", func() {
+			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, false)
+			Convey("then isDefaultCoverage is set to false", func() {
+				So(m.Dimensions[1].IsDefaultCoverage, ShouldBeFalse)
+			})
+		})
+	})
+}
+
+func TestCreateSelector(t *testing.T) {
+	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
+	mdl := coreModel.Page{}
+	req := httptest.NewRequest("", "/", nil)
+	lang := "en"
 	Convey("test create selector maps correctly", t, func() {
 		m := CreateSelector(req, mdl, "dimension Name", lang, "12345")
 		So(m.BetaBannerEnabled, ShouldBeTrue)
