@@ -11,6 +11,8 @@ var cyLocale = []string{
 	"[Test]",
 	"one = \"Test (cy)\"",
 	"other = \"Tests (cy)\"",
+	"[CoverageSelectDefault]",
+	"one = \"Select (cy)\"",
 }
 
 var enLocale = []string{
@@ -22,6 +24,8 @@ var enLocale = []string{
 	"[Test]",
 	"one = \"Test\"",
 	"other = \"Tests\"",
+	"[CoverageSelectDefault]",
+	"one = \"Select\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes

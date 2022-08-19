@@ -295,7 +295,7 @@ func TestGetCoverage(t *testing.T) {
 		req := httptest.NewRequest("", "/", nil)
 
 		Convey("When the parameters are valid", func() {
-			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Country", "", "dim", population.GetAreasResponse{}, []model.Option{}, false)
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Country", "", "dim", population.GetAreasResponse{}, []model.SelectableElement{}, false)
 			Convey("it sets page metadata", func() {
 				So(coverage.BetaBannerEnabled, ShouldBeTrue)
 				So(coverage.Type, ShouldEqual, "filter-flex-coverage")
@@ -322,14 +322,10 @@ func TestGetCoverage(t *testing.T) {
 			Convey("it sets Dimension property", func() {
 				So(coverage.Dimension, ShouldEqual, "dim")
 			})
-
-			Convey("it sets ContinueURI property", func() {
-				So(coverage.ContinueURI, ShouldEqual, "/filters/12345/dimensions")
-			})
 		})
 
 		Convey("When an unknown geography parameter is given", func() {
-			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Unknown geography", "", "", population.GetAreasResponse{}, []model.Option{}, false)
+			coverage := CreateGetCoverage(req, coreModel.Page{}, lang, "12345", "Unknown geography", "", "", population.GetAreasResponse{}, []model.SelectableElement{}, false)
 			Convey("Then it sets the geography to unknown geography", func() {
 				So(coverage.Geography, ShouldEqual, "unknown geography")
 			})
@@ -354,7 +350,7 @@ func TestGetCoverage(t *testing.T) {
 				"search",
 				"",
 				mockedSearchResults,
-				[]model.Option{},
+				[]model.SelectableElement{},
 				true)
 			Convey("Then it sets DisplaySearch property", func() {
 				So(coverage.DisplaySearch, ShouldBeTrue)
@@ -365,10 +361,10 @@ func TestGetCoverage(t *testing.T) {
 			})
 
 			Convey("Then it maps the search results", func() {
-				expectedResult := []model.SearchResult{
+				expectedResult := []model.SelectableElement{
 					{
-						Label: mockedSearchResults.Areas[0].Label,
-						ID:    mockedSearchResults.Areas[0].ID,
+						Text:  mockedSearchResults.Areas[0].Label,
+						Value: mockedSearchResults.Areas[0].ID,
 					},
 				}
 				So(coverage.SearchResults, ShouldResemble, expectedResult)
@@ -385,7 +381,7 @@ func TestGetCoverage(t *testing.T) {
 				"search",
 				"",
 				population.GetAreasResponse{},
-				[]model.Option{},
+				[]model.SelectableElement{},
 				true)
 			Convey("Then it sets DisplaySearch property correctly", func() {
 				So(coverage.DisplaySearch, ShouldBeTrue)
@@ -396,15 +392,15 @@ func TestGetCoverage(t *testing.T) {
 			})
 
 			Convey("Then search results struct is empty", func() {
-				So(coverage.SearchResults, ShouldResemble, []model.SearchResult(nil))
+				So(coverage.SearchResults, ShouldResemble, []model.SelectableElement(nil))
 			})
 		})
 
 		Convey("When an option is added", func() {
-			mockedOpt := []model.Option{
+			mockedOpt := []model.SelectableElement{
 				{
-					Label: "label",
-					ID:    "0",
+					Text:  "label",
+					Value: "0",
 				},
 			}
 			coverage := CreateGetCoverage(
@@ -436,10 +432,10 @@ func TestGetCoverage(t *testing.T) {
 					},
 				},
 			}
-			mockedOpt := []model.Option{
+			mockedOpt := []model.SelectableElement{
 				{
-					Label: "label",
-					ID:    "0",
+					Text:  "label",
+					Value: "0",
 				},
 			}
 			coverage := CreateGetCoverage(
@@ -479,10 +475,10 @@ func TestGetCoverage(t *testing.T) {
 					},
 				},
 			}
-			mockedOpt := []model.Option{
+			mockedOpt := []model.SelectableElement{
 				{
-					Label: "area one",
-					ID:    "0",
+					Text:  "area one",
+					Value: "0",
 				},
 			}
 			coverage := CreateGetCoverage(
@@ -509,15 +505,15 @@ func TestGetCoverage(t *testing.T) {
 			})
 
 			Convey("Then it maps the search results", func() {
-				expectedResults := []model.SearchResult{
+				expectedResults := []model.SelectableElement{
 					{
-						Label:      mockedSearchResults.Areas[0].Label,
-						ID:         mockedSearchResults.Areas[0].ID,
+						Text:       mockedSearchResults.Areas[0].Label,
+						Value:      mockedSearchResults.Areas[0].ID,
 						IsSelected: true,
 					},
 					{
-						Label:      mockedSearchResults.Areas[1].Label,
-						ID:         mockedSearchResults.Areas[1].ID,
+						Text:       mockedSearchResults.Areas[1].Label,
+						Value:      mockedSearchResults.Areas[1].ID,
 						IsSelected: false,
 					},
 				}
