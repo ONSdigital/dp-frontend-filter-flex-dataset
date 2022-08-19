@@ -172,7 +172,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, query, dim string, areas population.GetAreasResponse, opts []model.Option, isSearch bool) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, query, dim string, areas population.GetAreasResponse, opts []model.SelectableElement, isSearch bool) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -195,22 +195,58 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	p.Geography = strings.ToLower(geography)
 	p.Dimension = dim
 	p.DisplaySearch = isSearch || len(opts) > 0
-	p.Search = query
 	p.Options = opts
-	p.ContinueURI = fmt.Sprintf("/filters/%s/dimensions", filterID)
+	p.NameSearch = model.SearchField{
+		Name:  "q",
+		ID:    "name-search",
+		Value: query,
+	}
+	p.ParentSearch = model.SearchField{
+		Name:  "pq",
+		ID:    "parent-search",
+		Value: query,
+	}
+	// TODO: Replace dummy data with real list
+	p.ParentSelect = []model.SelectableElement{
+		{
+			Text:       helper.Localise("CoverageSelectDefault", lang, 1),
+			IsSelected: true,
+			IsDisabled: true,
+		},
+		{
+			Text:  "Country",
+			Value: "C",
+		},
+		{
+			Text:  "Region",
+			Value: "R",
+		},
+		{
+			Text:  "Unitary Authority",
+			Value: "UA",
+		},
+		{
+			Text:  "Merged Local Authority",
+			Value: "MLA",
+		},
+		{
+			Text:  "Local Authority",
+			Value: "LA",
+		},
+	}
 
-	var results []model.SearchResult
+	var results []model.SelectableElement
 	for _, area := range areas.Areas {
 		var isSelected bool
 		for _, opt := range opts {
-			if opt.ID == area.ID {
+			if opt.Value == area.ID {
 				isSelected = true
 				break
 			}
 		}
-		results = append(results, model.SearchResult{
-			Label:      area.Label,
-			ID:         area.ID,
+		results = append(results, model.SelectableElement{
+			Text:       area.Label,
+			Value:      area.ID,
 			IsSelected: isSelected,
 		})
 	}

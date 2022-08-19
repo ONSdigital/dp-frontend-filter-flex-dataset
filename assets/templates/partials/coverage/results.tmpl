@@ -5,11 +5,11 @@
     <ul class="ons-list--bare ons-u-mb-no coverage-search">
         {{ range .SearchResults }}
             <li class="ons-u-bt ons-list__item coverage-search__results">
-                {{- .Label -}}
+                {{- .Text -}}
                 <button 
                     type="submit" 
                     name="{{ if .IsSelected }}delete{{ else }}add{{ end }}-option" 
-                    value="{{- .ID -}}" 
+                    value="{{- .Value -}}" 
                     class="ons-btn ons-btn--secondary ons-btn--small">
                     <span class="ons-btn__inner">
                         {{ if .IsSelected }}
@@ -21,7 +21,7 @@
                                 {{- localise "SearchResultsAdd" $.Language 1 -}}
                             </span>
                         {{ end }}
-                        <span class="ons-u-vh">{{ .Label -}}</span>
+                        <span class="ons-u-vh">{{ .Text -}}</span>
                     </span>
                 </button>
             </li>

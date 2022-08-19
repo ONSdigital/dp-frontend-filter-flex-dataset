@@ -72,9 +72,9 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		return
 	}
 
-	options := []model.Option{}
+	options := []model.SelectableElement{}
 	for _, opt := range opts.Items {
-		var option model.Option
+		var option model.SelectableElement
 		// TODO: Temporary fix until GetArea endpoint is created
 		areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 			UserAuthToken: accessToken,
@@ -90,11 +90,11 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 			setStatusCode(req, w, err)
 			return
 		}
-		option.ID = opt.Option
+		option.Value = opt.Option
 		// needed to ensure label matches the ID
 		for _, area := range areas.Areas {
-			if area.ID == option.ID {
-				option.Label = area.Label
+			if area.ID == option.Value {
+				option.Text = area.Label
 				break
 			}
 		}
