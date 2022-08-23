@@ -323,9 +323,6 @@ func TestGetCoverageHandler(t *testing.T) {
 			mockFc.EXPECT().
 				GetFilter(gomock.Any(), gomock.Any()).
 				Return(&filter.GetFilterResponse{}, nil)
-			mockFc.EXPECT().
-				GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-				Return(filter.DimensionOptions{}, "", nil)
 
 			mockPc := NewMockPopulationClient(mockCtrl)
 			mockPc.EXPECT().
