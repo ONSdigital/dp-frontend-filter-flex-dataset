@@ -49,4 +49,5 @@ type DatasetClient interface {
 type PopulationClient interface {
 	GetPopulationAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (population.GetAreaTypesResponse, error)
 	GetAreas(ctx context.Context, input population.GetAreasInput) (population.GetAreasResponse, error)
+	GetAreaTypeParents(ctx context.Context, input population.GetAreaTypeParentsInput) (population.GetAreaTypeParentsResponse, error)
 }

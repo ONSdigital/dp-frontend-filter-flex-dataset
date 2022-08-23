@@ -1,21 +1,30 @@
 <div class="ons-field ons-u-mb-s">
-    <label class="ons-label ons-u-mb-no" for="larger-area-select">
-        {{- localise "CoverageSelectLabel" .Language 1 -}}
-    </label>
-    <span class="ons-label__description ons-input--with-description">
-        {{- localise "CoverageSelectHint" .Language 1 -}}
-    </span>
-    <select 
-        id="larger-area-select" 
-        name="larger-area" 
-        class="ons-input ons-input--select ons-input--block">
-        {{ range .ParentSelect }}
-            <option 
-                value="{{- .Value -}}" 
-                {{ if .IsDisabled }} disabled {{ end }} 
-                {{ if .IsSelected }} selected {{ end }}>
-                    {{- .Text -}}
-            </option>
-        {{ end }}
-    </select>
+    {{ if gt (len .ParentSelect) 1 }}
+        <label class="ons-label ons-u-mb-no" for="larger-area-select">
+            {{- localise "CoverageSelectLabel" .Language 1 -}}
+        </label>
+        <span class="ons-label__description ons-input--with-description">
+            {{- localise "CoverageSelectHint" .Language 1 -}}
+        </span>
+        <select 
+            id="larger-area-select" 
+            name="larger-area" 
+            class="ons-input ons-input--select ons-input--block">
+            {{ range .ParentSelect }}
+                <option 
+                    value="{{- .Value -}}" 
+                    {{ if .IsDisabled }} disabled {{ end }} 
+                    {{ if .IsSelected }} selected {{ end }}>
+                        {{- .Text -}}
+                </option>
+            {{ end }}
+        </select>
+    {{ else }}
+        {{ $single := index .ParentSelect 0 }}
+        <input type="hidden" name="larger-area" value="{{- $single.Value -}}">
+        <dl>
+            <dt class="ons-u-fs-r--b">{{- localise "CoverageSelectLabel" .Language 1 -}}</dt>
+            <dd class="ons-u-ml-no">{{- $single.Text -}}</dd>
+        </dl>
+    {{ end }}
 </div>

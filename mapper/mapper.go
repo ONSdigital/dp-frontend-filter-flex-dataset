@@ -172,7 +172,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, query, dim string, areas population.GetAreasResponse, opts []model.SelectableElement, isSearch bool) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, query, dim string, areas population.GetAreasResponse, opts []model.SelectableElement, isSearch bool, parents population.GetAreaTypeParentsResponse) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -206,33 +206,20 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		ID:    "parent-search",
 		Value: query,
 	}
-	// TODO: Replace dummy data with real list
-	p.ParentSelect = []model.SelectableElement{
-		{
-			Text:       helper.Localise("CoverageSelectDefault", lang, 1),
-			IsSelected: true,
-			IsDisabled: true,
-		},
-		{
-			Text:  "Country",
-			Value: "C",
-		},
-		{
-			Text:  "Region",
-			Value: "R",
-		},
-		{
-			Text:  "Unitary Authority",
-			Value: "UA",
-		},
-		{
-			Text:  "Merged Local Authority",
-			Value: "MLA",
-		},
-		{
-			Text:  "Local Authority",
-			Value: "LA",
-		},
+	if len(parents.AreaTypes) > 1 {
+		p.ParentSelect = []model.SelectableElement{
+			{
+				Text:       helper.Localise("CoverageSelectDefault", lang, 1),
+				IsSelected: true,
+				IsDisabled: true,
+			},
+		}
+	}
+	for _, parent := range parents.AreaTypes {
+		var sel model.SelectableElement
+		sel.Text = parent.Label
+		sel.Value = parent.ID
+		p.ParentSelect = append(p.ParentSelect, sel)
 	}
 
 	var results []model.SelectableElement
