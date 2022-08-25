@@ -65,6 +65,20 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		}
 	}
 
+	parents, err := pc.GetAreaTypeParents(ctx, population.GetAreaTypeParentsInput{
+		UserAuthToken: accessToken,
+		DatasetID:     filterJob.PopulationType,
+		AreaTypeID:    geogID,
+	})
+	if err != nil {
+		log.Error(ctx, "failed to get parents", err, log.Data{
+			"dataset_id":   geogID,
+			"area_type_id": geogLabel,
+		})
+		setStatusCode(req, w, err)
+		return
+	}
+
 	opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimension, &filter.QueryParams{})
 	if err != nil {
 		log.Error(ctx, "failed to get dimension options", err, log.Data{"dimension_name": dimension})
@@ -117,6 +131,6 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, dimension, areas, options, isSearch)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, dimension, areas, options, isSearch, parents)
 	rc.BuildPage(w, m, "coverage")
 }

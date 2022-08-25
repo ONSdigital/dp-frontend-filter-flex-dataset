@@ -70,6 +70,9 @@ func TestGetCoverageHandler(t *testing.T) {
 					Return(filter.DimensionOptions{}, "", nil)
 
 				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.EXPECT().
+					GetAreaTypeParents(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaTypeParentsResponse{}, nil)
 
 				router := mux.NewRouter()
 				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc))
@@ -118,6 +121,9 @@ func TestGetCoverageHandler(t *testing.T) {
 					EXPECT().
 					GetAreas(gomock.Any(), gomock.Any()).
 					Return(population.GetAreasResponse{}, nil)
+				mockPc.EXPECT().
+					GetAreaTypeParents(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaTypeParentsResponse{}, nil)
 
 				router := mux.NewRouter()
 				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc))
@@ -179,6 +185,9 @@ func TestGetCoverageHandler(t *testing.T) {
 							},
 						},
 					}, nil)
+				mockPc.EXPECT().
+					GetAreaTypeParents(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaTypeParentsResponse{}, nil)
 
 				router := mux.NewRouter()
 				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc))
@@ -280,8 +289,48 @@ func TestGetCoverageHandler(t *testing.T) {
 				GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(filter.DimensionOptions{}, "", errors.New("sorry"))
 
+			mockPc := NewMockPopulationClient(mockCtrl)
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, nil)
+
 			router := mux.NewRouter()
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl)))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
+			router.ServeHTTP(w, req)
+
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
+			})
+		})
+
+		Convey("When the GetAreaTypeParents API call responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockFilterDims, "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
+				Return(mockFilterDims.Items[0], "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
+				Return(mockFilterDims.Items[1], "", nil)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, nil)
+
+			mockPc := NewMockPopulationClient(mockCtrl)
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, errors.New("sorry"))
+
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -324,6 +373,9 @@ func TestGetCoverageHandler(t *testing.T) {
 				EXPECT().
 				GetAreas(gomock.Any(), gomock.Any()).
 				Return(population.GetAreasResponse{}, errors.New("sorry"))
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, nil)
 
 			router := mux.NewRouter()
 			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
@@ -363,6 +415,9 @@ func TestGetCoverageHandler(t *testing.T) {
 				EXPECT().
 				GetAreas(gomock.Any(), gomock.Any()).
 				Return(population.GetAreasResponse{}, errors.New("sorry"))
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, nil)
 
 			router := mux.NewRouter()
 			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
