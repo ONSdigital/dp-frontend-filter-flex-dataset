@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -32,24 +33,40 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	p := req.URL.Query().Get("p")
 	isNameSearch := strings.Contains(req.URL.RawQuery, "q=")
 	isParentSearch := strings.Contains(req.URL.RawQuery, "p=")
+	var filterJob *filter.GetFilterResponse
+	var filterDims filter.Dimensions
+	var parents population.GetAreaTypeParentsResponse
+	var opts filter.DimensionOptions
+	var areas population.GetAreasResponse
+	var fErr, dErr, pErr, oErr, nsErr, psErr error
 
-	filterJob, err := fc.GetFilter(ctx, filter.GetFilterInput{
-		FilterID: filterID,
-		AuthHeaders: filter.AuthHeaders{
-			UserAuthToken: accessToken,
-			CollectionID:  collectionID,
-		},
-	})
-	if err != nil {
-		log.Error(ctx, "failed to get filter", err, log.Data{"filter_id": filterID})
-		setStatusCode(req, w, err)
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		filterJob, fErr = fc.GetFilter(ctx, filter.GetFilterInput{
+			FilterID: filterID,
+			AuthHeaders: filter.AuthHeaders{
+				UserAuthToken: accessToken,
+				CollectionID:  collectionID,
+			},
+		})
+	}()
+	go func() {
+		defer wg.Done()
+		filterDims, _, dErr = fc.GetDimensions(ctx, accessToken, "", collectionID, filterID, &filter.QueryParams{Limit: 500})
+	}()
+	wg.Wait()
+
+	if fErr != nil {
+		log.Error(ctx, "failed to get filter", fErr, log.Data{"filter_id": filterID})
+		setStatusCode(req, w, fErr)
 		return
 	}
-
-	filterDims, _, err := fc.GetDimensions(ctx, accessToken, "", collectionID, filterID, &filter.QueryParams{Limit: 500})
-	if err != nil {
-		log.Error(ctx, "failed to get dimensions", err, log.Data{"filter_id": filterID})
-		setStatusCode(req, w, err)
+	if dErr != nil {
+		log.Error(ctx, "failed to get dimensions", dErr, log.Data{"filter_id": filterID})
+		setStatusCode(req, w, dErr)
 		return
 	}
 
@@ -70,24 +87,62 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		}
 	}
 
-	parents, err := pc.GetAreaTypeParents(ctx, population.GetAreaTypeParentsInput{
-		UserAuthToken: accessToken,
-		DatasetID:     filterJob.PopulationType,
-		AreaTypeID:    geogID,
-	})
-	if err != nil {
-		log.Error(ctx, "failed to get parents", err, log.Data{
+	wg.Add(4)
+	go func() {
+		defer wg.Done()
+		parents, pErr = pc.GetAreaTypeParents(ctx, population.GetAreaTypeParentsInput{
+			UserAuthToken: accessToken,
+			DatasetID:     filterJob.PopulationType,
+			AreaTypeID:    geogID,
+		})
+	}()
+	go func() {
+		defer wg.Done()
+		opts, _, oErr = fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimension, &filter.QueryParams{})
+	}()
+	go func() {
+		defer wg.Done()
+		if isNameSearch && q != "" {
+			areas, nsErr = getAreas(pc, ctx, accessToken, filterJob.PopulationType, geogID, q)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		if isParentSearch && pq != "" {
+			areas, psErr = getAreas(pc, ctx, accessToken, filterJob.PopulationType, p, pq)
+		}
+	}()
+	wg.Wait()
+
+	if pErr != nil {
+		log.Error(ctx, "failed to get parents", pErr, log.Data{
 			"dataset_id":   geogID,
 			"area_type_id": geogLabel,
 		})
-		setStatusCode(req, w, err)
+		setStatusCode(req, w, pErr)
 		return
 	}
-
-	opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimension, &filter.QueryParams{})
-	if err != nil {
-		log.Error(ctx, "failed to get dimension options", err, log.Data{"dimension_name": dimension})
-		setStatusCode(req, w, err)
+	if oErr != nil {
+		log.Error(ctx, "failed to get dimension options", oErr, log.Data{"dimension_name": dimension})
+		setStatusCode(req, w, oErr)
+		return
+	}
+	if nsErr != nil {
+		log.Error(ctx, "failed to get areas in name search", nsErr, log.Data{
+			"population_type": filterJob.PopulationType,
+			"area":            geogID,
+			"query":           q,
+		})
+		setStatusCode(req, w, nsErr)
+		return
+	}
+	if psErr != nil {
+		log.Error(ctx, "failed to get areas in parent search", psErr, log.Data{
+			"population_type": filterJob.PopulationType,
+			"area":            p,
+			"query":           pq,
+		})
+		setStatusCode(req, w, psErr)
 		return
 	}
 
@@ -118,33 +173,6 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 			}
 		}
 		options = append(options, option)
-	}
-
-	var areas population.GetAreasResponse
-	if isNameSearch && q != "" {
-		areas, err = getAreas(pc, ctx, accessToken, filterJob.PopulationType, geogID, q)
-		if err != nil {
-			log.Error(ctx, "failed to get areas in name search", err, log.Data{
-				"population_type": filterJob.PopulationType,
-				"area":            geogID,
-				"query":           q,
-			})
-			setStatusCode(req, w, err)
-			return
-		}
-	}
-
-	if isParentSearch && pq != "" {
-		areas, err = getAreas(pc, ctx, accessToken, filterJob.PopulationType, p, pq)
-		if err != nil {
-			log.Error(ctx, "failed to get areas in parent search", err, log.Data{
-				"population_type": filterJob.PopulationType,
-				"area":            p,
-				"query":           pq,
-			})
-			setStatusCode(req, w, err)
-			return
-		}
 	}
 
 	basePage := rc.NewBasePageModel()

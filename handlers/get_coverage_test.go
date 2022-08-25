@@ -258,6 +258,10 @@ func TestGetCoverageHandler(t *testing.T) {
 			mockFc.EXPECT().
 				GetFilter(gomock.Any(), gomock.Any()).
 				Return(&filter.GetFilterResponse{}, errors.New("sorry"))
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.Dimensions{}, "", nil)
 
 			router := mux.NewRouter()
 			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl)))
@@ -374,6 +378,9 @@ func TestGetCoverageHandler(t *testing.T) {
 			mockFc.EXPECT().
 				GetFilter(gomock.Any(), gomock.Any()).
 				Return(&filter.GetFilterResponse{}, nil)
+			mockFc.EXPECT().
+				GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.DimensionOptions{}, "", nil)
 
 			mockPc := NewMockPopulationClient(mockCtrl)
 			mockPc.EXPECT().
