@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"strings"
@@ -25,8 +26,12 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
+	c := req.URL.Query().Get("c")
 	q := req.URL.Query().Get("q")
-	isSearch := strings.Contains(req.URL.RawQuery, "q=")
+	pq := req.URL.Query().Get("pq")
+	p := req.URL.Query().Get("p")
+	isNameSearch := strings.Contains(req.URL.RawQuery, "q=")
+	isParentSearch := strings.Contains(req.URL.RawQuery, "p=")
 
 	filterJob, err := fc.GetFilter(ctx, filter.GetFilterInput{
 		FilterID: filterID,
@@ -115,22 +120,45 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		options = append(options, option)
 	}
 
-	areas := population.GetAreasResponse{}
-	if isSearch && q != "" {
-		areas, err = pc.GetAreas(ctx, population.GetAreasInput{
-			UserAuthToken: accessToken,
-			DatasetID:     filterJob.PopulationType,
-			AreaTypeID:    geogID,
-			Text:          url.QueryEscape(strings.TrimSpace(q)),
-		})
+	var areas population.GetAreasResponse
+	if isNameSearch && q != "" {
+		areas, err = getAreas(pc, ctx, accessToken, filterJob.PopulationType, geogID, q)
 		if err != nil {
-			log.Error(ctx, "failed to get areas", err, log.Data{"area": geogID})
+			log.Error(ctx, "failed to get areas in name search", err, log.Data{
+				"population_type": filterJob.PopulationType,
+				"area":            geogID,
+				"query":           q,
+			})
+			setStatusCode(req, w, err)
+			return
+		}
+	}
+
+	if isParentSearch && pq != "" {
+		areas, err = getAreas(pc, ctx, accessToken, filterJob.PopulationType, p, pq)
+		if err != nil {
+			log.Error(ctx, "failed to get areas in parent search", err, log.Data{
+				"population_type": filterJob.PopulationType,
+				"area":            p,
+				"query":           pq,
+			})
 			setStatusCode(req, w, err)
 			return
 		}
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, dimension, areas, options, isSearch, parents)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, areas, options, parents)
 	rc.BuildPage(w, m, "coverage")
+}
+
+// getAreas is a helper function that returns the GetAreasResponse or an error
+func getAreas(pc PopulationClient, ctx context.Context, accessToken, popType, areaTypeID, query string) (population.GetAreasResponse, error) {
+	areas, err := pc.GetAreas(ctx, population.GetAreasInput{
+		UserAuthToken: accessToken,
+		DatasetID:     popType,
+		AreaTypeID:    areaTypeID,
+		Text:          url.QueryEscape(strings.TrimSpace(query)),
+	})
+	return areas, err
 }

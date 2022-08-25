@@ -20,9 +20,11 @@ const (
 	Add
 	Delete
 	Search
-	CoverageSearch
+	Continue
+	ParentCoverageSearch
 	CoverageDefault = "default"
 	NameSearch      = "name-search"
+	ParentSearch    = "parent-search"
 )
 
 // UpdateCoverage Handler
@@ -47,12 +49,18 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 	}
 
 	switch form.Action {
-	case CoverageSearch:
+	case Continue:
 		http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions", filterID), http.StatusMovedPermanently)
 		return
 	case Search:
 		v := url.Values{}
-		v.Set("q", form.Value)
+		if form.Coverage == ParentSearch {
+			v.Set("p", form.LargerArea)
+			v.Set("pq", form.Value)
+		} else {
+			v.Set("q", form.Value)
+		}
+		v.Set("c", form.Coverage)
 		req.URL.RawQuery = v.Encode()
 	case Delete:
 		_, err := fc.RemoveDimensionValue(ctx, accessToken, "", collectionID, filterID, form.Dimension, form.Value, "")
@@ -92,15 +100,17 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 
 // updateCoverageForm represents form-data for the UpdateCoverage handler.
 type updateCoverageForm struct {
-	Action    FormAction
-	Value     string
-	Dimension string
+	Action     FormAction
+	Value      string
+	Dimension  string
+	LargerArea string
+	Coverage   string
 }
 
 // parseUpdateCoverageForm parses form data from a http.Request into a updateCoverageForm.
 func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 	var action FormAction
-	var value string
+	var value, largerArea string
 
 	err := req.ParseForm()
 	if err != nil {
@@ -110,6 +120,11 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 	dimension := req.FormValue("dimension")
 	if dimension == "" {
 		return updateCoverageForm{}, &clientErr{errors.New("missing required value 'dimension'")}
+	}
+
+	parent := req.FormValue("larger-area")
+	if parent == "" {
+		return updateCoverageForm{}, &clientErr{errors.New("missing required value 'larger-area'")}
 	}
 
 	coverage := req.FormValue("coverage")
@@ -122,17 +137,26 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 		action = CoverageAll
 		value = coverage
 	case NameSearch:
-		action = CoverageSearch
+		action = Continue
+		value = coverage
+	case ParentSearch:
+		action = Continue
 		value = coverage
 	default:
 		return updateCoverageForm{}, &clientErr{errors.New("unknown coverage type")}
 	}
 
-	isSearch, err := strconv.ParseBool(req.FormValue("is-search"))
+	isSearch, _ := strconv.ParseBool(req.FormValue("is-search"))
 	if isSearch {
-		q := req.FormValue("q")
 		action = Search
+		q := req.FormValue("q")
 		value = q
+	}
+	if isSearch && coverage == ParentSearch {
+		largerArea = parent
+		pq := req.FormValue("pq")
+		value = pq
+		action = Search
 	}
 
 	addOption := req.FormValue("add-option")
@@ -148,8 +172,10 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 	}
 
 	return updateCoverageForm{
-		Action:    action,
-		Value:     value,
-		Dimension: dimension,
+		Action:     action,
+		Value:      value,
+		Dimension:  dimension,
+		LargerArea: largerArea,
+		Coverage:   coverage,
 	}, nil
 }

@@ -24,6 +24,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			stubFormData.Add("dimension", "geography")
 			stubFormData.Add("add-option", "0")
 			stubFormData.Add("coverage", "name-search")
+			stubFormData.Add("larger-area", "country")
 
 			Convey("When the user is redirected to the get coverage screen", func() {
 				const filterID = "1234"
@@ -69,6 +70,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			stubFormData.Add("dimension", "geography")
 			stubFormData.Add("delete-option", "0")
 			stubFormData.Add("coverage", "name-search")
+			stubFormData.Add("larger-area", "country")
 
 			Convey("When the user is redirected to the get coverage screen", func() {
 				const filterID = "1234"
@@ -113,6 +115,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			stubFormData := url.Values{}
 			stubFormData.Add("dimension", "geography")
 			stubFormData.Add("coverage", "default")
+			stubFormData.Add("larger-area", "country")
 
 			Convey("When the user selects the all geography option", func() {
 				const filterID = "1234"
@@ -153,12 +156,13 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			})
 		})
 
-		Convey("Given a valid search request", func() {
+		Convey("Given a valid name search request", func() {
 			stubFormData := url.Values{}
 			stubFormData.Add("dimension", "geography")
 			stubFormData.Add("coverage", "name-search")
 			stubFormData.Add("q", "area")
 			stubFormData.Add("is-search", "true")
+			stubFormData.Add("larger-area", "country")
 
 			Convey("When the user is redirected to the get coverage screen", func() {
 				const filterID = "1234"
@@ -167,7 +171,31 @@ func TestUpdateCoverageHandler(t *testing.T) {
 				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
 
 				Convey("Then the location header should match the get coverage screen with query persisted", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?q=area", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=name-search&q=area", filterID))
+				})
+
+				Convey("And the status code should be 301", func() {
+					So(w.Code, ShouldEqual, http.StatusMovedPermanently)
+				})
+			})
+		})
+
+		Convey("Given a valid parent search request", func() {
+			stubFormData := url.Values{}
+			stubFormData.Add("dimension", "geography")
+			stubFormData.Add("coverage", "parent-search")
+			stubFormData.Add("pq", "area")
+			stubFormData.Add("is-search", "true")
+			stubFormData.Add("larger-area", "country")
+
+			Convey("When the user is redirected to the get coverage screen", func() {
+				const filterID = "1234"
+
+				filterClient := NewMockFilterClient(mockCtrl)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+
+				Convey("Then the location header should match the get coverage screen with query persisted", func() {
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=parent-search&p=country&pq=area", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {
@@ -180,6 +208,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			stubFormData := url.Values{}
 			stubFormData.Add("dimension", "geography")
 			stubFormData.Add("coverage", "name-search")
+			stubFormData.Add("larger-area", "country")
 
 			Convey("When the user makes the request", func() {
 				const filterID = "1234"
@@ -200,11 +229,10 @@ func TestUpdateCoverageHandler(t *testing.T) {
 		Convey("Given an invalid request", func() {
 			Convey("When the request is missing the hidden required form values", func() {
 				tests := map[string]url.Values{
-					"Missing dimension":   {"add-option": []string{"0"}},
-					"Missing option":      {"dimension": []string{"geography"}},
-					"Invalid option name": {"option": []string{"0"}},
-					"Missing coverage":    {"add-option": []string{"0"}, "dimension": []string{"geography"}},
-					"Unknown coverage":    {"coverage": []string{"1234"}, "add-option": []string{"0"}, "dimension": []string{"geography"}},
+					"Missing coverage":    {"larger-area": []string{"country"}, "dimension": []string{"geography"}},
+					"Unknown coverage":    {"coverage": []string{"1234"}, "dimension": []string{"geography"}, "larger-area": []string{"country"}},
+					"Missing larger-area": {"coverage": []string{"default"}, "dimension": []string{"geography"}},
+					"Missing dimension":   {"coverage": []string{"default"}, "larger-area": []string{"country"}},
 				}
 
 				for name, formData := range tests {

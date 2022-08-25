@@ -298,13 +298,16 @@ func TestGetCoverage(t *testing.T) {
 			coverage := CreateGetCoverage(
 				req,
 				coreModel.Page{},
-				lang, "12345",
+				lang,
+				"12345",
 				"Country",
+				"",
+				"",
+				"",
 				"",
 				"dim",
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
-				false,
 				population.GetAreaTypeParentsResponse{})
 			Convey("it sets page metadata", func() {
 				So(coverage.BetaBannerEnabled, ShouldBeTrue)
@@ -321,12 +324,9 @@ func TestGetCoverage(t *testing.T) {
 				So(coverage.Geography, ShouldEqual, "countries")
 			})
 
-			Convey("it sets DisplaySearch property", func() {
-				So(coverage.DisplaySearch, ShouldBeFalse)
-			})
-
 			Convey("it sets HasNoResults property", func() {
-				So(coverage.HasNoResults, ShouldBeFalse)
+				So(coverage.NameSearchOutput.HasNoResults, ShouldBeFalse)
+				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
 			})
 
 			Convey("it sets Dimension property", func() {
@@ -351,15 +351,45 @@ func TestGetCoverage(t *testing.T) {
 				"geography",
 				"",
 				"",
+				"",
+				"",
+				"",
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
-				false,
 				parents)
 			Convey("Then it maps to the ParentSelect property", func() {
 				So(coverage.ParentSelect[0].Text, ShouldEqual, parents.AreaTypes[0].Label)
 				So(coverage.ParentSelect[0].Value, ShouldEqual, parents.AreaTypes[0].ID)
 				So(coverage.ParentSelect[0].IsDisabled, ShouldBeFalse)
 				So(coverage.ParentSelect[0].IsSelected, ShouldBeFalse)
+			})
+		})
+
+		Convey("When parent type is selected", func() {
+			parents := population.GetAreaTypeParentsResponse{
+				AreaTypes: []population.AreaTypes{
+					{
+						Label: "Area 1",
+						ID:    "id",
+					},
+				},
+			}
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"geography",
+				"",
+				"",
+				"id",
+				"",
+				"",
+				population.GetAreasResponse{},
+				[]model.SelectableElement{},
+				parents)
+			Convey("Then it sets the IsSelected property", func() {
+				So(coverage.ParentSelect[0].IsSelected, ShouldBeTrue)
 			})
 		})
 
@@ -384,9 +414,11 @@ func TestGetCoverage(t *testing.T) {
 				"geography",
 				"",
 				"",
+				"",
+				"",
+				"",
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
-				false,
 				parents)
 			Convey("Then it maps the ParentSelect default option", func() {
 				So(coverage.ParentSelect[0].Text, ShouldEqual, "Select")
@@ -414,16 +446,18 @@ func TestGetCoverage(t *testing.T) {
 				"Unknown geography",
 				"",
 				"",
+				"",
+				"",
+				"",
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
-				false,
 				population.GetAreaTypeParentsResponse{})
 			Convey("Then it sets the geography to unknown geography", func() {
 				So(coverage.Geography, ShouldEqual, "unknown geography")
 			})
 		})
 
-		Convey("When a valid search is performed", func() {
+		Convey("When a valid name search is performed", func() {
 			mockedSearchResults := population.GetAreasResponse{
 				Areas: []population.Area{
 					{
@@ -441,16 +475,14 @@ func TestGetCoverage(t *testing.T) {
 				"Unknown geography",
 				"search",
 				"",
+				"",
+				"name-search",
+				"",
 				mockedSearchResults,
 				[]model.SelectableElement{},
-				true,
 				population.GetAreaTypeParentsResponse{})
-			Convey("Then it sets DisplaySearch property", func() {
-				So(coverage.DisplaySearch, ShouldBeTrue)
-			})
-
 			Convey("Then it sets HasNoResults property", func() {
-				So(coverage.HasNoResults, ShouldBeFalse)
+				So(coverage.NameSearchOutput.HasNoResults, ShouldBeFalse)
 			})
 
 			Convey("Then it maps the search results", func() {
@@ -460,11 +492,58 @@ func TestGetCoverage(t *testing.T) {
 						Value: mockedSearchResults.Areas[0].ID,
 					},
 				}
-				So(coverage.SearchResults, ShouldResemble, expectedResult)
+				So(coverage.NameSearchOutput.SearchResults, ShouldResemble, expectedResult)
+			})
+
+			Convey("Then it sets the search input field value", func() {
+				So(coverage.NameSearch.Value, ShouldEqual, "search")
 			})
 		})
 
-		Convey("When an invalid search is performed", func() {
+		Convey("When a valid parent search is performed", func() {
+			mockedSearchResults := population.GetAreasResponse{
+				Areas: []population.Area{
+					{
+						Label: "area one",
+						ID:    "area ID",
+					},
+				},
+			}
+
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"",
+				"search",
+				"",
+				"parent-search",
+				"",
+				mockedSearchResults,
+				[]model.SelectableElement{},
+				population.GetAreaTypeParentsResponse{})
+			Convey("Then it sets HasNoResults property", func() {
+				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
+			})
+
+			Convey("Then it maps the search results", func() {
+				expectedResult := []model.SelectableElement{
+					{
+						Text:  mockedSearchResults.Areas[0].Label,
+						Value: mockedSearchResults.Areas[0].ID,
+					},
+				}
+				So(coverage.ParentSearchOutput.SearchResults, ShouldResemble, expectedResult)
+			})
+
+			Convey("Then it sets the search input field value", func() {
+				So(coverage.ParentSearch.Value, ShouldEqual, "search")
+			})
+		})
+
+		Convey("When an invalid name search is performed", func() {
 			coverage := CreateGetCoverage(
 				req,
 				coreModel.Page{},
@@ -473,20 +552,50 @@ func TestGetCoverage(t *testing.T) {
 				"Unknown geography",
 				"search",
 				"",
+				"",
+				"name-search",
+				"",
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
-				true,
 				population.GetAreaTypeParentsResponse{})
-			Convey("Then it sets DisplaySearch property correctly", func() {
-				So(coverage.DisplaySearch, ShouldBeTrue)
-			})
-
 			Convey("Then it sets HasNoResults property correctly", func() {
-				So(coverage.HasNoResults, ShouldBeTrue)
+				So(coverage.NameSearchOutput.HasNoResults, ShouldBeTrue)
 			})
 
 			Convey("Then search results struct is empty", func() {
-				So(coverage.SearchResults, ShouldResemble, []model.SelectableElement(nil))
+				So(coverage.NameSearchOutput.SearchResults, ShouldResemble, []model.SelectableElement(nil))
+			})
+
+			Convey("Then it sets the search input field value", func() {
+				So(coverage.NameSearch.Value, ShouldEqual, "search")
+			})
+		})
+
+		Convey("When an invalid parent search is performed", func() {
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"",
+				"search",
+				"",
+				"parent-search",
+				"",
+				population.GetAreasResponse{},
+				[]model.SelectableElement{},
+				population.GetAreaTypeParentsResponse{})
+			Convey("Then it sets HasNoResults property correctly", func() {
+				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeTrue)
+			})
+
+			Convey("Then search results struct is empty", func() {
+				So(coverage.ParentSearchOutput.SearchResults, ShouldResemble, []model.SelectableElement(nil))
+			})
+
+			Convey("Then it sets the search input field value", func() {
+				So(coverage.ParentSearch.Value, ShouldEqual, "search")
 			})
 		})
 
@@ -505,16 +614,14 @@ func TestGetCoverage(t *testing.T) {
 				"Unknown geography",
 				"search",
 				"",
+				"",
+				"",
+				"",
 				population.GetAreasResponse{},
 				mockedOpt,
-				true,
 				population.GetAreaTypeParentsResponse{})
-			Convey("Then it sets DisplaySearch property correctly", func() {
-				So(coverage.DisplaySearch, ShouldBeTrue)
-			})
-
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.Options, ShouldResemble, mockedOpt)
+				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
 		})
 
@@ -541,20 +648,18 @@ func TestGetCoverage(t *testing.T) {
 				"Unknown geography",
 				"search",
 				"",
+				"",
+				"",
+				"",
 				mockedSearchResults,
 				mockedOpt,
-				true,
 				population.GetAreaTypeParentsResponse{})
-			Convey("Then it sets DisplaySearch property correctly", func() {
-				So(coverage.DisplaySearch, ShouldBeTrue)
-			})
-
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.Options, ShouldResemble, mockedOpt)
+				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
 
 			Convey("Then it sets HasNoResults property", func() {
-				So(coverage.HasNoResults, ShouldBeFalse)
+				So(coverage.NameSearchOutput.HasNoResults, ShouldBeFalse)
 			})
 		})
 
@@ -585,20 +690,18 @@ func TestGetCoverage(t *testing.T) {
 				"Unknown geography",
 				"search",
 				"",
+				"",
+				"name-search",
+				"",
 				mockedSearchResults,
 				mockedOpt,
-				true,
 				population.GetAreaTypeParentsResponse{})
-			Convey("Then it sets DisplaySearch property correctly", func() {
-				So(coverage.DisplaySearch, ShouldBeTrue)
-			})
-
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.Options, ShouldResemble, mockedOpt)
+				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
 
 			Convey("Then it sets HasNoResults property", func() {
-				So(coverage.HasNoResults, ShouldBeFalse)
+				So(coverage.NameSearchOutput.HasNoResults, ShouldBeFalse)
 			})
 
 			Convey("Then it maps the search results", func() {
@@ -614,7 +717,7 @@ func TestGetCoverage(t *testing.T) {
 						IsSelected: false,
 					},
 				}
-				So(coverage.SearchResults, ShouldResemble, expectedResults)
+				So(coverage.NameSearchOutput.SearchResults, ShouldResemble, expectedResults)
 			})
 		})
 	})
