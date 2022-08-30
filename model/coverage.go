@@ -7,16 +7,26 @@ import (
 // Coverage represents the data to display the coverage page
 type Coverage struct {
 	coreModel.Page
-	Geography     string              `json:"geography"`
-	Dimension     string              `json:"dimension"`
+	Geography          string              `json:"geography"`
+	Dimension          string              `json:"dimension"`
+	ParentSelect       []SelectableElement `json:"parent_select"`
+	NameSearch         SearchField         `json:"name_search"`
+	ParentSearch       SearchField         `json:"parent_search"`
+	CoverageType       string              `json:"coverage_type"`
+	NameSearchOutput   SearchOutput        `json:"name_search_output"`
+	ParentSearchOutput SearchOutput        `json:"parent_search_output"`
+}
+
+/* SearchOutput represents the presentable data required to display search output section
+HasNoResults is a bool which displays messaging if there are no search results
+SearchResults is an array of search results
+Options is an array of previously added options
+Language is the user set language */
+type SearchOutput struct {
 	HasNoResults  bool                `json:"has_no_results"`
-	Search        string              `json:"search"`
-	DisplaySearch bool                `json:"display_search"`
 	SearchResults []SelectableElement `json:"search_results"`
 	Options       []SelectableElement `json:"options"`
-	ParentSelect  []SelectableElement `json:"parent_select"`
-	NameSearch    SearchField         `json:"name_search"`
-	ParentSearch  SearchField         `json:"parent_search"`
+	Language      string              `json:"language"`
 }
 
 /* SelectableElement represents the data required for a selectable element.
