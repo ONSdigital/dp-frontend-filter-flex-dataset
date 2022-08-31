@@ -11,7 +11,7 @@ import (
 )
 
 // To mock interfaces in this file
-//go:generate mockgen -source=clients.go -destination=mock_clients.go -package=handlers github.com/ONSdigital/dp-frontend-articles-controller/handlers
+//go:generate mockgen -source=clients.go -destination=mock_clients.go -package=handlers github.com/ONSdigital/dp-frontend-filter-flex-dataset/handlers
 
 // ClientError is an interface that can be used to retrieve the status code if a client has errored
 type ClientError interface {
@@ -49,4 +49,5 @@ type DatasetClient interface {
 type PopulationClient interface {
 	GetPopulationAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (population.GetAreaTypesResponse, error)
 	GetAreas(ctx context.Context, input population.GetAreasInput) (population.GetAreasResponse, error)
+	GetAreaTypeParents(ctx context.Context, input population.GetAreaTypeParentsInput) (population.GetAreaTypeParentsResponse, error)
 }

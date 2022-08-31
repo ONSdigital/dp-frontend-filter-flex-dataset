@@ -11,30 +11,49 @@
                         <div class="ons-radios__items">
                             <span class="ons-radios__item ons-radios__item--no-border">
                                 <span class="ons-radio ons-radio--no-border">
-                                    <input type="radio" id="coverage-default" class="ons-radio__input ons-js-radio" value="default" name="coverage" {{ if eq .DisplaySearch false }} checked="checked" {{ end }}>
+                                    <input type="radio" id="coverage-default" class="ons-radio__input ons-js-radio" value="default" name="coverage" {{ if eq .CoverageType "" }} checked="checked" {{ end }}>
                                     <label class="ons-radio__label" for="coverage-default">{{- localise "CoverageDefault" .Language 1 .Geography -}}</label>
                                 </span>
                             </span>
                             <br>
                             <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
                                 <div class="ons-radio ons-radio--no-border">
-                                    <input type="radio" id="coverage-search" class="ons-radio__input ons-js-radio ons-js-other" value="name-search" name="coverage" {{ if .DisplaySearch }} checked="checked" {{ end }}>
+                                    <input type="radio" id="coverage-search" class="ons-radio__input ons-js-radio ons-js-other" value="name-search" name="coverage" {{ if eq .CoverageType "name-search" }} checked="checked" {{ end }}>
                                     <label class="ons-radio__label" for="coverage-search">{{- localise "CoverageSearch" .Language 1 .Geography -}}</label>
-                                    <div class="ons-radio__other ons-u-pb-no" id="other-radio-other-wrap">
-                                        {{ template "partials/coverage/search" . }}
-                                        {{ if .DisplaySearch }}
-                                            <div class="ons-u-mt-xs">
-                                                {{ if .SearchResults }}
-                                                    {{ template "partials/coverage/results" . }}
-                                                {{ end }}
-                                                {{ if .HasNoResults }}
-                                                    <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
-                                                {{ end }}
-                                                {{ if .Options }}
-                                                    {{ template "partials/coverage/options" . }}
-                                                {{ end }}
-                                            </div>
-                                        {{ end }}
+                                    <div class="ons-radio__other ons-u-pb-no">
+                                        {{ template "partials/coverage/search" .NameSearch }}
+                                        <div class="ons-u-mt-xs">
+                                            {{ if .NameSearchOutput.SearchResults }}
+                                                {{ template "partials/coverage/results" .NameSearchOutput }}
+                                            {{ end }}
+                                            {{ if .NameSearchOutput.HasNoResults }}
+                                                <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
+                                            {{ end }}
+                                            {{ if .NameSearchOutput.Options }}
+                                                {{ template "partials/coverage/options" .NameSearchOutput }}
+                                            {{ end }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
+                                <div class="ons-radio ons-radio--no-border">
+                                    <input type="radio" id="coverage-parent-search" class="ons-radio__input ons-js-radio ons-js-other" value="parent-search" name="coverage" {{ if eq .CoverageType "parent-search" }} checked="checked" {{ end }}>
+                                    <label class="ons-radio__label" for="coverage-parent-search">
+                                        {{- localise "CoverageParentSearch" .Language 1 .Geography -}}
+                                    </label>
+                                    <div class="ons-radio__other ons-u-pb-no">
+                                        {{ template "partials/coverage/select" . }}
+                                        {{ template "partials/coverage/search" .ParentSearch }}
+                                        <div class="ons-u-mt-xs">
+                                            {{ if .ParentSearchOutput.SearchResults }}
+                                                {{ template "partials/coverage/results" .ParentSearchOutput }}
+                                            {{ end }}
+                                            {{ if .ParentSearchOutput.HasNoResults }}
+                                                <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
+                                            {{ end }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

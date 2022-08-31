@@ -23,9 +23,13 @@ import (
 
 // Constants...
 const (
-	queryStrKey    = "showAll"
-	areaTypePrefix = "AreaType"
-	pluralInt      = 4
+	queryStrKey           = "showAll"
+	areaTypePrefix        = "AreaType"
+	pluralInt             = 4
+	nameSearch            = "name-search"
+	parentSearch          = "parent-search"
+	nameSearchFieldName   = "q"
+	parentSearchFieldName = "pq"
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
@@ -172,7 +176,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, query, dim string, areas population.GetAreasResponse, opts []model.Option, isSearch bool) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -183,7 +187,6 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
 		},
 	}
-
 	geography := helpers.Pluralise(req, geogName, lang, areaTypePrefix, pluralInt)
 	if geography == "" {
 		log.Info(req.Context(), "pluralisation lookup failed, reverting to initial input", log.Data{
@@ -193,29 +196,68 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	}
 
 	p.Geography = strings.ToLower(geography)
+	p.CoverageType = coverage
 	p.Dimension = dim
-	p.DisplaySearch = isSearch || len(opts) > 0
-	p.Search = query
-	p.Options = opts
-	p.ContinueURI = fmt.Sprintf("/filters/%s/dimensions", filterID)
+	p.NameSearch = model.SearchField{
+		Name:  nameSearchFieldName,
+		ID:    nameSearch,
+		Value: nameQ,
+	}
+	p.ParentSearch = model.SearchField{
+		Name:  parentSearchFieldName,
+		ID:    parentSearch,
+		Value: parentQ,
+	}
+	if len(parents.AreaTypes) > 1 && parentArea == "" {
+		p.ParentSelect = []model.SelectableElement{
+			{
+				Text:       helper.Localise("CoverageSelectDefault", lang, 1),
+				IsSelected: true,
+				IsDisabled: true,
+			},
+		}
+	}
+	for _, parent := range parents.AreaTypes {
+		var sel model.SelectableElement
+		sel.Text = parent.Label
+		sel.Value = parent.ID
+		if parentArea == parent.ID {
+			sel.IsSelected = true
+		}
+		p.ParentSelect = append(p.ParentSelect, sel)
+	}
 
-	var results []model.SearchResult
+	var results []model.SelectableElement
 	for _, area := range areas.Areas {
 		var isSelected bool
 		for _, opt := range opts {
-			if opt.ID == area.ID {
+			if opt.Value == area.ID {
 				isSelected = true
 				break
 			}
 		}
-		results = append(results, model.SearchResult{
-			Label:      area.Label,
-			ID:         area.ID,
+		results = append(results, model.SelectableElement{
+			Text:       area.Label,
+			Value:      area.ID,
 			IsSelected: isSelected,
 		})
 	}
-	p.SearchResults = results
-	p.HasNoResults = isSearch && len(p.SearchResults) == 0
+
+	// TODO: This will change when adding parent options feature is developed
+	if len(opts) > 0 {
+		// Force section to display
+		p.CoverageType = nameSearch
+		p.NameSearchOutput.Options = opts
+	}
+
+	switch coverage {
+	case nameSearch:
+		p.NameSearchOutput.SearchResults = results
+		p.NameSearchOutput.HasNoResults = len(p.NameSearchOutput.SearchResults) == 0
+	case parentSearch:
+		p.ParentSearchOutput.SearchResults = results
+		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0
+	}
 
 	return p
 }

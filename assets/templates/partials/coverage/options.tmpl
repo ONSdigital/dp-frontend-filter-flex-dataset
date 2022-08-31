@@ -14,7 +14,7 @@
                     <button 
                         type="submit" 
                         name="delete-option" 
-                        value="{{- .ID -}}" 
+                        value="{{- .Value -}}" 
                         class="ons-btn ons-btn--secondary"
                         >
                         <span class="ons-btn__inner">
@@ -22,7 +22,7 @@
                                 {{- localise "SearchResultsRemove" $.Language 1 -}}
                             </span>
                             <span class="ons-btn__text">
-                                {{ .Label }}
+                                {{ .Text }}
                             </span>
                             <span class="ons-u-pl-xs">
                                 {{ template "icons/cross" . }}

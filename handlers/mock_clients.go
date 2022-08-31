@@ -371,6 +371,21 @@ func (m *MockPopulationClient) EXPECT() *MockPopulationClientMockRecorder {
 	return m.recorder
 }
 
+// GetAreaTypeParents mocks base method.
+func (m *MockPopulationClient) GetAreaTypeParents(ctx context.Context, input population.GetAreaTypeParentsInput) (population.GetAreaTypeParentsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAreaTypeParents", ctx, input)
+	ret0, _ := ret[0].(population.GetAreaTypeParentsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAreaTypeParents indicates an expected call of GetAreaTypeParents.
+func (mr *MockPopulationClientMockRecorder) GetAreaTypeParents(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreaTypeParents", reflect.TypeOf((*MockPopulationClient)(nil).GetAreaTypeParents), ctx, input)
+}
+
 // GetAreas mocks base method.
 func (m *MockPopulationClient) GetAreas(ctx context.Context, input population.GetAreasInput) (population.GetAreasResponse, error) {
 	m.ctrl.T.Helper()

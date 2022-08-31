@@ -126,6 +126,10 @@ one = "All {{.arg0}} within England and Wales"
 description = "Search for {{.Geography}} by name"
 one = "Search for {{.arg0}} by name"
 
+[CoverageParentSearch]
+description = "Select all {{.Geography}} within a larger area"
+one = "Select all {{.arg0}} within a larger area"
+
 [CoverageSearchLabel]
 description = "Enter an area name or code"
 one = "Enter an area name or code"
@@ -133,6 +137,18 @@ one = "Enter an area name or code"
 [CoverageSearchButtonText]
 description = "Search"
 one = "Search"
+
+[CoverageSelectLabel]
+description = "Larger area type"
+one = "Larger area type"
+
+[CoverageSelectHint]
+description = "For example, a region or local authority"
+one = "For example, a region or local authority"
+
+[CoverageSelectDefault]
+description = "Select a larger area type"
+one = "Select a larger area type"
 
 [AreaTypeCoverageTitle]
 description = "Coverage"
