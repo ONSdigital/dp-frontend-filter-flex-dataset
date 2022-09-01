@@ -8,7 +8,7 @@
                 {{- .Text -}}
                 <button 
                     type="submit" 
-                    name="{{ if .IsSelected }}delete{{ else }}add{{ end }}-option" 
+                    name="{{- .Name -}}" 
                     value="{{- .Value -}}" 
                     class="ons-btn ons-btn--secondary ons-btn--small">
                     <span class="ons-btn__inner">

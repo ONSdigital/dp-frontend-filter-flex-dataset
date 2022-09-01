@@ -143,12 +143,17 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 
 			go func(opt filter.DimensionOption) {
 				defer wg.Done()
-
+				var areaTypeID string
+				if dim.FilterByParent != "" {
+					areaTypeID = dim.FilterByParent
+				} else {
+					areaTypeID = dim.ID
+				}
 				// TODO: Temporary fix until GetArea endpoint is created
 				areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 					UserAuthToken: accessToken,
 					DatasetID:     filterJob.PopulationType,
-					AreaTypeID:    dim.ID,
+					AreaTypeID:    areaTypeID,
 					Text:          opt.Option,
 				})
 				if err != nil {
@@ -194,6 +199,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 				return
 			}
 			dim.IsAreaType = filterDimension.IsAreaType
+			dim.FilterByParent = filterDimension.FilterByParent
 
 			options, err := getOptions(dim)
 			if err != nil {
