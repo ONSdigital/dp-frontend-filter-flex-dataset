@@ -9,6 +9,7 @@ type Coverage struct {
 	coreModel.Page
 	Geography          string              `json:"geography"`
 	Dimension          string              `json:"dimension"`
+	GeographyID        string              `json:"geography_id"`
 	ParentSelect       []SelectableElement `json:"parent_select"`
 	NameSearch         SearchField         `json:"name_search"`
 	ParentSearch       SearchField         `json:"parent_search"`
@@ -32,11 +33,13 @@ type SearchOutput struct {
 /* SelectableElement represents the data required for a selectable element.
 Text is the human readable label.
 Value is the value sent to the server.
+Name is the name attribute.
 IsSelected is a boolean representing whether the element is selected.
 IsDisabled is a boolean representing whether the element is disabled */
 type SelectableElement struct {
 	Text       string `json:"text"`
 	Value      string `json:"value"`
+	Name       string `json:"name"`
 	IsSelected bool   `json:"is_selected"`
 	IsDisabled bool   `json:"is_disabled"`
 }

@@ -6,6 +6,7 @@
             <div class="ons-page__main ons-u-mt-l">
                 <form method="post">
                     <input type="hidden" name="dimension" value="{{- .Dimension -}}">
+                    <input type="hidden" name="geog-id" value="{{- .GeographyID -}}">
                     <fieldset class="ons-fieldset">
                         <legend class="ons-fieldset__legend">{{- localise "CoverageLegend" .Language 1 -}}</legend>
                         <div class="ons-radios__items">
@@ -52,6 +53,9 @@
                                             {{ end }}
                                             {{ if .ParentSearchOutput.HasNoResults }}
                                                 <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
+                                            {{ end }}
+                                            {{ if .ParentSearchOutput.Options }}
+                                                {{ template "partials/coverage/options" .ParentSearchOutput }}
                                             {{ end }}
                                         </div>
                                     </div>

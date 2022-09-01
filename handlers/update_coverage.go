@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
@@ -73,7 +75,27 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 			return
 		}
 	case Add:
-		_, err := fc.AddDimensionValue(ctx, accessToken, "", collectionID, filterID, form.Dimension, form.Value, "")
+		opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, form.Dimension, &filter.QueryParams{Limit: 500})
+		if err != nil {
+			log.Error(ctx, "failed to get dimension options", err, log.Data{"dimension_name": form.Dimension})
+			setStatusCode(req, w, err)
+			return
+		}
+
+		var options []string
+		for _, opt := range opts.Items {
+			options = append(options, opt.Option)
+		}
+		options = append(options, form.Value)
+
+		dim := filter.Dimension{
+			Name:           form.Dimension,
+			ID:             form.GeographyID,
+			IsAreaType:     helpers.ToBoolPtr(true),
+			Options:        options,
+			FilterByParent: form.LargerArea,
+		}
+		_, _, err = fc.UpdateDimensions(ctx, accessToken, "", collectionID, filterID, form.Dimension, "", dim)
 		if err != nil {
 			log.Error(ctx, "failed to add dimension value", err, log.Data{
 				"dimension": form.Dimension,
@@ -100,11 +122,12 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 
 // updateCoverageForm represents form-data for the UpdateCoverage handler.
 type updateCoverageForm struct {
-	Action     FormAction
-	Value      string
-	Dimension  string
-	LargerArea string
-	Coverage   string
+	Action      FormAction
+	Value       string
+	Dimension   string
+	LargerArea  string
+	Coverage    string
+	GeographyID string
 }
 
 // parseUpdateCoverageForm parses form data from a http.Request into a updateCoverageForm.
@@ -130,6 +153,11 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 	coverage := req.FormValue("coverage")
 	if coverage == "" {
 		return updateCoverageForm{}, &clientErr{errors.New("missing required value 'coverage'")}
+	}
+
+	geogID := req.FormValue("geog-id")
+	if geogID == "" {
+		return updateCoverageForm{}, &clientErr{errors.New("missing required value 'geog-id'")}
 	}
 
 	switch coverage {
@@ -165,6 +193,13 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 		value = addOption
 	}
 
+	addParentOption := req.FormValue("add-parent-option")
+	if addParentOption != "" {
+		action = Add
+		value = addParentOption
+		largerArea = parent
+	}
+
 	deleteOption := req.FormValue("delete-option")
 	if deleteOption != "" {
 		action = Delete
@@ -172,10 +207,11 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 	}
 
 	return updateCoverageForm{
-		Action:     action,
-		Value:      value,
-		Dimension:  dimension,
-		LargerArea: largerArea,
-		Coverage:   coverage,
+		Action:      action,
+		Value:       value,
+		Dimension:   dimension,
+		LargerArea:  largerArea,
+		Coverage:    coverage,
+		GeographyID: geogID,
 	}, nil
 }
