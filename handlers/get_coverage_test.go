@@ -313,6 +313,16 @@ func TestGetCoverageHandler(t *testing.T) {
 							},
 						},
 					}, nil)
+				mockPc.
+					EXPECT().
+					GetArea(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaResponse{
+						Area: population.Area{
+							ID:       "1",
+							Label:    "Label",
+							AreaType: "Geography",
+						},
+					}, nil)
 				mockPc.EXPECT().
 					GetAreaTypeParents(gomock.Any(), gomock.Any()).
 					Return(population.GetAreaTypeParentsResponse{}, nil)
