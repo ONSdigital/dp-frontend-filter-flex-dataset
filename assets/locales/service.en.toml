@@ -13,10 +13,6 @@
 # Plural rules can be found here: http://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-[PageProblem]
-description = "There is a problem with this page"
-one = "There is a problem with this page"
-
 [Variable]
 description = "Variable"
 one = "Variable"

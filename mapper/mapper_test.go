@@ -310,6 +310,7 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("it sets page metadata", func() {
 				So(coverage.BetaBannerEnabled, ShouldBeTrue)
@@ -364,6 +365,7 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
+				false,
 				false)
 			Convey("Then it maps to the ParentSelect property", func() {
 				So(coverage.ParentSelect[0].Text, ShouldEqual, parents.AreaTypes[0].Label)
@@ -397,6 +399,7 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
+				false,
 				false)
 			Convey("Then it sets the IsSelected property", func() {
 				So(coverage.ParentSelect[0].IsSelected, ShouldBeTrue)
@@ -431,6 +434,7 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
+				false,
 				false)
 			Convey("Then it maps the ParentSelect default option", func() {
 				So(coverage.ParentSelect[0].Text, ShouldEqual, "Select")
@@ -465,6 +469,7 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("Then it sets the geography to unknown geography", func() {
 				So(coverage.Geography, ShouldEqual, "unknown geography")
@@ -496,6 +501,7 @@ func TestGetCoverage(t *testing.T) {
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("Then it sets HasNoResults property", func() {
 				So(coverage.NameSearchOutput.HasNoResults, ShouldBeFalse)
@@ -542,6 +548,7 @@ func TestGetCoverage(t *testing.T) {
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("Then it sets HasNoResults property", func() {
 				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
@@ -579,6 +586,7 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("Then it sets HasNoResults property correctly", func() {
 				So(coverage.NameSearchOutput.HasNoResults, ShouldBeTrue)
@@ -594,6 +602,19 @@ func TestGetCoverage(t *testing.T) {
 		})
 
 		Convey("When an invalid parent search is performed", func() {
+			mockErrStruct := coreModel.Error{
+				Title: "Coverage",
+				ErrorItems: []coreModel.ErrorItem{
+					{
+						Description: coreModel.Localisation{
+							LocaleKey: "CoverageSelectDefault",
+							Plural:    1,
+						},
+						URL: "#coverage-error",
+					},
+				},
+				Language: lang,
+			}
 			coverage := CreateGetCoverage(
 				req,
 				coreModel.Page{},
@@ -609,6 +630,42 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
+				false,
+				true)
+			Convey("Then it sets HasNoResults property correctly", func() {
+				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
+			})
+
+			Convey("Then search results struct is empty", func() {
+				So(coverage.ParentSearchOutput.SearchResults, ShouldResemble, []model.SelectableElement(nil))
+			})
+
+			Convey("Then it sets the search input field value", func() {
+				So(coverage.ParentSearch.Value, ShouldEqual, "search")
+			})
+
+			Convey("Then it sets the page Error struct", func() {
+				So(coverage.Error, ShouldResemble, mockErrStruct)
+			})
+		})
+
+		Convey("When a 'no results' parent search is performed", func() {
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"",
+				"search",
+				"",
+				"parent-search",
+				"",
+				"",
+				population.GetAreasResponse{},
+				[]model.SelectableElement{},
+				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("Then it sets HasNoResults property correctly", func() {
 				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeTrue)
@@ -646,6 +703,7 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
@@ -674,7 +732,8 @@ func TestGetCoverage(t *testing.T) {
 				population.GetAreasResponse{},
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
-				true)
+				true,
+				false)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
@@ -710,6 +769,7 @@ func TestGetCoverage(t *testing.T) {
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
@@ -751,7 +811,8 @@ func TestGetCoverage(t *testing.T) {
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
-				true)
+				true,
+				false)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
@@ -795,6 +856,7 @@ func TestGetCoverage(t *testing.T) {
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
+				false,
 				false)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
@@ -857,7 +919,8 @@ func TestGetCoverage(t *testing.T) {
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
-				true)
+				true,
+				false)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
 			})

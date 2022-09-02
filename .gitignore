@@ -7,6 +7,7 @@ assets/data.go
 
 #VSCode
 .vscode
+__debug_bin
 
 # Intellij
 .idea/
