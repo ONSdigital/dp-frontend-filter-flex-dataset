@@ -9,7 +9,7 @@
         <select 
             id="larger-area-select" 
             name="larger-area" 
-            class="ons-input ons-input--select ons-input--block">
+            class="ons-input ons-input--select ons-input--block {{ if .Page.Error.Title }}ons-input--error{{ end }}">
             {{ range .ParentSelect }}
                 <option 
                     value="{{- .Value -}}" 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -33,6 +34,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	p := req.URL.Query().Get("p")
 	isNameSearch := strings.Contains(req.URL.RawQuery, "q=")
 	isParentSearch := strings.Contains(req.URL.RawQuery, "p=")
+	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
 	var filterJob *filter.GetFilterResponse
 	var filterDims filter.Dimensions
 	var parents population.GetAreaTypeParentsResponse
@@ -189,7 +191,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, geogID, areas, options, parents, hasFilterByParent)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, geogID, areas, options, parents, hasFilterByParent, isValidationError)
 	rc.BuildPage(w, m, "coverage")
 }
 

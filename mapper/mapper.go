@@ -155,7 +155,17 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
-			Title: "Error: Select an area type",
+			Title: p.Page.Metadata.Title,
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "SelectAreaTypeError",
+						Plural:    1,
+					},
+					URL: "#area-type-error",
+				},
+			},
+			Language: lang,
 		}
 	}
 
@@ -176,7 +186,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent bool) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -262,7 +272,23 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		p.NameSearchOutput.HasNoResults = len(p.NameSearchOutput.SearchResults) == 0
 	case parentSearch:
 		p.ParentSearchOutput.SearchResults = results
-		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0
+		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0 && !hasValidationErr
+	}
+
+	if hasValidationErr {
+		p.Page.Error = coreModel.Error{
+			Title: p.Metadata.Title,
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "CoverageSelectDefault",
+						Plural:    1,
+					},
+					URL: "#coverage-error",
+				},
+			},
+			Language: lang,
+		}
 	}
 
 	return p

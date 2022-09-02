@@ -4,7 +4,7 @@
         {{ template "partials/breadcrumb" . }}
 
         {{ if .Page.Error.Title }}
-            {{ template "partials/error-summary" .Page }}
+            {{ template "partials/error-summary" .Page.Error }}
         {{ end}}
 
         <h1 class="ons-u-fs-xxxl ons-u-mt-s">{{ .Page.Metadata.Title }}</h1>
@@ -12,8 +12,8 @@
         <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
                 {{ if .Page.Error.Title }}
-                    <div class="ons-panel ons-panel--error ons-panel--no-title" id="{{ .Page.Error.Title }}">
-                        <span class="ons-u-vh">Error: </span>
+                    <div class="ons-panel ons-panel--error ons-panel--no-title" id="area-type-error">
+                        <span class="ons-u-vh">{{- localise "Error" .Language 1 -}}:</span>
                         <div class="ons-panel__body">
                             <p class="ons-panel__error">
                                 <strong>{{ localise "SelectAreaTypeError" .Language 1 }}</strong>
