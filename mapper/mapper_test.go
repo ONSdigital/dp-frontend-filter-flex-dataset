@@ -373,6 +373,32 @@ func TestGetCoverage(t *testing.T) {
 				So(coverage.ParentSelect[0].IsDisabled, ShouldBeFalse)
 				So(coverage.ParentSelect[0].IsSelected, ShouldBeFalse)
 			})
+			Convey("Then it sets the IsSelectParent property", func() {
+				So(coverage.IsSelectParents, ShouldBeTrue)
+			})
+		})
+
+		Convey("When parent types returns an empty list", func() {
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"geography",
+				"",
+				"",
+				"",
+				"",
+				"",
+				"",
+				population.GetAreasResponse{},
+				[]model.SelectableElement{},
+				population.GetAreaTypeParentsResponse{},
+				false,
+				false)
+			Convey("Then it sets the IsSelectParent property", func() {
+				So(coverage.IsSelectParents, ShouldBeFalse)
+			})
 		})
 
 		Convey("When parent type is selected", func() {
@@ -403,6 +429,9 @@ func TestGetCoverage(t *testing.T) {
 				false)
 			Convey("Then it sets the IsSelected property", func() {
 				So(coverage.ParentSelect[0].IsSelected, ShouldBeTrue)
+			})
+			Convey("Then it sets the IsSelectParent property", func() {
+				So(coverage.IsSelectParents, ShouldBeTrue)
 			})
 		})
 
@@ -450,6 +479,9 @@ func TestGetCoverage(t *testing.T) {
 				So(coverage.ParentSelect[2].Value, ShouldEqual, parents.AreaTypes[1].ID)
 				So(coverage.ParentSelect[2].IsDisabled, ShouldBeFalse)
 				So(coverage.ParentSelect[2].IsSelected, ShouldBeFalse)
+			})
+			Convey("Then it sets the IsSelectParent property", func() {
+				So(coverage.IsSelectParents, ShouldBeTrue)
 			})
 		})
 

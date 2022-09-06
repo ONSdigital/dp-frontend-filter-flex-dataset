@@ -16,6 +16,7 @@ type Coverage struct {
 	CoverageType       string              `json:"coverage_type"`
 	NameSearchOutput   SearchOutput        `json:"name_search_output"`
 	ParentSearchOutput SearchOutput        `json:"parent_search_output"`
+	IsSelectParents    bool                `json:"is_select_parents"`
 }
 
 /* SearchOutput represents the presentable data required to display search output section

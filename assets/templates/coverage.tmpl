@@ -50,30 +50,32 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <br>
-                                    <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
-                                        <div class="ons-radio ons-radio--no-border">
-                                            <input type="radio" id="coverage-parent-search" class="ons-radio__input ons-js-radio ons-js-other" value="parent-search" name="coverage" {{ if eq .CoverageType "parent-search" }} checked="checked" {{ end }}>
-                                            <label class="ons-radio__label" for="coverage-parent-search">
-                                                {{- localise "CoverageParentSearch" .Language 1 .Geography -}}
-                                            </label>
-                                            <div class="ons-radio__other ons-u-pb-no">
-                                                {{ template "partials/coverage/select" . }}
-                                                {{ template "partials/coverage/search" .ParentSearch }}
-                                                <div class="ons-u-mt-xs">
-                                                    {{ if .ParentSearchOutput.SearchResults }}
-                                                        {{ template "partials/coverage/results" .ParentSearchOutput }}
-                                                    {{ end }}
-                                                    {{ if .ParentSearchOutput.HasNoResults }}
-                                                        <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
-                                                    {{ end }}
-                                                    {{ if .ParentSearchOutput.Options }}
-                                                        {{ template "partials/coverage/options" .ParentSearchOutput }}
-                                                    {{ end }}
+                                    {{ if .IsSelectParents }}
+                                        <br>
+                                        <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
+                                            <div class="ons-radio ons-radio--no-border">
+                                                <input type="radio" id="coverage-parent-search" class="ons-radio__input ons-js-radio ons-js-other" value="parent-search" name="coverage" {{ if eq .CoverageType "parent-search" }} checked="checked" {{ end }}>
+                                                <label class="ons-radio__label" for="coverage-parent-search">
+                                                    {{- localise "CoverageParentSearch" .Language 1 .Geography -}}
+                                                </label>
+                                                <div class="ons-radio__other ons-u-pb-no">
+                                                    {{ template "partials/coverage/select" . }}
+                                                    {{ template "partials/coverage/search" .ParentSearch }}
+                                                    <div class="ons-u-mt-xs">
+                                                        {{ if .ParentSearchOutput.SearchResults }}
+                                                            {{ template "partials/coverage/results" .ParentSearchOutput }}
+                                                        {{ end }}
+                                                        {{ if .ParentSearchOutput.HasNoResults }}
+                                                            <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
+                                                        {{ end }}
+                                                        {{ if .ParentSearchOutput.Options }}
+                                                            {{ template "partials/coverage/options" .ParentSearchOutput }}
+                                                        {{ end }}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    {{ end }}
                                 </div>
                             </fieldset>
                             {{ if .Page.Error.Title }}

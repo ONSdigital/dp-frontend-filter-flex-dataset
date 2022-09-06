@@ -291,6 +291,8 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		}
 	}
 
+	p.IsSelectParents = len(parents.AreaTypes) > 0
+
 	return p
 }
 
