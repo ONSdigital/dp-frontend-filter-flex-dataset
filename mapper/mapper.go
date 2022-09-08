@@ -155,7 +155,17 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
-			Title: "Error: Select an area type",
+			Title: p.Page.Metadata.Title,
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "SelectAreaTypeError",
+						Plural:    1,
+					},
+					URL: "#area-type-error",
+				},
+			},
+			Language: lang,
 		}
 	}
 
@@ -176,7 +186,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -198,6 +208,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	p.Geography = strings.ToLower(geography)
 	p.CoverageType = coverage
 	p.Dimension = dim
+	p.GeographyID = geogID
 	p.NameSearch = model.SearchField{
 		Name:  nameSearchFieldName,
 		ID:    nameSearch,
@@ -227,25 +238,30 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		p.ParentSelect = append(p.ParentSelect, sel)
 	}
 
+	var isParentSearch bool
+	if coverage == parentSearch {
+		isParentSearch = true
+	}
 	var results []model.SelectableElement
 	for _, area := range areas.Areas {
-		var isSelected bool
+		var result model.SelectableElement
+		result.Text = area.Label
+		result.Value = area.ID
+		result.Name = getAddOptionStr(isParentSearch)
 		for _, opt := range opts {
 			if opt.Value == area.ID {
-				isSelected = true
+				result.IsSelected = true
+				result.Name = "delete-option"
 				break
 			}
 		}
-		results = append(results, model.SelectableElement{
-			Text:       area.Label,
-			Value:      area.ID,
-			IsSelected: isSelected,
-		})
+		results = append(results, result)
 	}
 
-	// TODO: This will change when adding parent options feature is developed
-	if len(opts) > 0 {
-		// Force section to display
+	if len(opts) > 0 && hasFilterByParent {
+		p.CoverageType = parentSearch
+		p.ParentSearchOutput.Options = opts
+	} else if len(opts) > 0 {
 		p.CoverageType = nameSearch
 		p.NameSearchOutput.Options = opts
 	}
@@ -256,10 +272,36 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		p.NameSearchOutput.HasNoResults = len(p.NameSearchOutput.SearchResults) == 0
 	case parentSearch:
 		p.ParentSearchOutput.SearchResults = results
-		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0
+		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0 && !hasValidationErr
 	}
 
+	if hasValidationErr {
+		p.Page.Error = coreModel.Error{
+			Title: p.Metadata.Title,
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "CoverageSelectDefault",
+						Plural:    1,
+					},
+					URL: "#coverage-error",
+				},
+			},
+			Language: lang,
+		}
+	}
+
+	p.IsSelectParents = len(parents.AreaTypes) > 0
+
 	return p
+}
+
+// getAddOptionStr is a helper function to determine which add option string should be returned
+func getAddOptionStr(isParentSearch bool) string {
+	if isParentSearch {
+		return "add-parent-option"
+	}
+	return "add-option"
 }
 
 // mapCommonProps maps common properties on all filter/flex pages

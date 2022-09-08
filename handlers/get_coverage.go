@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -33,6 +34,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	p := req.URL.Query().Get("p")
 	isNameSearch := strings.Contains(req.URL.RawQuery, "q=")
 	isParentSearch := strings.Contains(req.URL.RawQuery, "p=")
+	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
 	var filterJob *filter.GetFilterResponse
 	var filterDims filter.Dimensions
 	var parents population.GetAreaTypeParentsResponse
@@ -70,7 +72,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		return
 	}
 
-	var geogLabel, geogID, dimension string
+	var geogLabel, geogID, dimension, parent string
 	for _, dim := range filterDims.Items {
 		// Needed to determine whether dimension is_area_type
 		// Only one dimension will be is_area_type=true
@@ -84,7 +86,14 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 			geogLabel = filterDimension.Label
 			geogID = filterDimension.ID
 			dimension = filterDimension.Name
+			parent = filterDimension.FilterByParent
+			break
 		}
+	}
+
+	var hasFilterByParent bool
+	if parent != "" {
+		hasFilterByParent = true
 	}
 
 	wg.Add(4)
@@ -147,13 +156,19 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	}
 
 	options := []model.SelectableElement{}
+	var areaType string
+	if hasFilterByParent {
+		areaType = parent
+	} else {
+		areaType = geogID
+	}
 	for _, opt := range opts.Items {
 		var option model.SelectableElement
 		// TODO: Temporary fix until GetArea endpoint is created
 		areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 			UserAuthToken: accessToken,
 			DatasetID:     filterJob.PopulationType,
-			AreaTypeID:    geogID,
+			AreaTypeID:    areaType,
 			Text:          opt.Option,
 		})
 		if err != nil {
@@ -176,7 +191,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, areas, options, parents)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, geogID, areas, options, parents, hasFilterByParent, isValidationError)
 	rc.BuildPage(w, m, "coverage")
 }
 

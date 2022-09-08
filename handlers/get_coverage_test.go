@@ -30,6 +30,21 @@ func TestGetCoverageHandler(t *testing.T) {
 			{
 				Name:       "Test 2",
 				IsAreaType: helpers.ToBoolPtr(true),
+				ID:         "city",
+			},
+		},
+	}
+	mockParentFilterDims := filter.Dimensions{
+		Items: []filter.Dimension{
+			{
+				Name:       "Test",
+				IsAreaType: new(bool),
+			},
+			{
+				Name:           "Test 2",
+				IsAreaType:     helpers.ToBoolPtr(true),
+				FilterByParent: "country",
+				ID:             "city",
 			},
 		},
 	}
@@ -151,15 +166,15 @@ func TestGetCoverageHandler(t *testing.T) {
 				mockFc.
 					EXPECT().
 					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockFilterDims, "", nil)
+					Return(mockParentFilterDims, "", nil)
 				mockFc.
 					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
-					Return(mockFilterDims.Items[0], "", nil)
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockParentFilterDims.Items[0].Name).
+					Return(mockParentFilterDims.Items[0], "", nil)
 				mockFc.
 					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
-					Return(mockFilterDims.Items[1], "", nil)
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockParentFilterDims.Items[1].Name).
+					Return(mockParentFilterDims.Items[1], "", nil)
 				mockFc.EXPECT().
 					GetFilter(gomock.Any(), gomock.Any()).
 					Return(&filter.GetFilterResponse{}, nil)
@@ -220,6 +235,70 @@ func TestGetCoverageHandler(t *testing.T) {
 						Items: []filter.DimensionOption{
 							{
 								Option: "Option 1",
+							},
+						}}, "", nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetAreas(gomock.Any(), gomock.Any()).
+					Return(population.GetAreasResponse{
+						Areas: []population.Area{
+							{
+								ID:       "1",
+								Label:    "Label",
+								AreaType: "Geography",
+							},
+						},
+					}, nil)
+				mockPc.EXPECT().
+					GetAreaTypeParents(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaTypeParentsResponse{}, nil)
+
+				router := mux.NewRouter()
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc))
+				router.ServeHTTP(w, req)
+
+				Convey("And the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
+			})
+
+			Convey("When the user has saved parent options", func() {
+				w := httptest.NewRecorder()
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.
+					EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
+				mockRend.
+					EXPECT().
+					BuildPage(gomock.Any(), gomock.Any(), "coverage")
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockParentFilterDims, "", nil)
+				mockFc.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockParentFilterDims.Items[0].Name).
+					Return(mockParentFilterDims.Items[0], "", nil)
+				mockFc.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockParentFilterDims.Items[1].Name).
+					Return(mockParentFilterDims.Items[1], "", nil)
+				mockFc.EXPECT().
+					GetFilter(gomock.Any(), gomock.Any()).
+					Return(&filter.GetFilterResponse{}, nil)
+				mockFc.EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{
+						Items: []filter.DimensionOption{
+							{
+								Option: "parent 1",
 							},
 						}}, "", nil)
 
