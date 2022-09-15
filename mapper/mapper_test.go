@@ -118,7 +118,7 @@ func TestOverview(t *testing.T) {
 	Convey("test filter flex overview maps correctly", t, func() {
 		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
-		So(m.Type, ShouldEqual, "filter-flex-overview")
+		So(m.Type, ShouldEqual, "review_changes")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
 		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
 		So(m.Breadcrumb[0].URI, ShouldEqual, fmt.Sprintf("/datasets/%s/editions/%s/versions/%s",
@@ -255,7 +255,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 		Convey("it sets page metadata", func() {
 			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
-			So(changeDimension.Type, ShouldEqual, "filter-flex-selector")
+			So(changeDimension.Type, ShouldEqual, "area_type_options")
 			So(changeDimension.Language, ShouldEqual, lang)
 		})
 
@@ -314,7 +314,7 @@ func TestGetCoverage(t *testing.T) {
 				false)
 			Convey("it sets page metadata", func() {
 				So(coverage.BetaBannerEnabled, ShouldBeTrue)
-				So(coverage.Type, ShouldEqual, "filter-flex-coverage")
+				So(coverage.Type, ShouldEqual, "coverage_options")
 				So(coverage.Language, ShouldEqual, lang)
 				So(coverage.URI, ShouldEqual, "/")
 			})
