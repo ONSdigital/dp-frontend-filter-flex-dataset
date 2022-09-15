@@ -30,6 +30,9 @@ const (
 	parentSearch          = "parent-search"
 	nameSearchFieldName   = "q"
 	parentSearchFieldName = "pq"
+	coveragePageType      = "coverage_options"
+	areaPageType          = "area_type_options"
+	reviewPageType        = "review_changes"
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
@@ -37,7 +40,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	p := model.Overview{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-overview", "Review changes", lang)
+	mapCommonProps(req, &p.Page, reviewPageType, "Review changes", lang)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 
@@ -152,6 +155,7 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
 	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
 	p.Page.Metadata.Title = "Area type"
+	p.Page.Type = areaPageType
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
@@ -190,7 +194,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	p := model.Coverage{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-coverage", "Coverage", lang)
+	mapCommonProps(req, &p.Page, coveragePageType, "Coverage", lang)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
