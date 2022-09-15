@@ -303,18 +303,6 @@ func TestGetCoverageHandler(t *testing.T) {
 				mockPc := NewMockPopulationClient(mockCtrl)
 				mockPc.
 					EXPECT().
-					GetAreas(gomock.Any(), gomock.Any()).
-					Return(population.GetAreasResponse{
-						Areas: []population.Area{
-							{
-								ID:       "1",
-								Label:    "Label",
-								AreaType: "Geography",
-							},
-						},
-					}, nil)
-				mockPc.
-					EXPECT().
 					GetArea(gomock.Any(), gomock.Any()).
 					Return(population.GetAreaResponse{
 						Area: population.Area{
@@ -322,7 +310,8 @@ func TestGetCoverageHandler(t *testing.T) {
 							Label:    "Label",
 							AreaType: "Geography",
 						},
-					}, nil)
+					},
+						nil)
 				mockPc.EXPECT().
 					GetAreaTypeParents(gomock.Any(), gomock.Any()).
 					Return(population.GetAreaTypeParentsResponse{}, nil)
@@ -337,294 +326,285 @@ func TestGetCoverageHandler(t *testing.T) {
 			})
 		})
 
-			Convey("When the GetFilter API call responds with an error", func() {
-				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+		Convey("When the GetFilter API call responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
 
-				mockFc := NewMockFilterClient(mockCtrl)
-				mockFc.EXPECT().
-					GetFilter(gomock.Any(), gomock.Any()).
-					Return(&filter.GetFilterResponse{}, errors.New("sorry"))
-				mockFc.
-					EXPECT().
-					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.Dimensions{}, "", nil)
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, errors.New("sorry"))
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.Dimensions{}, "", nil)
 
-				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl)))
-				router.ServeHTTP(w, req)
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl)))
+			router.ServeHTTP(w, req)
 
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
+		})
 
-			Convey("When the GetDimensions API call responds with an error", func() {
-				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+		Convey("When the GetDimensions API call responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
 
-				mockFc := NewMockFilterClient(mockCtrl)
-				mockFc.EXPECT().
-					GetFilter(gomock.Any(), gomock.Any()).
-					Return(&filter.GetFilterResponse{}, nil)
-				mockFc.
-					EXPECT().
-					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.Dimensions{}, "", errors.New("sorry"))
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, nil)
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.Dimensions{}, "", errors.New("sorry"))
 
-				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl)))
-				router.ServeHTTP(w, req)
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl)))
+			router.ServeHTTP(w, req)
 
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
+		})
 
-			Convey("When the subsequent GetDimension API call responds with an error", func() {
-				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+		Convey("When the subsequent GetDimension API call responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
 
-				mockFc := NewMockFilterClient(mockCtrl)
-				mockFc.EXPECT().
-					GetFilter(gomock.Any(), gomock.Any()).
-					Return(&filter.GetFilterResponse{}, nil)
-				mockFc.
-					EXPECT().
-					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockFilterDims, "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
-					Return(filter.Dimension{}, "", errors.New("sorry"))
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, nil)
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockFilterDims, "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
+				Return(filter.Dimension{}, "", errors.New("sorry"))
 
-				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl)))
-				router.ServeHTTP(w, req)
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl)))
+			router.ServeHTTP(w, req)
 
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
+		})
 
-			Convey("When the GetDimensionOptions API call responds with an error", func() {
-				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+		Convey("When the GetDimensionOptions API call responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
 
-				mockFc := NewMockFilterClient(mockCtrl)
-				mockFc.
-					EXPECT().
-					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockFilterDims, "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
-					Return(mockFilterDims.Items[0], "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
-					Return(mockFilterDims.Items[1], "", nil)
-				mockFc.EXPECT().
-					GetFilter(gomock.Any(), gomock.Any()).
-					Return(&filter.GetFilterResponse{}, nil)
-				mockFc.EXPECT().
-					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.DimensionOptions{}, "", errors.New("sorry"))
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockFilterDims, "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
+				Return(mockFilterDims.Items[0], "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
+				Return(mockFilterDims.Items[1], "", nil)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, nil)
+			mockFc.EXPECT().
+				GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.DimensionOptions{}, "", errors.New("sorry"))
 
-				mockPc := NewMockPopulationClient(mockCtrl)
-				mockPc.EXPECT().
-					GetAreaTypeParents(gomock.Any(), gomock.Any()).
-					Return(population.GetAreaTypeParentsResponse{}, nil)
+			mockPc := NewMockPopulationClient(mockCtrl)
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, nil)
 
-				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
-				router.ServeHTTP(w, req)
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
+			router.ServeHTTP(w, req)
 
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
+		})
 
-			Convey("When the GetAreaTypeParents API call responds with an error", func() {
-				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+		Convey("When the GetAreaTypeParents API call responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
 
-				mockFc := NewMockFilterClient(mockCtrl)
-				mockFc.
-					EXPECT().
-					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockFilterDims, "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
-					Return(mockFilterDims.Items[0], "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
-					Return(mockFilterDims.Items[1], "", nil)
-				mockFc.EXPECT().
-					GetFilter(gomock.Any(), gomock.Any()).
-					Return(&filter.GetFilterResponse{}, nil)
-				mockFc.EXPECT().
-					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.DimensionOptions{}, "", nil)
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockFilterDims, "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
+				Return(mockFilterDims.Items[0], "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
+				Return(mockFilterDims.Items[1], "", nil)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, nil)
+			mockFc.EXPECT().
+				GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.DimensionOptions{}, "", nil)
 
-				mockPc := NewMockPopulationClient(mockCtrl)
-				mockPc.EXPECT().
-					GetAreaTypeParents(gomock.Any(), gomock.Any()).
-					Return(population.GetAreaTypeParentsResponse{}, errors.New("sorry"))
+			mockPc := NewMockPopulationClient(mockCtrl)
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, errors.New("sorry"))
 
-				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
-				router.ServeHTTP(w, req)
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
+			router.ServeHTTP(w, req)
 
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
+		})
 
-			Convey("When the GetArea API call via the options loop responds with an error", func() {
-				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", nil)
+		Convey("When the GetArea API call via the options loop responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", nil)
 
-				mockFc := NewMockFilterClient(mockCtrl)
-				mockFc.
-					EXPECT().
-					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockFilterDims, "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
-					Return(mockFilterDims.Items[0], "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
-					Return(mockFilterDims.Items[1], "", nil)
-				mockFc.EXPECT().
-					GetFilter(gomock.Any(), gomock.Any()).
-					Return(&filter.GetFilterResponse{}, nil)
-				mockFc.EXPECT().
-					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.DimensionOptions{
-						Items: []filter.DimensionOption{
-							{
-								Option: "Option 1",
-							},
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockFilterDims, "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
+				Return(mockFilterDims.Items[0], "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
+				Return(mockFilterDims.Items[1], "", nil)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, nil)
+			mockFc.EXPECT().
+				GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.DimensionOptions{
+					Items: []filter.DimensionOption{
+						{
+							Option: "Option 1",
 						},
-					}, "", nil)
+					},
+				}, "", nil)
 
-				mockPc := NewMockPopulationClient(mockCtrl)
-				mockPc.
-					EXPECT().
-					GetAreas(gomock.Any(), gomock.Any()).
-					Return(population.GetAreasResponse{}, nil)
-				mockPc.
-					EXPECT().
-					GetArea(gomock.Any(), gomock.Any()).
-					Return(population.GetAreaResponse{}, errors.New("sorry"))
-				mockPc.EXPECT().
-					GetAreaTypeParents(gomock.Any(), gomock.Any()).
-					Return(population.GetAreaTypeParentsResponse{}, nil)
+			mockPc := NewMockPopulationClient(mockCtrl)
+			mockPc.
+				EXPECT().
+				GetAreas(gomock.Any(), gomock.Any()).
+				Return(population.GetAreasResponse{}, nil)
+			mockPc.
+				EXPECT().
+				GetArea(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaResponse{}, errors.New("sorry"))
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, nil)
 
-				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
-				router.ServeHTTP(w, req)
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
+			router.ServeHTTP(w, req)
 
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
+		})
 
-			Convey("When the GetAreas API call via the name search responds with an error", func() {
-				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", nil)
+		Convey("When the GetAreas API call via the name search responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", nil)
 
-				mockFc := NewMockFilterClient(mockCtrl)
-				mockFc.
-					EXPECT().
-					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockFilterDims, "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
-					Return(mockFilterDims.Items[0], "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
-					Return(mockFilterDims.Items[1], "", nil)
-				mockFc.EXPECT().
-					GetFilter(gomock.Any(), gomock.Any()).
-					Return(&filter.GetFilterResponse{}, nil)
-				mockFc.EXPECT().
-					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.DimensionOptions{}, "", nil)
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockFilterDims, "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
+				Return(mockFilterDims.Items[0], "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
+				Return(mockFilterDims.Items[1], "", nil)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, nil)
+			mockFc.EXPECT().
+				GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.DimensionOptions{}, "", nil)
 
-				mockPc := NewMockPopulationClient(mockCtrl)
-				mockPc.
-					EXPECT().
-					GetAreas(gomock.Any(), gomock.Any()).
-					Return(population.GetAreasResponse{}, errors.New("sorry"))
-				mockPc.
-					EXPECT().
-					GetArea(gomock.Any(), gomock.Any()).
-					Return(population.GetAreaResponse{}, nil)
-				mockPc.EXPECT().
-					GetAreaTypeParents(gomock.Any(), gomock.Any()).
-					Return(population.GetAreaTypeParentsResponse{}, nil)
+			mockPc := NewMockPopulationClient(mockCtrl)
+			mockPc.
+				EXPECT().
+				GetAreas(gomock.Any(), gomock.Any()).
+				Return(population.GetAreasResponse{}, errors.New("sorry"))
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, nil)
 
-				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
-				router.ServeHTTP(w, req)
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
+			router.ServeHTTP(w, req)
 
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
+		})
 
-			Convey("When the GetAreas API call via the parent search responds with an error", func() {
-				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?p=country&pq=test", nil)
+		Convey("When the GetAreas API call via the parent search responds with an error", func() {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?p=country&pq=test", nil)
 
-				mockFc := NewMockFilterClient(mockCtrl)
-				mockFc.
-					EXPECT().
-					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockFilterDims, "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
-					Return(mockFilterDims.Items[0], "", nil)
-				mockFc.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
-					Return(mockFilterDims.Items[1], "", nil)
-				mockFc.EXPECT().
-					GetFilter(gomock.Any(), gomock.Any()).
-					Return(&filter.GetFilterResponse{}, nil)
-				mockFc.EXPECT().
-					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.DimensionOptions{}, "", nil)
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.
+				EXPECT().
+				GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockFilterDims, "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
+				Return(mockFilterDims.Items[0], "", nil)
+			mockFc.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
+				Return(mockFilterDims.Items[1], "", nil)
+			mockFc.EXPECT().
+				GetFilter(gomock.Any(), gomock.Any()).
+				Return(&filter.GetFilterResponse{}, nil)
+			mockFc.EXPECT().
+				GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.DimensionOptions{}, "", nil)
 
-				mockPc := NewMockPopulationClient(mockCtrl)
-				mockPc.
-					EXPECT().
-					GetAreas(gomock.Any(), gomock.Any()).
-					Return(population.GetAreasResponse{}, errors.New("sorry"))
-				mockPc.
-					EXPECT().
-					GetArea(gomock.Any(), gomock.Any()).
-					Return(population.GetAreaResponse{}, nil)
-				mockPc.EXPECT().
-					GetAreaTypeParents(gomock.Any(), gomock.Any()).
-					Return(population.GetAreaTypeParentsResponse{}, nil)
+			mockPc := NewMockPopulationClient(mockCtrl)
+			mockPc.
+				EXPECT().
+				GetAreas(gomock.Any(), gomock.Any()).
+				Return(population.GetAreasResponse{}, errors.New("sorry"))
+			mockPc.EXPECT().
+				GetAreaTypeParents(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaTypeParentsResponse{}, nil)
 
-				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
-				router.ServeHTTP(w, req)
+			router := mux.NewRouter()
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc))
+			router.ServeHTTP(w, req)
 
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
+			Convey("Then the status code should be 500", func() {
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
 		})
 	})
