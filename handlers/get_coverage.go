@@ -182,9 +182,6 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		}
 		option.Value = opt.Option
 		option.Text = area.Area.Label
-		log.Warn(ctx, "AreaLabelXX", log.Data{
-			"area": area.Area,
-		})
 
 		options = append(options, option)
 	}
