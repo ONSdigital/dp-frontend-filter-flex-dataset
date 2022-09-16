@@ -241,14 +241,12 @@ func TestGetCoverageHandler(t *testing.T) {
 				mockPc := NewMockPopulationClient(mockCtrl)
 				mockPc.
 					EXPECT().
-					GetAreas(gomock.Any(), gomock.Any()).
-					Return(population.GetAreasResponse{
-						Areas: []population.Area{
-							{
-								ID:       "1",
-								Label:    "Label",
-								AreaType: "Geography",
-							},
+					GetArea(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaResponse{
+						Area: population.Area{
+							ID:       "1",
+							Label:    "Label",
+							AreaType: "Geography",
 						},
 					}, nil)
 				mockPc.EXPECT().
@@ -305,16 +303,15 @@ func TestGetCoverageHandler(t *testing.T) {
 				mockPc := NewMockPopulationClient(mockCtrl)
 				mockPc.
 					EXPECT().
-					GetAreas(gomock.Any(), gomock.Any()).
-					Return(population.GetAreasResponse{
-						Areas: []population.Area{
-							{
-								ID:       "1",
-								Label:    "Label",
-								AreaType: "Geography",
-							},
+					GetArea(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaResponse{
+						Area: population.Area{
+							ID:       "1",
+							Label:    "Label",
+							AreaType: "Geography",
 						},
-					}, nil)
+					},
+						nil)
 				mockPc.EXPECT().
 					GetAreaTypeParents(gomock.Any(), gomock.Any()).
 					Return(population.GetAreaTypeParentsResponse{}, nil)
@@ -475,7 +472,7 @@ func TestGetCoverageHandler(t *testing.T) {
 			})
 		})
 
-		Convey("When the GetAreas API call via the options loop responds with an error", func() {
+		Convey("When the GetArea API call via the options loop responds with an error", func() {
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", nil)
 
@@ -500,7 +497,7 @@ func TestGetCoverageHandler(t *testing.T) {
 				Return(filter.DimensionOptions{
 					Items: []filter.DimensionOption{
 						{
-							Option: "option 1",
+							Option: "Option 1",
 						},
 					},
 				}, "", nil)
@@ -509,7 +506,11 @@ func TestGetCoverageHandler(t *testing.T) {
 			mockPc.
 				EXPECT().
 				GetAreas(gomock.Any(), gomock.Any()).
-				Return(population.GetAreasResponse{}, errors.New("sorry"))
+				Return(population.GetAreasResponse{}, nil)
+			mockPc.
+				EXPECT().
+				GetArea(gomock.Any(), gomock.Any()).
+				Return(population.GetAreaResponse{}, errors.New("sorry"))
 			mockPc.EXPECT().
 				GetAreaTypeParents(gomock.Any(), gomock.Any()).
 				Return(population.GetAreaTypeParentsResponse{}, nil)

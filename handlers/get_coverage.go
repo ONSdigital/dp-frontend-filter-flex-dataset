@@ -164,29 +164,25 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	}
 	for _, opt := range opts.Items {
 		var option model.SelectableElement
-		// TODO: Temporary fix until GetArea endpoint is created
-		areas, err := pc.GetAreas(ctx, population.GetAreasInput{
-			UserAuthToken: accessToken,
-			DatasetID:     filterJob.PopulationType,
-			AreaTypeID:    areaType,
-			Text:          opt.Option,
+
+		area, err := pc.GetArea(ctx, population.GetAreaInput{
+			UserAuthToken:  accessToken,
+			PopulationType: filterJob.PopulationType,
+			AreaType:       areaType,
+			Area:           opt.Option,
 		})
 		if err != nil {
 			log.Error(ctx, "failed to get area", err, log.Data{
-				"area": geogID,
-				"ID":   opt.Option,
+				"population": filterJob.PopulationType,
+				"area type":  geogID,
+				"ID":         opt.Option,
 			})
 			setStatusCode(req, w, err)
 			return
 		}
 		option.Value = opt.Option
-		// needed to ensure label matches the ID
-		for _, area := range areas.Areas {
-			if area.ID == option.Value {
-				option.Text = area.Label
-				break
-			}
-		}
+		option.Text = area.Area.Label
+
 		options = append(options, option)
 	}
 
