@@ -10,6 +10,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
@@ -30,7 +31,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	var filterDims filter.Dimensions
 	var datasetDims dataset.VersionDimensions
 	var filterJob *filter.GetFilterResponse
-	var fErr, dErr, fdsErr, fdErr error
+	var fErr, dErr, fdsErr error
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -95,12 +96,12 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	getDimensionOptions := func(dim filter.Dimension) ([]string, error) {
+	getDimensionOptions := func(dim filter.Dimension) ([]string, int, error) {
 		q := dataset.QueryParams{Offset: 0, Limit: 1000}
 
 		opts, err := dc.GetOptions(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, strconv.Itoa(filterJob.Dataset.Version), dim.Name, &q)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get options for dimension: %w", err)
+			return nil, 0, fmt.Errorf("failed to get options for dimension: %w", err)
 		}
 
 		var options []string
@@ -108,14 +109,15 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 			options = append(options, opt.Label)
 		}
 
-		return options, nil
+		return options, opts.TotalCount, nil
 	}
 
 	var hasNoAreaOptions bool
-	getAreaOptions := func(dim filter.Dimension) ([]string, error) {
-		opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dim.Name, &filter.QueryParams{})
+	getAreaOptions := func(dim filter.Dimension) ([]string, int, error) {
+		q := filter.QueryParams{Offset: 0, Limit: 500}
+		opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dim.Name, &q)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get options for dimension: %w", err)
+			return nil, 0, fmt.Errorf("failed to get options for dimension: %w", err)
 		}
 
 		options := []string{}
@@ -126,35 +128,33 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 				AreaTypeID:    dim.ID,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("failed to get dimension areas: %w", err)
-			}
-
-			for _, area := range areas.Areas {
-				options = append(options, area.Label)
+				return nil, 0, fmt.Errorf("failed to get dimension areas: %w", err)
 			}
 
 			hasNoAreaOptions = true
-			return options, nil
+			return options, areas.TotalCount, nil
 		}
 
 		var wg sync.WaitGroup
+		totalCount := opts.TotalCount
+		optsIDs := []string{}
 		for _, opt := range opts.Items {
 			wg.Add(1)
-
 			go func(opt filter.DimensionOption) {
 				defer wg.Done()
+				optsIDs = append(optsIDs, opt.Option)
 				var areaTypeID string
 				if dim.FilterByParent != "" {
 					areaTypeID = dim.FilterByParent
 				} else {
 					areaTypeID = dim.ID
 				}
-				// TODO: Temporary fix until GetArea endpoint is created
-				areas, err := pc.GetAreas(ctx, population.GetAreasInput{
-					UserAuthToken: accessToken,
-					DatasetID:     filterJob.PopulationType,
-					AreaTypeID:    areaTypeID,
-					Text:          opt.Option,
+
+				area, err := pc.GetArea(ctx, population.GetAreaInput{
+					UserAuthToken:  accessToken,
+					PopulationType: filterJob.PopulationType,
+					AreaType:       areaTypeID,
+					Area:           opt.Option,
 				})
 				if err != nil {
 					log.Error(ctx, "failed to get area", err, log.Data{
@@ -165,20 +165,35 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 					return
 				}
 
-				for _, area := range areas.Areas {
-					if area.ID == opt.Option {
-						options = append(options, area.Label)
-						break
-					}
-				}
+				options = append(options, area.Area.Label)
 			}(opt)
 		}
 		wg.Wait()
 
-		return options, nil
+		if dim.FilterByParent != "" {
+			count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
+				UserAuthToken:    accessToken,
+				DatasetID:        filterJob.PopulationType,
+				AreaTypeID:       dim.ID,
+				ParentAreaTypeID: dim.FilterByParent,
+				Areas:            optsIDs,
+			})
+			if err != nil {
+				log.Error(ctx, "failed to get parent area count", err, log.Data{
+					"dataset_id":          filterJob.PopulationType,
+					"area_type_id":        dim.ID,
+					"parent_area_type_id": dim.FilterByParent,
+					"areas":               optsIDs,
+				})
+				return nil, 0, err
+			}
+			totalCount = count
+		}
+
+		return options, totalCount, nil
 	}
 
-	getOptions := func(dim filter.Dimension) ([]string, error) {
+	getOptions := func(dim filter.Dimension) ([]string, int, error) {
 		if dim.IsAreaType != nil && *dim.IsAreaType {
 			return getAreaOptions(dim)
 		}
@@ -186,43 +201,34 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return getDimensionOptions(dim)
 	}
 
-	for i, dim := range filterDims.Items {
-		wg.Add(1)
-		go func(dim filter.Dimension, i int) {
-			defer wg.Done()
-			var filterDimension filter.Dimension
-			// Needed to determine whether dimension is_area_type
-			filterDimension, _, fdErr = fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dim.Name)
-			if fdErr != nil {
-				log.Error(ctx, "failed to get dimension", fdErr, log.Data{"dimension_name": dim.Name})
-				setStatusCode(req, w, fdErr)
-				return
-			}
-			dim.IsAreaType = filterDimension.IsAreaType
-			dim.FilterByParent = filterDimension.FilterByParent
+	var fDims []model.FilterDimension
+	for _, dim := range filterDims.Items {
+		// Needed to determine whether dimension is_area_type
+		filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dim.Name)
+		if err != nil {
+			log.Error(ctx, "failed to get dimension", err, log.Data{"dimension_name": dim.Name})
+			setStatusCode(req, w, err)
+			return
+		}
+		dim.IsAreaType = filterDimension.IsAreaType
+		dim.FilterByParent = filterDimension.FilterByParent
 
-			options, err := getOptions(dim)
-			if err != nil {
-				log.Error(ctx, "failed to get options for dimension", err, log.Data{"dimension_name": dim.Name})
-				setStatusCode(req, w, err)
-				return
-			}
-
-			dim.Options = append(filterDims.Items[i].Options, options...)
-			filterDims.Items[i] = dim
-		}(dim, i)
-	}
-	wg.Wait()
-
-	if fdErr != nil {
-		log.Error(ctx, "failed to get dimension", fdErr, log.Data{"filter_id": filterID})
-		setStatusCode(req, w, fdErr)
-		return
+		options, count, err := getOptions(dim)
+		if err != nil {
+			log.Error(ctx, "failed to get options for dimension", err, log.Data{"dimension_name": dim.Name})
+			setStatusCode(req, w, err)
+			return
+		}
+		dim.Options = options
+		fDims = append(fDims, model.FilterDimension{
+			Dimension:    dim,
+			OptionsCount: count,
+		})
 	}
 
 	basePage := rc.NewBasePageModel()
 	showAll := req.URL.Query()["showAll"]
 	path := req.URL.Path
-	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, filterDims, datasetDims, hasNoAreaOptions)
+	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, fDims, datasetDims, hasNoAreaOptions)
 	rc.BuildPage(w, m, "overview")
 }

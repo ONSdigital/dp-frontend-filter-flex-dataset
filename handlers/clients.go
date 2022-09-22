@@ -51,4 +51,5 @@ type PopulationClient interface {
 	GetAreas(ctx context.Context, input population.GetAreasInput) (population.GetAreasResponse, error)
 	GetAreaTypeParents(ctx context.Context, input population.GetAreaTypeParentsInput) (population.GetAreaTypeParentsResponse, error)
 	GetArea(ctx context.Context, input population.GetAreaInput) (population.GetAreaResponse, error)
+	GetParentAreaCount(ctx context.Context, input population.GetParentAreaCountInput) (int, error)
 }
