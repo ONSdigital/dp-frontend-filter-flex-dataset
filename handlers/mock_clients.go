@@ -416,6 +416,21 @@ func (mr *MockPopulationClientMockRecorder) GetAreas(ctx, input interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreas", reflect.TypeOf((*MockPopulationClient)(nil).GetAreas), ctx, input)
 }
 
+// GetParentAreaCount mocks base method.
+func (m *MockPopulationClient) GetParentAreaCount(ctx context.Context, input population.GetParentAreaCountInput) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetParentAreaCount", ctx, input)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetParentAreaCount indicates an expected call of GetParentAreaCount.
+func (mr *MockPopulationClientMockRecorder) GetParentAreaCount(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParentAreaCount", reflect.TypeOf((*MockPopulationClient)(nil).GetParentAreaCount), ctx, input)
+}
+
 // GetPopulationAreaTypes mocks base method.
 func (m *MockPopulationClient) GetPopulationAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (population.GetAreaTypesResponse, error) {
 	m.ctrl.T.Helper()

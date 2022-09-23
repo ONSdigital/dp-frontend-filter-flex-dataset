@@ -32,14 +32,17 @@ func TestOverview(t *testing.T) {
 			Version:   1,
 		},
 	}
-	filterDims := filter.Dimensions{
-		Items: []filter.Dimension{
-			{
+	filterDims := []model.FilterDimension{
+		{
+			Dimension: filter.Dimension{
 				Name:       "Dim 1",
 				IsAreaType: helpers.ToBoolPtr(false),
 				Options:    []string{"Opt 1", "Opt 2"},
 			},
-			{
+			OptionsCount: 2,
+		},
+		{
+			Dimension: filter.Dimension{
 				Name:       "Truncated dim 1",
 				IsAreaType: helpers.ToBoolPtr(false),
 				Options: []string{"Opt 1",
@@ -64,7 +67,10 @@ func TestOverview(t *testing.T) {
 					"Opt 20",
 				},
 			},
-			{
+			OptionsCount: 20,
+		},
+		{
+			Dimension: filter.Dimension{
 				Name:       "Truncated dim 2",
 				IsAreaType: helpers.ToBoolPtr(false),
 				Options: []string{"Opt 1",
@@ -81,7 +87,10 @@ func TestOverview(t *testing.T) {
 					"Opt 12",
 				},
 			},
-			{
+			OptionsCount: 12,
+		},
+		{
+			Dimension: filter.Dimension{
 				Name:       "An area dim",
 				IsAreaType: helpers.ToBoolPtr(true),
 				Options: []string{
@@ -96,7 +105,9 @@ func TestOverview(t *testing.T) {
 					"area 9",
 					"area 10",
 				},
-			}},
+			},
+			OptionsCount: 10,
+		},
 	}
 	datasetDims := dataset.VersionDimensions{
 		Items: []dataset.VersionDimension{
@@ -127,35 +138,35 @@ func TestOverview(t *testing.T) {
 			strconv.Itoa(filterJob.Dataset.Version)))
 		So(m.Language, ShouldEqual, lang)
 
-		So(m.Dimensions[0].Name, ShouldEqual, filterDims.Items[3].Label)
+		So(m.Dimensions[0].Name, ShouldEqual, filterDims[3].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
 		So(m.Dimensions[0].IsCoverage, ShouldBeFalse)
-		So(m.Dimensions[0].Options, ShouldResemble, filterDims.Items[3].Options)
-		So(m.Dimensions[0].OptionsCount, ShouldEqual, 10)
-		So(m.Dimensions[0].ID, ShouldEqual, filterDims.Items[3].ID)
-		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[3].Name))
+		So(m.Dimensions[0].Options, ShouldResemble, filterDims[3].Options)
+		So(m.Dimensions[0].OptionsCount, ShouldEqual, filterDims[3].OptionsCount)
+		So(m.Dimensions[0].ID, ShouldEqual, filterDims[3].ID)
+		So(m.Dimensions[0].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims[3].Name))
 		So(m.Dimensions[0].IsTruncated, ShouldBeFalse)
 
 		So(m.Dimensions[1].Name, ShouldBeBlank)
 		So(m.Dimensions[1].IsAreaType, ShouldBeFalse)
 		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
 		So(m.Dimensions[1].IsDefaultCoverage, ShouldBeFalse)
-		So(m.Dimensions[1].Options, ShouldResemble, filterDims.Items[3].Options)
+		So(m.Dimensions[1].Options, ShouldResemble, filterDims[3].Options)
 		So(m.Dimensions[1].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", "geography/coverage"))
 		So(m.Dimensions[1].IsTruncated, ShouldBeFalse)
 
-		So(m.Dimensions[2].Name, ShouldEqual, filterDims.Items[0].Label)
+		So(m.Dimensions[2].Name, ShouldEqual, filterDims[0].Label)
 		So(m.Dimensions[2].IsAreaType, ShouldBeFalse)
 		So(m.Dimensions[2].IsCoverage, ShouldBeFalse)
-		So(m.Dimensions[2].ID, ShouldEqual, filterDims.Items[0].ID)
-		So(m.Dimensions[2].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[0].Name))
+		So(m.Dimensions[2].ID, ShouldEqual, filterDims[0].ID)
+		So(m.Dimensions[2].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims[0].Name))
 		So(m.Dimensions[2].IsTruncated, ShouldBeFalse)
 
-		So(m.Dimensions[3].Name, ShouldEqual, filterDims.Items[1].Label)
+		So(m.Dimensions[3].Name, ShouldEqual, filterDims[1].Label)
 		So(m.Dimensions[3].IsAreaType, ShouldBeFalse)
 		So(m.Dimensions[3].IsCoverage, ShouldBeFalse)
-		So(m.Dimensions[3].ID, ShouldEqual, filterDims.Items[1].ID)
-		So(m.Dimensions[3].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims.Items[1].Name))
+		So(m.Dimensions[3].ID, ShouldEqual, filterDims[1].ID)
+		So(m.Dimensions[3].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims[1].Name))
 		So(m.Dimensions[3].IsTruncated, ShouldBeTrue)
 
 		So(m.Collapsible.CollapsibleItems[0].Subheading, ShouldEqual, datasetDims.Items[0].Label)
@@ -167,14 +178,14 @@ func TestOverview(t *testing.T) {
 
 	Convey("test truncation maps as expected", t, func() {
 		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
-		So(m.Dimensions[3].OptionsCount, ShouldEqual, len(filterDims.Items[1].Options))
+		So(m.Dimensions[3].OptionsCount, ShouldEqual, filterDims[1].OptionsCount)
 		So(m.Dimensions[3].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[3].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
 		So(m.Dimensions[3].Options[3:6], ShouldResemble, []string{"Opt 9", "Opt 10", "Opt 11"})
 		So(m.Dimensions[3].Options[6:], ShouldResemble, []string{"Opt 18", "Opt 19", "Opt 20"})
 		So(m.Dimensions[3].IsTruncated, ShouldBeTrue)
 
-		So(m.Dimensions[4].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
+		So(m.Dimensions[4].OptionsCount, ShouldEqual, filterDims[2].OptionsCount)
 		So(m.Dimensions[4].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[4].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
 		So(m.Dimensions[4].Options[3:6], ShouldResemble, []string{"Opt 5", "Opt 6", "Opt 7"})
@@ -184,7 +195,7 @@ func TestOverview(t *testing.T) {
 
 	Convey("test truncation shows all when parameter given", t, func() {
 		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims, false)
-		So(m.Dimensions[4].OptionsCount, ShouldEqual, len(filterDims.Items[2].Options))
+		So(m.Dimensions[4].OptionsCount, ShouldEqual, filterDims[2].OptionsCount)
 		So(m.Dimensions[4].Options, ShouldHaveLength, 12)
 		So(m.Dimensions[4].IsTruncated, ShouldBeFalse)
 	})

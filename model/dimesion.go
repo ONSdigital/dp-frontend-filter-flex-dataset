@@ -1,5 +1,7 @@
 package model
 
+import "github.com/ONSdigital/dp-api-clients-go/v2/filter"
+
 // Dimension represents the data for a single dimension
 type Dimension struct {
 	Options           []string `json:"options"`
@@ -12,4 +14,10 @@ type Dimension struct {
 	IsAreaType        bool     `json:"is_area_type"`
 	IsCoverage        bool     `json:"is_coverage"`
 	IsDefaultCoverage bool     `json:"is_default_coverage"`
+}
+
+// FilterDimension represents a DTO for filter.Dimension with the additional OptionsCount field
+type FilterDimension struct {
+	filter.Dimension
+	OptionsCount int
 }

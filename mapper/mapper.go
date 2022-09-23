@@ -36,7 +36,7 @@ const (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims filter.Dimensions, datasetDims dataset.VersionDimensions, hasNoAreaOptions bool) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions bool) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
@@ -54,11 +54,11 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		},
 	}
 
-	for _, dim := range filterDims.Items {
+	for _, dim := range filterDims {
 		pageDim := model.Dimension{}
 		pageDim.Name = dim.Label
 		pageDim.IsAreaType = *dim.IsAreaType
-		pageDim.OptionsCount = len(dim.Options)
+		pageDim.OptionsCount = dim.OptionsCount
 		pageDim.ID = dim.ID
 		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
 		q := url.Values{}
@@ -98,7 +98,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	}
 
 	sort.Slice(p.Dimensions, func(i, j int) bool {
-		return p.Dimensions[i].IsAreaType == true
+		return p.Dimensions[i].IsAreaType
 	})
 
 	coverage := []model.Dimension{
