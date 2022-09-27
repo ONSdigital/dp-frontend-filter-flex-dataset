@@ -31,7 +31,7 @@
                                     <span class="ons-radios__item ons-radios__item--no-border ons-u-mb-s">
                                 <span class="ons-radio ons-radio--no-border">
                                     <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }}checked{{ end }}>
-                                    <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">{{ .Label }} ({{ .TotalCount }})</label>
+                                    <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">{{ .Label }} ({{ thousandsSeparator .TotalCount }})</label>
                                 </span>
                             </span>
                                     {{ if notLastItem $length $i }}<br>{{ end }}
