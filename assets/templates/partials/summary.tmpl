@@ -53,7 +53,7 @@
                                         {{ if .IsDefaultCoverage }}
                                             {{- localise "AreaTypeDefaultCoverage" $lang 1 -}}
                                         {{ else if .IsAreaType }}
-                                            {{- .Name }} ({{ .OptionsCount -}})
+                                            {{- .Name }} ({{ thousandsSeparator .OptionsCount -}})
                                         {{ end }}
                                     {{ else }}
                                         {{ if .Options }}
