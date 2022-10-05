@@ -90,6 +90,19 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 			return
 		}
 
+		if opts.TotalCount > 0 && form.Coverage != form.OptionType {
+			log.Info(ctx, "invalid options combination, removing existing options", log.Data{"filter_id": filterID})
+			_, err := fc.DeleteDimensionOptions(ctx, accessToken, "", collectionID, filterID, form.Dimension)
+			if err != nil {
+				log.Error(ctx, "failed to delete dimension options", err, log.Data{
+					"dimension": form.Dimension,
+				})
+				setStatusCode(req, w, err)
+				return
+			}
+			opts = filter.DimensionOptions{}
+		}
+
 		var options []string
 		for _, opt := range opts.Items {
 			options = append(options, opt.Option)
@@ -136,6 +149,7 @@ type updateCoverageForm struct {
 	LargerArea  string
 	Coverage    string
 	GeographyID string
+	OptionType  string
 }
 
 // parseUpdateCoverageForm parses form data from a http.Request into a updateCoverageForm.
@@ -214,6 +228,8 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 		value = deleteOption
 	}
 
+	optType := req.FormValue("option-type")
+
 	return updateCoverageForm{
 		Action:      action,
 		Value:       value,
@@ -221,5 +237,6 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 		LargerArea:  largerArea,
 		Coverage:    coverage,
 		GeographyID: geogID,
+		OptionType:  optType,
 	}, nil
 }

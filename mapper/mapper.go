@@ -284,16 +284,20 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	if len(opts) > 0 && hasFilterByParent {
 		p.CoverageType = parentSearch
 		p.ParentSearchOutput.Options = opts
+		p.OptionType = parentSearch
 	} else if len(opts) > 0 {
 		p.CoverageType = nameSearch
 		p.NameSearchOutput.Options = opts
+		p.OptionType = nameSearch
 	}
 
 	switch coverage {
 	case nameSearch:
+		p.CoverageType = nameSearch
 		p.NameSearchOutput.SearchResults = results
 		p.NameSearchOutput.HasNoResults = len(p.NameSearchOutput.SearchResults) == 0
 	case parentSearch:
+		p.CoverageType = parentSearch
 		p.ParentSearchOutput.SearchResults = results
 		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0 && !hasValidationErr
 	}
