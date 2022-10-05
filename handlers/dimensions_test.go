@@ -242,7 +242,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 					mockPc := NewMockPopulationClient(mockCtrl)
 					mockPc.EXPECT().
-						GetPopulationAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						GetAreaTypes(gomock.Any(), gomock.Any()).
 						Return(
 							population.GetAreaTypesResponse{
 								AreaTypes: []population.AreaType{{
@@ -300,7 +300,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 					mockPc := NewMockPopulationClient(mockCtrl)
 					mockPc.EXPECT().
-						GetPopulationAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), cantabularID).
+						GetAreaTypes(gomock.Any(), gomock.Any()).
 						Return(population.GetAreaTypesResponse{}, nil)
 
 					mockRend := NewMockRenderClient(mockCtrl)
@@ -335,7 +335,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 					mockPc := NewMockPopulationClient(mockCtrl)
 					mockPc.EXPECT().
-						GetPopulationAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						GetAreaTypes(gomock.Any(), gomock.Any()).
 						Return(population.GetAreaTypesResponse{}, nil)
 
 					mockRend := NewMockRenderClient(mockCtrl)
@@ -374,7 +374,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 					mockPc := NewMockPopulationClient(mockCtrl)
 					mockPc.EXPECT().
-						GetPopulationAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						GetAreaTypes(gomock.Any(), gomock.Any()).
 						Return(population.GetAreaTypesResponse{}, nil).
 						AnyTimes()
 
@@ -416,7 +416,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				mockPc := NewMockPopulationClient(mockCtrl)
 				mockPc.EXPECT().
-					GetPopulationAreaTypes(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					GetAreaTypes(gomock.Any(), gomock.Any()).
 					Return(population.GetAreaTypesResponse{}, errors.New("oh no"))
 
 				mockRend := NewMockRenderClient(mockCtrl)

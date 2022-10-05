@@ -356,7 +356,7 @@ func TestGetCoverage(t *testing.T) {
 
 		Convey("When parent types is populated", func() {
 			parents := population.GetAreaTypeParentsResponse{
-				AreaTypes: []population.AreaTypes{
+				AreaTypes: []population.AreaType{
 					{
 						Label: "Area 1",
 						ID:    "id",
@@ -416,7 +416,7 @@ func TestGetCoverage(t *testing.T) {
 
 		Convey("When parent type is selected", func() {
 			parents := population.GetAreaTypeParentsResponse{
-				AreaTypes: []population.AreaTypes{
+				AreaTypes: []population.AreaType{
 					{
 						Label: "Area 1",
 						ID:    "id",
@@ -450,7 +450,7 @@ func TestGetCoverage(t *testing.T) {
 
 		Convey("When more than one parent type is returned", func() {
 			parents := population.GetAreaTypeParentsResponse{
-				AreaTypes: []population.AreaTypes{
+				AreaTypes: []population.AreaType{
 					{
 						Label: "Area 1",
 						ID:    "id_1",
