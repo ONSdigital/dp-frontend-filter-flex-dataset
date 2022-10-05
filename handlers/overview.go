@@ -123,9 +123,14 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		options := []string{}
 		if opts.TotalCount == 0 {
 			areas, err := pc.GetAreas(ctx, population.GetAreasInput{
-				UserAuthToken: accessToken,
-				DatasetID:     filterJob.PopulationType,
-				AreaTypeID:    dim.ID,
+				AuthTokens: population.AuthTokens{
+					UserAuthToken: accessToken,
+				},
+				PaginationParams: population.PaginationParams{
+					Limit: 1000,
+				},
+				PopulationType: filterJob.PopulationType,
+				AreaTypeID:     dim.ID,
 			})
 			if err != nil {
 				return nil, 0, fmt.Errorf("failed to get dimension areas: %w", err)
@@ -151,7 +156,9 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 				}
 
 				area, err := pc.GetArea(ctx, population.GetAreaInput{
-					UserAuthToken:  accessToken,
+					AuthTokens: population.AuthTokens{
+						UserAuthToken: accessToken,
+					},
 					PopulationType: filterJob.PopulationType,
 					AreaType:       areaTypeID,
 					Area:           opt.Option,
@@ -172,15 +179,17 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 
 		if dim.FilterByParent != "" {
 			count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
-				UserAuthToken:    accessToken,
-				DatasetID:        filterJob.PopulationType,
+				AuthTokens: population.AuthTokens{
+					UserAuthToken: accessToken,
+				},
+				PopulationType:   filterJob.PopulationType,
 				AreaTypeID:       dim.ID,
 				ParentAreaTypeID: dim.FilterByParent,
 				Areas:            optsIDs,
 			})
 			if err != nil {
 				log.Error(ctx, "failed to get parent area count", err, log.Data{
-					"dataset_id":          filterJob.PopulationType,
+					"population_type":     filterJob.PopulationType,
 					"area_type_id":        dim.ID,
 					"parent_area_type_id": dim.FilterByParent,
 					"areas":               optsIDs,

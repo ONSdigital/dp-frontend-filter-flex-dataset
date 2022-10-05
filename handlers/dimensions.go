@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -50,7 +51,15 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	areaTypes, err := pc.GetPopulationAreaTypes(ctx, accessToken, "", currentFilter.PopulationType)
+	areaTypes, err := pc.GetAreaTypes(ctx, population.GetAreaTypesInput{
+		AuthTokens: population.AuthTokens{
+			UserAuthToken: accessToken,
+		},
+		PaginationParams: population.PaginationParams{
+			Limit: 1000,
+		},
+		PopulationType: currentFilter.PopulationType,
+	})
 	if err != nil {
 		log.Error(ctx, "failed to get population area types", err, logData)
 		setStatusCode(req, w, err)

@@ -199,8 +199,11 @@ func TestOverviewHandler(t *testing.T) {
 							Return(filter.DimensionOptions{}, "", nil)
 
 						expGetAreasInput := population.GetAreasInput{
-							DatasetID:  cantabularPopType,
-							AreaTypeID: dimensionID,
+							PaginationParams: population.PaginationParams{
+								Limit: 1000,
+							},
+							PopulationType: cantabularPopType,
+							AreaTypeID:     dimensionID,
 						}
 
 						mockPc := NewMockPopulationClient(mockCtrl)
