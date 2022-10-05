@@ -169,11 +169,13 @@ func TestOverview(t *testing.T) {
 		So(m.Dimensions[3].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims[1].Name))
 		So(m.Dimensions[3].IsTruncated, ShouldBeTrue)
 
-		So(m.Collapsible.CollapsibleItems[0].Subheading, ShouldEqual, datasetDims.Items[0].Label)
-		So(m.Collapsible.CollapsibleItems[0].Content[0], ShouldEqual, datasetDims.Items[0].Description)
-		So(m.Collapsible.CollapsibleItems[1].Subheading, ShouldEqual, datasetDims.Items[1].Label)
-		So(m.Collapsible.CollapsibleItems[1].Content, ShouldResemble, strings.Split(datasetDims.Items[1].Description, "\n"))
-		So(m.Collapsible.CollapsibleItems, ShouldHaveLength, 2)
+		So(m.Collapsible.CollapsibleItems[0].Subheading, ShouldEqual, "Area type")
+		So(m.Collapsible.CollapsibleItems[1].Subheading, ShouldEqual, "Coverage")
+		So(m.Collapsible.CollapsibleItems[2].Subheading, ShouldEqual, datasetDims.Items[0].Label)
+		So(m.Collapsible.CollapsibleItems[2].Content[0], ShouldEqual, datasetDims.Items[0].Description)
+		So(m.Collapsible.CollapsibleItems[3].Subheading, ShouldEqual, datasetDims.Items[1].Label)
+		So(m.Collapsible.CollapsibleItems[3].Content, ShouldResemble, strings.Split(datasetDims.Items[1].Description, "\n"))
+		So(m.Collapsible.CollapsibleItems, ShouldHaveLength, 4)
 	})
 
 	Convey("test truncation maps as expected", t, func() {
