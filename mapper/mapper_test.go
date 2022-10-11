@@ -137,6 +137,7 @@ func TestOverview(t *testing.T) {
 			filterJob.Dataset.Edition,
 			strconv.Itoa(filterJob.Dataset.Version)))
 		So(m.Language, ShouldEqual, lang)
+		So(m.SearchNoIndexEnabled, ShouldBeTrue)
 
 		So(m.Dimensions[0].Name, ShouldEqual, filterDims[3].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
@@ -238,6 +239,7 @@ func TestCreateSelector(t *testing.T) {
 		So(m.Language, ShouldEqual, lang)
 		So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
 		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
+		So(m.SearchNoIndexEnabled, ShouldBeTrue)
 	})
 }
 
@@ -278,6 +280,11 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 		Convey("it sets IsAreaType to true", func() {
 			So(changeDimension.IsAreaType, ShouldBeTrue)
+		})
+
+		Convey("it sets SearchNoIndexEnabled to true", func() {
+			So(changeDimension.SearchNoIndexEnabled, ShouldBeTrue)
+
 		})
 	})
 
@@ -351,6 +358,10 @@ func TestGetCoverage(t *testing.T) {
 
 			Convey("it sets the GeographyID property", func() {
 				So(coverage.GeographyID, ShouldEqual, "geogID")
+			})
+
+			Convey("it sets the SearchNoIndexEnabled to true", func() {
+				So(coverage.SearchNoIndexEnabled, ShouldBeTrue)
 			})
 		})
 
