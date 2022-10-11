@@ -339,6 +339,7 @@ func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang 
 	p.Metadata.Title = title
 	p.Language = lang
 	p.URI = req.URL.Path
+	p.SearchNoIndexEnabled = true
 }
 
 // mapCookiePreferences reads cookie policy and preferences cookies and then maps the values to the page model
