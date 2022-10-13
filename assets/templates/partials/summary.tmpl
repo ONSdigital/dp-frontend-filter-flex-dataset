@@ -3,19 +3,11 @@
     <h2 class="ons-u-fw-b">{{ localise "Variable" $lang 4 }}</h2>
     <div class="ons-summary ons-summary--hub">
         <div class="ons-summary__group">
-            <table class="ons-summary__items ons-u-mb-s">
-                <thead class="ons-u-vh">
-                    <tr>
-                        <th>{{ localise "Variable" $lang 1 }}</th>
-                        <th>{{ localise "Selection" $lang 1 }}</th>
-                        <th>{{ localise "Change" $lang 1 }}
-                            {{ localise "Selection" $lang 1 }}</th>
-                    </tr>
-                </thead>
+            <div class="ons-summary__items ons-u-mb-s">
                 {{ range $i, $dim := .Dimensions }}
-                    <tbody class="ons-summary__item">
-                        <tr id="{{.ID}}" class="ons-summary__row ons-summary__row--has-values ons-grid--flex@xxs@s ons-grid--between@xxs@s{{ if eq $i 0 }} ons-u-bt{{ end }}{{ if last $i $.Dimensions }} ons-u-bb{{ end }}">
-                            <td class="ons-summary__item-title ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-order--1 ons-u-bb-no@xxs@s ons-u-flex--2@xxs@s">
+                    <div class="ons-summary__item">
+                        <dl id="{{.ID}}" class="ons-summary__row ons-summary__row--has-values ons-grid--flex@xxs@m ons-grid--row@xxs@m ons-u-order--sb@xxs@m{{ if eq $i 0 }} ons-u-bt{{ end }}{{ if last $i $.Dimensions }} ons-u-bb{{ end }}">
+                            <dt class="ons-summary__item-title ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-order--1@xxs@m ons-u-flex--2@xxs@m">
                                 <div class="ons-summary__item--text ons-u-fw-b">
                                     {{ if .IsAreaType }}
                                         {{- localise "AreaTypeDescription" $lang 1 -}}
@@ -25,9 +17,9 @@
                                         {{- .Name -}}
                                     {{ end }}
                                 </div>
-                            </td>
-                            <td class="ons-summary__values ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-pl-no@xxs@s ons-u-order--3 ons-u-fw@xxs@s
-                                    ons-u-pt-no@xxs@s ons-u-bb-no@xxs@s ons-u-d-b@xxs@s">
+                            </dt>
+                            <dd class="ons-summary__values ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-pl-no@xxs@m ons-u-order--3@xxs@m
+                                    ons-u-fw@xxs@m ons-u-pt-no@xxs@m ons-u-pt-no@xxs@m ons-u-bb-no@xxs@m ons-u-d-b@xxs@m">
                                 {{ $length := len .Options }}
                                 {{ $strOptCount := intToString .OptionsCount }}
                                 {{ $isTruncated := .IsTruncated }}
@@ -53,7 +45,7 @@
                                         {{ if .IsDefaultCoverage }}
                                             {{- localise "AreaTypeDefaultCoverage" $lang 1 -}}
                                         {{ else if .IsAreaType }}
-                                            {{- .Name }} ({{ .OptionsCount -}})
+                                            {{- .Name }} ({{ thousandsSeparator .OptionsCount -}})
                                         {{ end }}
                                     {{ else }}
                                         {{ if .Options }}
@@ -69,8 +61,8 @@
                                         {{ end }}
                                     {{ end }}
                                 {{ end }}
-                            </td>
-                            <td class="ons-summary__actions ons-u-pt-s ons-u-pb-s ons-u-pl-no@xxs ons-u-ml-xs@xxs ons-u-order--2 ons-u-bb-no@xxs@s">
+                            </dd>
+                            <dd class="ons-summary__actions ons-u-pt-s ons-u-pb-s ons-u-pl-no@xxs ons-u-ml-xs@xxs ons-u-order--2@xxs@m">
                                 {{ if or (.IsAreaType) (.IsCoverage) }}
                                     <a href="{{ .URI }}" class="ons-summary__button">
                                         {{ localise "Change" $lang 1 }}
@@ -83,11 +75,11 @@
                                         </span>
                                     </a>
                                 {{ end }}
-                            </td>
-                        </tr>
-                    </tbody>
+                            </dd>
+                        </dl>
+                    </div>
                 {{ end }}
-            </table>
+            </div>
             {{ if .Collapsible.CollapsibleItems }}
                 {{ template "partials/collapsible" . }}
             {{ end }}

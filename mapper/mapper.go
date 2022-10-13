@@ -25,19 +25,24 @@ import (
 const (
 	queryStrKey           = "showAll"
 	areaTypePrefix        = "AreaType"
+	areaTypeTitle         = "Area type"
 	pluralInt             = 4
 	nameSearch            = "name-search"
 	parentSearch          = "parent-search"
 	nameSearchFieldName   = "q"
 	parentSearchFieldName = "pq"
+	coveragePageType      = "coverage_options"
+	coverageTitle         = "Coverage"
+	areaPageType          = "area_type_options"
+	reviewPageType        = "review_changes"
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims filter.Dimensions, datasetDims dataset.VersionDimensions, hasNoAreaOptions bool) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions bool) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-overview", "Review changes", lang)
+	mapCommonProps(req, &p.Page, reviewPageType, "Review changes", lang)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 
@@ -51,11 +56,11 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		},
 	}
 
-	for _, dim := range filterDims.Items {
+	for _, dim := range filterDims {
 		pageDim := model.Dimension{}
 		pageDim.Name = dim.Label
 		pageDim.IsAreaType = *dim.IsAreaType
-		pageDim.OptionsCount = len(dim.Options)
+		pageDim.OptionsCount = dim.OptionsCount
 		pageDim.ID = dim.ID
 		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
 		q := url.Values{}
@@ -95,7 +100,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	}
 
 	sort.Slice(p.Dimensions, func(i, j int) bool {
-		return p.Dimensions[i].IsAreaType == true
+		return p.Dimensions[i].IsAreaType
 	})
 
 	coverage := []model.Dimension{
@@ -110,8 +115,35 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	temp := append(coverage, p.Dimensions[1:]...)
 	p.Dimensions = append(p.Dimensions[:1], temp...)
 
+	collapsibleContentItems := mapCollapsible(datasetDims.Items)
+	p.Collapsible = coreModel.Collapsible{
+		Title: coreModel.Localisation{
+			LocaleKey: "VariableExplanation",
+			Plural:    4,
+		},
+		CollapsibleItems: collapsibleContentItems,
+	}
+
+	return p
+}
+
+func mapCollapsible(datasetDims []dataset.VersionDimension) []coreModel.CollapsibleItem {
 	var collapsibleContentItems []coreModel.CollapsibleItem
-	for _, dims := range datasetDims.Items {
+	collapsibleContentItems = append(collapsibleContentItems, coreModel.CollapsibleItem{
+		Subheading: areaTypeTitle,
+		SafeHTML: coreModel.Localisation{
+			LocaleKey: "VariableInfoAreaType",
+			Plural:    1,
+		},
+	})
+	collapsibleContentItems = append(collapsibleContentItems, coreModel.CollapsibleItem{
+		Subheading: coverageTitle,
+		SafeHTML: coreModel.Localisation{
+			LocaleKey: "VariableInfoCoverage",
+			Plural:    1,
+		},
+	})
+	for _, dims := range datasetDims {
 		if dims.Description != "" {
 			var collapsibleContent coreModel.CollapsibleItem
 			collapsibleContent.Subheading = dims.Label
@@ -119,17 +151,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 			collapsibleContentItems = append(collapsibleContentItems, collapsibleContent)
 		}
 	}
-	if len(collapsibleContentItems) > 0 {
-		p.Collapsible = coreModel.Collapsible{
-			Title: coreModel.Localisation{
-				LocaleKey: "VariableExplanation",
-				Plural:    4,
-			},
-			CollapsibleItems: collapsibleContentItems,
-		}
-	}
-
-	return p
+	return collapsibleContentItems
 }
 
 // CreateSelector maps data to the Selector model
@@ -151,7 +173,8 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 // CreateAreaTypeSelector maps data to the Selector model
 func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
 	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
-	p.Page.Metadata.Title = "Area type"
+	p.Page.Metadata.Title = areaTypeTitle
+	p.Page.Type = areaPageType
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
@@ -190,7 +213,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	p := model.Coverage{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-coverage", "Coverage", lang)
+	mapCommonProps(req, &p.Page, coveragePageType, coverageTitle, lang)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
