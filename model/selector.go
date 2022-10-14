@@ -11,6 +11,7 @@ type Selector struct {
 	Selections       []Selection
 	InitialSelection string
 	IsAreaType       bool
+	HasOptions       bool
 }
 
 // Selection represents a dimension selection (e.g. an Area-type of City)
