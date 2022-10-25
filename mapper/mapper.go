@@ -171,10 +171,11 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError, hasOpts bool) model.Selector {
 	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
 	p.Page.Metadata.Title = areaTypeTitle
 	p.Page.Type = areaPageType
+	p.HasOptions = hasOpts
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{

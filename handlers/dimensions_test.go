@@ -239,6 +239,11 @@ func TestDimensionsHandler(t *testing.T) {
 						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(stubAreaTypeDimension, "", nil).
 						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.DimensionOptions{}, "", nil).
+						AnyTimes()
 
 					mockPc := NewMockPopulationClient(mockCtrl)
 					mockPc.EXPECT().
@@ -297,6 +302,11 @@ func TestDimensionsHandler(t *testing.T) {
 						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(stubAreaTypeDimension, "", nil).
 						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.DimensionOptions{}, "", nil).
+						AnyTimes()
 
 					mockPc := NewMockPopulationClient(mockCtrl)
 					mockPc.EXPECT().
@@ -331,6 +341,11 @@ func TestDimensionsHandler(t *testing.T) {
 						EXPECT().
 						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(stubAreaTypeDimension, "", nil).
+						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.DimensionOptions{}, "", nil).
 						AnyTimes()
 
 					mockPc := NewMockPopulationClient(mockCtrl)
@@ -370,6 +385,11 @@ func TestDimensionsHandler(t *testing.T) {
 						EXPECT().
 						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(filter.Dimension{IsAreaType: helpers.ToBoolPtr(true)}, "", nil).
+						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.DimensionOptions{}, "", nil).
 						AnyTimes()
 
 					mockPc := NewMockPopulationClient(mockCtrl)
@@ -413,6 +433,11 @@ func TestDimensionsHandler(t *testing.T) {
 					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(stubAreaTypeDimension, "", nil).
 					AnyTimes()
+				mockFilter.
+					EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{}, "", nil).
+					AnyTimes()
 
 				mockPc := NewMockPopulationClient(mockCtrl)
 				mockPc.EXPECT().
@@ -426,6 +451,35 @@ func TestDimensionsHandler(t *testing.T) {
 					AnyTimes()
 
 				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc))
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When the filter API responds with an error on GetDimensionOptions", func() {
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Model{}, "", nil)
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(stubAreaTypeDimension, "", nil).
+					AnyTimes()
+				mockFilter.
+					EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{}, "", errors.New("uh oh")).
+					AnyTimes()
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl)))
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)

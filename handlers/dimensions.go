@@ -51,6 +51,16 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
+	// The total_count is the only field required
+	opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimensionName, &filter.QueryParams{Limit: 0})
+	if err != nil {
+		log.Error(ctx, "failed to get options for dimension", err, logData)
+		setStatusCode(req, w, err)
+		return
+	}
+
+	hasOpts := opts.TotalCount > 0
+
 	areaTypes, err := pc.GetAreaTypes(ctx, population.GetAreaTypesInput{
 		AuthTokens: population.AuthTokens{
 			UserAuthToken: accessToken,
@@ -67,7 +77,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 	}
 
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, isValidationError)
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, isValidationError, hasOpts)
 	rc.BuildPage(w, selector, "selector")
 }
 

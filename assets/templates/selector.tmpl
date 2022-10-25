@@ -2,15 +2,20 @@
 <div class="ons-page__container ons-container">
     <div class="ons-grid ons-u-ml-no">
         {{ template "partials/breadcrumb" . }}
-
         {{ if .Page.Error.Title }}
             {{ template "partials/error-summary" .Page.Error }}
         {{ end}}
-
         <h1 class="ons-u-fs-xxxl ons-u-mt-s">{{ .Page.Metadata.Title }}</h1>
-
         <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
+                {{ if .HasOptions }}
+                    <div class="ons-panel ons-panel--info ons-panel--no-title ons-u-mb-l">
+                        <span class="ons-panel__assistive-text ons-u-vh">{{- localise "ImportantInformation" .Language 1 -}}:</span>
+                        <div class="ons-panel__body">
+                            <p>{{- localise "ChangeAreaTypeWarning" .Language 1 -}}</p>
+                        </div>
+                    </div>
+                {{ end }}
                 {{ if .Page.Error.Title }}
                     <div class="ons-panel ons-panel--error ons-panel--no-title" id="area-type-error">
                         <span class="ons-u-vh">{{- localise "Error" .Language 1 -}}:</span>
@@ -18,37 +23,35 @@
                             <p class="ons-panel__error">
                                 <strong>{{ localise "SelectAreaTypeError" .Language 1 }}</strong>
                             </p>
-                {{ end }}
-
-                {{ if gt $length 0 }}
-                    <form method="post">
-                        <fieldset class="ons-fieldset">
-                            <legend class="ons-fieldset__legend ons-u-mb-s">
-                                {{ localise "SelectAreaTypeLeadText" .Language 1 }}
-                            </legend>
-                            <div class="ons-radios__items">
-                                {{ range $i, $selection := .Selections }}
-                                    <span class="ons-radios__item ons-radios__item--no-border ons-u-mb-s">
-                                <span class="ons-radio ons-radio--no-border">
-                                    <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }}checked{{ end }}>
-                                    <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">{{ .Label }} ({{ thousandsSeparator .TotalCount }})</label>
-                                </span>
-                            </span>
-                                    {{ if notLastItem $length $i }}<br>{{ end }}
-                                {{ end }}
-                            </div>
-                        </fieldset>
-                        <input type="hidden" value="{{ .IsAreaType }}" name="is_area_type">
-                        <button type="submit" class="ons-btn ons-u-mt-s ons-u-mb-s">
-                            <span class="ons-btn__inner">{{ localise "Continue" $.Language 1 }}</span>
-                        </button>
-                    </form>
-                {{ end }}
-
-                {{ if .Error.Title}}
+                        {{ end }}
+                        {{ if gt $length 0 }}
+                            <form method="post">
+                                <fieldset class="ons-fieldset">
+                                    <legend class="ons-fieldset__legend ons-u-mb-s">
+                                        {{ localise "SelectAreaTypeLeadText" .Language 1 }}
+                                    </legend>
+                                    <div class="ons-radios__items">
+                                        {{ range $i, $selection := .Selections }}
+                                            <span class="ons-radios__item ons-radios__item--no-border ons-u-mb-s">
+                                                <span class="ons-radio ons-radio--no-border">
+                                                    <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }} checked {{ end }}>
+                                                    <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">{{ .Label }} ({{ thousandsSeparator .TotalCount }})</label>
+                                                </span>
+                                            </span>
+                                            {{ if notLastItem $length $i }}<br>{{ end }}
+                                        {{ end }}
+                                    </div>
+                                </fieldset>
+                                <input type="hidden" value="{{ .IsAreaType }}" name="is_area_type">
+                                <button type="submit" class="ons-btn ons-u-mt-s ons-u-mb-s">
+                                    <span class="ons-btn__inner">{{ localise "Continue" $.Language 1 }}</span>
+                                </button>
+                            </form>
+                        {{ end }}
+                        {{ if .Error.Title}}
+                        </div>
                     </div>
                 {{ end }}
-                </div>
             </div>
         </div>
     </div>
