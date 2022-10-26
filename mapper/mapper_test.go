@@ -137,6 +137,7 @@ func TestOverview(t *testing.T) {
 			filterJob.Dataset.Edition,
 			strconv.Itoa(filterJob.Dataset.Version)))
 		So(m.Language, ShouldEqual, lang)
+		So(m.SearchNoIndexEnabled, ShouldBeTrue)
 
 		So(m.Dimensions[0].Name, ShouldEqual, filterDims[3].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
@@ -238,6 +239,7 @@ func TestCreateSelector(t *testing.T) {
 		So(m.Language, ShouldEqual, lang)
 		So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
 		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
+		So(m.SearchNoIndexEnabled, ShouldBeTrue)
 	})
 }
 
@@ -249,7 +251,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, false, false)
 
 		expectedSelections := []model.Selection{
 			{Value: "one", Label: "One", TotalCount: 1},
@@ -264,7 +266,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, "12345", nil, filter.Dimension{}, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, "12345", nil, filter.Dimension{}, false, false)
 
 		Convey("it sets page metadata", func() {
 			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
@@ -279,12 +281,17 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		Convey("it sets IsAreaType to true", func() {
 			So(changeDimension.IsAreaType, ShouldBeTrue)
 		})
+
+		Convey("it sets SearchNoIndexEnabled to true", func() {
+			So(changeDimension.SearchNoIndexEnabled, ShouldBeTrue)
+
+		})
 	})
 
 	Convey("Given the current filter dimension", t, func() {
 		const selectionName = "test"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{ID: selectionName}, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{ID: selectionName}, false, false)
 
 		Convey("it returns the value as an initial selection", func() {
 			So(changeDimension.InitialSelection, ShouldEqual, selectionName)
@@ -293,10 +300,19 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given a validation error", t, func() {
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, true)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, true, false)
 
 		Convey("it returns a populated error", func() {
 			So(changeDimension.Error.Title, ShouldNotBeEmpty)
+		})
+	})
+
+	Convey("Given saved options", t, func() {
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, false, true)
+
+		Convey("it returns a warning that saved options will be removed", func() {
+			So(changeDimension.HasOptions, ShouldBeTrue)
 		})
 	})
 }
@@ -352,11 +368,15 @@ func TestGetCoverage(t *testing.T) {
 			Convey("it sets the GeographyID property", func() {
 				So(coverage.GeographyID, ShouldEqual, "geogID")
 			})
+
+			Convey("it sets the SearchNoIndexEnabled to true", func() {
+				So(coverage.SearchNoIndexEnabled, ShouldBeTrue)
+			})
 		})
 
 		Convey("When parent types is populated", func() {
 			parents := population.GetAreaTypeParentsResponse{
-				AreaTypes: []population.AreaTypes{
+				AreaTypes: []population.AreaType{
 					{
 						Label: "Area 1",
 						ID:    "id",
@@ -416,7 +436,7 @@ func TestGetCoverage(t *testing.T) {
 
 		Convey("When parent type is selected", func() {
 			parents := population.GetAreaTypeParentsResponse{
-				AreaTypes: []population.AreaTypes{
+				AreaTypes: []population.AreaType{
 					{
 						Label: "Area 1",
 						ID:    "id",
@@ -450,7 +470,7 @@ func TestGetCoverage(t *testing.T) {
 
 		Convey("When more than one parent type is returned", func() {
 			parents := population.GetAreaTypeParentsResponse{
-				AreaTypes: []population.AreaTypes{
+				AreaTypes: []population.AreaType{
 					{
 						Label: "Area 1",
 						ID:    "id_1",

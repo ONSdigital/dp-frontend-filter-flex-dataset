@@ -53,7 +53,7 @@ func TestChangeDimensionHandler(t *testing.T) {
 				const newDimension = "country"
 
 				expDimension := filter.Dimension{
-					Name:       "geography",
+					Name:       newDimension,
 					ID:         newDimension,
 					IsAreaType: helpers.ToBoolPtr(true),
 				}

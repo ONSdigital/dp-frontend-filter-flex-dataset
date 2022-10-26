@@ -100,9 +100,14 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	go func() {
 		defer wg.Done()
 		parents, pErr = pc.GetAreaTypeParents(ctx, population.GetAreaTypeParentsInput{
-			UserAuthToken: accessToken,
-			DatasetID:     filterJob.PopulationType,
-			AreaTypeID:    geogID,
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+			PaginationParams: population.PaginationParams{
+				Limit: 1000,
+			},
+			PopulationType: filterJob.PopulationType,
+			AreaTypeID:     geogID,
 		})
 	}()
 	go func() {
@@ -166,7 +171,9 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 		var option model.SelectableElement
 
 		area, err := pc.GetArea(ctx, population.GetAreaInput{
-			UserAuthToken:  accessToken,
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
 			PopulationType: filterJob.PopulationType,
 			AreaType:       areaType,
 			Area:           opt.Option,
@@ -194,10 +201,15 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 // getAreas is a helper function that returns the GetAreasResponse or an error
 func getAreas(pc PopulationClient, ctx context.Context, accessToken, popType, areaTypeID, query string) (population.GetAreasResponse, error) {
 	areas, err := pc.GetAreas(ctx, population.GetAreasInput{
-		UserAuthToken: accessToken,
-		DatasetID:     popType,
-		AreaTypeID:    areaTypeID,
-		Text:          url.QueryEscape(strings.TrimSpace(query)),
+		AuthTokens: population.AuthTokens{
+			UserAuthToken: accessToken,
+		},
+		PaginationParams: population.PaginationParams{
+			Limit: 1000,
+		},
+		PopulationType: popType,
+		AreaTypeID:     areaTypeID,
+		Text:           url.QueryEscape(strings.TrimSpace(query)),
 	})
 	return areas, err
 }

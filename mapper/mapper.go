@@ -171,10 +171,11 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError bool) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError, hasOpts bool) model.Selector {
 	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
 	p.Page.Metadata.Title = areaTypeTitle
 	p.Page.Type = areaPageType
+	p.HasOptions = hasOpts
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
@@ -284,16 +285,20 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	if len(opts) > 0 && hasFilterByParent {
 		p.CoverageType = parentSearch
 		p.ParentSearchOutput.Options = opts
+		p.OptionType = parentSearch
 	} else if len(opts) > 0 {
 		p.CoverageType = nameSearch
 		p.NameSearchOutput.Options = opts
+		p.OptionType = nameSearch
 	}
 
 	switch coverage {
 	case nameSearch:
+		p.CoverageType = nameSearch
 		p.NameSearchOutput.SearchResults = results
 		p.NameSearchOutput.HasNoResults = len(p.NameSearchOutput.SearchResults) == 0
 	case parentSearch:
+		p.CoverageType = parentSearch
 		p.ParentSearchOutput.SearchResults = results
 		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0 && !hasValidationErr
 	}
@@ -335,6 +340,7 @@ func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang 
 	p.Metadata.Title = title
 	p.Language = lang
 	p.URI = req.URL.Path
+	p.SearchNoIndexEnabled = true
 }
 
 // mapCookiePreferences reads cookie policy and preferences cookies and then maps the values to the page model

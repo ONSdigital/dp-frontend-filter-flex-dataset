@@ -42,7 +42,7 @@ func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, 
 	}
 
 	dimension := filter.Dimension{
-		Name:       dimensionName,
+		Name:       form.Dimension,
 		ID:         form.Dimension,
 		IsAreaType: helpers.ToBoolPtr(form.IsAreaType),
 	}

@@ -43,6 +43,14 @@ one = "Filter"
 description = "Continue"
 one = "Continue"
 
+[ImportantInformation]
+description = "Important information"
+one = "Important information"
+
+[ChangeAreaTypeWarning]
+description = "Warning about changing area type"
+one = "Changing the area type will reset the coverage back to the default setting of England and Wales."
+
 [SelectAreaTypeLeadText]
 description = "Select area type"
 one = "Select area type"

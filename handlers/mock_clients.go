@@ -401,6 +401,21 @@ func (mr *MockPopulationClientMockRecorder) GetAreaTypeParents(ctx, input interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreaTypeParents", reflect.TypeOf((*MockPopulationClient)(nil).GetAreaTypeParents), ctx, input)
 }
 
+// GetAreaTypes mocks base method.
+func (m *MockPopulationClient) GetAreaTypes(ctx context.Context, input population.GetAreaTypesInput) (population.GetAreaTypesResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAreaTypes", ctx, input)
+	ret0, _ := ret[0].(population.GetAreaTypesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAreaTypes indicates an expected call of GetAreaTypes.
+func (mr *MockPopulationClientMockRecorder) GetAreaTypes(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAreaTypes", reflect.TypeOf((*MockPopulationClient)(nil).GetAreaTypes), ctx, input)
+}
+
 // GetAreas mocks base method.
 func (m *MockPopulationClient) GetAreas(ctx context.Context, input population.GetAreasInput) (population.GetAreasResponse, error) {
 	m.ctrl.T.Helper()
@@ -429,19 +444,4 @@ func (m *MockPopulationClient) GetParentAreaCount(ctx context.Context, input pop
 func (mr *MockPopulationClientMockRecorder) GetParentAreaCount(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParentAreaCount", reflect.TypeOf((*MockPopulationClient)(nil).GetParentAreaCount), ctx, input)
-}
-
-// GetPopulationAreaTypes mocks base method.
-func (m *MockPopulationClient) GetPopulationAreaTypes(ctx context.Context, userAuthToken, serviceAuthToken, datasetID string) (population.GetAreaTypesResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPopulationAreaTypes", ctx, userAuthToken, serviceAuthToken, datasetID)
-	ret0, _ := ret[0].(population.GetAreaTypesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPopulationAreaTypes indicates an expected call of GetPopulationAreaTypes.
-func (mr *MockPopulationClientMockRecorder) GetPopulationAreaTypes(ctx, userAuthToken, serviceAuthToken, datasetID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPopulationAreaTypes", reflect.TypeOf((*MockPopulationClient)(nil).GetPopulationAreaTypes), ctx, userAuthToken, serviceAuthToken, datasetID)
 }

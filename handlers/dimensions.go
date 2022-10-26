@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -50,7 +51,25 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
-	areaTypes, err := pc.GetPopulationAreaTypes(ctx, accessToken, "", currentFilter.PopulationType)
+	// The total_count is the only field required
+	opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimensionName, &filter.QueryParams{Limit: 0})
+	if err != nil {
+		log.Error(ctx, "failed to get options for dimension", err, logData)
+		setStatusCode(req, w, err)
+		return
+	}
+
+	hasOpts := opts.TotalCount > 0
+
+	areaTypes, err := pc.GetAreaTypes(ctx, population.GetAreaTypesInput{
+		AuthTokens: population.AuthTokens{
+			UserAuthToken: accessToken,
+		},
+		PaginationParams: population.PaginationParams{
+			Limit: 1000,
+		},
+		PopulationType: currentFilter.PopulationType,
+	})
 	if err != nil {
 		log.Error(ctx, "failed to get population area types", err, logData)
 		setStatusCode(req, w, err)
@@ -58,7 +77,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 	}
 
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, isValidationError)
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, isValidationError, hasOpts)
 	rc.BuildPage(w, selector, "selector")
 }
 
