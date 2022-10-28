@@ -115,43 +115,9 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	temp := append(coverage, p.Dimensions[1:]...)
 	p.Dimensions = append(p.Dimensions[:1], temp...)
 
-	collapsibleContentItems := mapCollapsible(datasetDims.Items)
-	p.Collapsible = coreModel.Collapsible{
-		Title: coreModel.Localisation{
-			LocaleKey: "VariableExplanation",
-			Plural:    4,
-		},
-		CollapsibleItems: collapsibleContentItems,
-	}
+	// TODO: Temporarily removing mapping as new endpoints are required to return reliable dataset information
 
 	return p
-}
-
-func mapCollapsible(datasetDims []dataset.VersionDimension) []coreModel.CollapsibleItem {
-	var collapsibleContentItems []coreModel.CollapsibleItem
-	collapsibleContentItems = append(collapsibleContentItems, coreModel.CollapsibleItem{
-		Subheading: areaTypeTitle,
-		SafeHTML: coreModel.Localisation{
-			LocaleKey: "VariableInfoAreaType",
-			Plural:    1,
-		},
-	})
-	collapsibleContentItems = append(collapsibleContentItems, coreModel.CollapsibleItem{
-		Subheading: coverageTitle,
-		SafeHTML: coreModel.Localisation{
-			LocaleKey: "VariableInfoCoverage",
-			Plural:    1,
-		},
-	})
-	for _, dims := range datasetDims {
-		if dims.Description != "" {
-			var collapsibleContent coreModel.CollapsibleItem
-			collapsibleContent.Subheading = dims.Label
-			collapsibleContent.Content = strings.Split(dims.Description, "\n")
-			collapsibleContentItems = append(collapsibleContentItems, collapsibleContent)
-		}
-	}
-	return collapsibleContentItems
 }
 
 // CreateSelector maps data to the Selector model
