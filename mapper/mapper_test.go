@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -170,13 +169,7 @@ func TestOverview(t *testing.T) {
 		So(m.Dimensions[3].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims[1].Name))
 		So(m.Dimensions[3].IsTruncated, ShouldBeTrue)
 
-		So(m.Collapsible.CollapsibleItems[0].Subheading, ShouldEqual, "Area type")
-		So(m.Collapsible.CollapsibleItems[1].Subheading, ShouldEqual, "Coverage")
-		So(m.Collapsible.CollapsibleItems[2].Subheading, ShouldEqual, datasetDims.Items[0].Label)
-		So(m.Collapsible.CollapsibleItems[2].Content[0], ShouldEqual, datasetDims.Items[0].Description)
-		So(m.Collapsible.CollapsibleItems[3].Subheading, ShouldEqual, datasetDims.Items[1].Label)
-		So(m.Collapsible.CollapsibleItems[3].Content, ShouldResemble, strings.Split(datasetDims.Items[1].Description, "\n"))
-		So(m.Collapsible.CollapsibleItems, ShouldHaveLength, 4)
+		// TODO: Removing test coverage until endpoint is created
 	})
 
 	Convey("test truncation maps as expected", t, func() {
