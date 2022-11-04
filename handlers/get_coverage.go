@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/pagination"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
@@ -32,6 +34,11 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	q := req.URL.Query().Get("q")
 	pq := req.URL.Query().Get("pq")
 	p := req.URL.Query().Get("p")
+	page := req.URL.Query().Get("page")
+	currentPg, _ := strconv.Atoi(page)
+	if currentPg <= 0 {
+		currentPg = 1
+	}
 	isNameSearch := strings.Contains(req.URL.RawQuery, "q=")
 	isParentSearch := strings.Contains(req.URL.RawQuery, "p=")
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
@@ -117,13 +124,13 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	go func() {
 		defer wg.Done()
 		if isNameSearch && q != "" {
-			areas, nsErr = getAreas(pc, ctx, accessToken, filterJob.PopulationType, geogID, q)
+			areas, nsErr = getAreas(pc, ctx, accessToken, filterJob.PopulationType, geogID, q, currentPg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		if isParentSearch && pq != "" {
-			areas, psErr = getAreas(pc, ctx, accessToken, filterJob.PopulationType, p, pq)
+			areas, psErr = getAreas(pc, ctx, accessToken, filterJob.PopulationType, p, pq, currentPg)
 		}
 	}()
 	wg.Wait()
@@ -194,22 +201,35 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, geogID, areas, options, parents, hasFilterByParent, isValidationError)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, geogID, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
 	rc.BuildPage(w, m, "coverage")
 }
 
 // getAreas is a helper function that returns the GetAreasResponse or an error
-func getAreas(pc PopulationClient, ctx context.Context, accessToken, popType, areaTypeID, query string) (population.GetAreasResponse, error) {
+func getAreas(pc PopulationClient, ctx context.Context, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
 	areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 		AuthTokens: population.AuthTokens{
 			UserAuthToken: accessToken,
 		},
 		PaginationParams: population.PaginationParams{
-			Limit: 1000,
+			Limit:  50,
+			Offset: pagination.GetOffset(50, pageNo),
 		},
 		PopulationType: popType,
 		AreaTypeID:     areaTypeID,
 		Text:           url.QueryEscape(strings.TrimSpace(query)),
 	})
+
+	err = validatePageNo(areas.TotalCount, areas.Limit, pageNo, err)
+
 	return areas, err
+}
+
+// validatePageNo checks that the given page number is within range and will return a client error if page number is out of range
+func validatePageNo(tc, limit, pageNo int, err error) error {
+	tp := pagination.GetTotalPages(tc, limit)
+	if pageNo > tp {
+		err = &clientErr{errors.New("invalid page number")}
+	}
+	return err
 }

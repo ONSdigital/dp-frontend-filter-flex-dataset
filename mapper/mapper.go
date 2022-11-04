@@ -14,6 +14,7 @@ import (
 	"github.com/ONSdigital/dp-cookies/cookies"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/pagination"
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -192,7 +193,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -264,6 +265,18 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		results = append(results, result)
 	}
 
+	totalPages := pagination.GetTotalPages(areas.TotalCount, areas.Limit)
+	var paginatedResults coreModel.Pagination
+	if totalPages > 1 {
+		paginatedResults = coreModel.Pagination{
+			CurrentPage:       currentPage,
+			TotalPages:        totalPages,
+			Limit:             areas.Limit,
+			FirstAndLastPages: pagination.GetFirstAndLastPages(req, totalPages),
+			PagesToDisplay:    pagination.GetPagesToDisplay(currentPage, totalPages, req),
+		}
+	}
+
 	if len(opts) > 0 && hasFilterByParent {
 		p.CoverageType = parentSearch
 		p.ParentSearchOutput.Options = opts
@@ -279,10 +292,12 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		p.CoverageType = nameSearch
 		p.NameSearchOutput.SearchResults = results
 		p.NameSearchOutput.HasNoResults = len(p.NameSearchOutput.SearchResults) == 0
+		p.NameSearchOutput.Pagination = paginatedResults
 	case parentSearch:
 		p.CoverageType = parentSearch
 		p.ParentSearchOutput.SearchResults = results
 		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0 && !hasValidationErr
+		p.ParentSearchOutput.Pagination = paginatedResults
 	}
 
 	if hasValidationErr {
