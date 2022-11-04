@@ -30,6 +30,7 @@ type SearchOutput struct {
 	SearchResults []SelectableElement `json:"search_results"`
 	Options       []SelectableElement `json:"options"`
 	Language      string              `json:"language"`
+	coreModel.Pagination
 }
 
 /* SelectableElement represents the data required for a selectable element.
