@@ -223,16 +223,16 @@ func getAreas(pc PopulationClient, ctx context.Context, accessToken, popType, ar
 		return areas, err
 	}
 
-	err = validatePageNo(areas.TotalCount, areas.Limit, pageNo, err)
+	err = validatePageNo(areas.TotalCount, areas.Limit, pageNo)
 
 	return areas, err
 }
 
 // validatePageNo checks that the given page number is within range and will return a client error if page number is out of range
-func validatePageNo(tc, limit, pageNo int, err error) error {
+func validatePageNo(tc, limit, pageNo int) error {
 	tp := pagination.GetTotalPages(tc, limit)
 	if pageNo > tp {
-		err = &clientErr{errors.New("invalid page number")}
+		return &clientErr{errors.New("invalid page number")}
 	}
-	return err
+	return nil
 }
