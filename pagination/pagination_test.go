@@ -53,6 +53,103 @@ func TestGetOffset(t *testing.T) {
 	})
 }
 
+func TestGetPagesToDisplay(t *testing.T) {
+	t.Parallel()
+	req := httptest.NewRequest("GET", "/a/page", nil)
+	Convey("Given an http request, total pages and current page parameters", t, func() {
+		testcases := []struct {
+			totalPages    int
+			currentPage   int
+			expectedModel []model.PageToDisplay
+		}{
+			{
+				totalPages:  2,
+				currentPage: 1,
+				expectedModel: []model.PageToDisplay{
+					{
+						PageNumber: 1,
+						URL:        "/a/page?page=1",
+					},
+					{
+						PageNumber: 2,
+						URL:        "/a/page?page=2",
+					},
+				},
+			},
+			{
+				totalPages:  3,
+				currentPage: 1,
+				expectedModel: []model.PageToDisplay{
+					{
+						PageNumber: 1,
+						URL:        "/a/page?page=1",
+					},
+					{
+						PageNumber: 2,
+						URL:        "/a/page?page=2",
+					},
+					{
+						PageNumber: 3,
+						URL:        "/a/page?page=3",
+					},
+				},
+			},
+			{
+				totalPages:  5,
+				currentPage: 5,
+				expectedModel: []model.PageToDisplay{
+					{
+						PageNumber: 1,
+						URL:        "/a/page?page=1",
+					},
+					{
+						PageNumber: 2,
+						URL:        "/a/page?page=2",
+					},
+					{
+						PageNumber: 3,
+						URL:        "/a/page?page=3",
+					},
+					{
+						PageNumber: 4,
+						URL:        "/a/page?page=4",
+					},
+					{
+						PageNumber: 5,
+						URL:        "/a/page?page=5",
+					},
+				},
+			},
+			{
+				totalPages:  10,
+				currentPage: 5,
+				expectedModel: []model.PageToDisplay{
+					{
+						PageNumber: 4,
+						URL:        "/a/page?page=4",
+					},
+					{
+						PageNumber: 5,
+						URL:        "/a/page?page=5",
+					},
+					{
+						PageNumber: 6,
+						URL:        "/a/page?page=6",
+					},
+				},
+			},
+		}
+		Convey("When the 'GetPagesToDisplay' function is called", func() {
+			for _, tc := range testcases {
+				sut := GetPagesToDisplay(tc.currentPage, tc.totalPages, req)
+				Convey(fmt.Sprintf("Then with 'total pages' of %s and the 'current page' is page %s the model should resemble the expected model", strconv.Itoa(tc.totalPages), strconv.Itoa(tc.currentPage)), func() {
+					So(sut, ShouldResemble, tc.expectedModel)
+				})
+			}
+		})
+	})
+}
+
 func TestGetFirstAndLastPages(t *testing.T) {
 	t.Parallel()
 	req := httptest.NewRequest("GET", "/a/page", nil)
@@ -137,8 +234,8 @@ func TestGetStartEndPage(t *testing.T) {
 		}
 		Convey("check the generated start and end page numbers are correct", func() {
 			for _, tc := range testcases {
-				sut, ep := getWindowStartEndPage(tc.current, tc.total, tc.window)
-				So(sut, ShouldEqual, tc.exStart)
+				sp, ep := getWindowStartEndPage(tc.current, tc.total, tc.window)
+				So(sp, ShouldEqual, tc.exStart)
 				So(ep, ShouldEqual, tc.exEnd)
 			}
 		})
