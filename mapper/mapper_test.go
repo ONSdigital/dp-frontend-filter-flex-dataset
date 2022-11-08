@@ -333,7 +333,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("it sets page metadata", func() {
 				So(coverage.BetaBannerEnabled, ShouldBeTrue)
 				So(coverage.Type, ShouldEqual, "coverage_options")
@@ -392,7 +393,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				parents,
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it maps to the ParentSelect property", func() {
 				So(coverage.ParentSelect[0].Text, ShouldEqual, parents.AreaTypes[0].Label)
 				So(coverage.ParentSelect[0].Value, ShouldEqual, parents.AreaTypes[0].ID)
@@ -421,7 +423,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets the IsSelectParent property", func() {
 				So(coverage.IsSelectParents, ShouldBeFalse)
 			})
@@ -452,7 +455,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				parents,
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets the IsSelected property", func() {
 				So(coverage.ParentSelect[0].IsSelected, ShouldBeTrue)
 			})
@@ -490,7 +494,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				parents,
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it maps the ParentSelect default option", func() {
 				So(coverage.ParentSelect[0].Text, ShouldEqual, "Select")
 				So(coverage.ParentSelect[0].IsDisabled, ShouldBeTrue)
@@ -528,7 +533,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets the geography to unknown geography", func() {
 				So(coverage.Geography, ShouldEqual, "unknown geography")
 			})
@@ -560,7 +566,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets HasNoResults property", func() {
 				So(coverage.NameSearchOutput.HasNoResults, ShouldBeFalse)
 			})
@@ -578,6 +585,81 @@ func TestGetCoverage(t *testing.T) {
 
 			Convey("Then it sets the search input field value", func() {
 				So(coverage.NameSearch.Value, ShouldEqual, "search")
+			})
+		})
+
+		Convey("When a valid name search is performed with paginated results", func() {
+
+			mockedSearchResults := population.GetAreasResponse{
+				Areas: []population.Area{
+					{
+						Label: "area one",
+						ID:    "area ID",
+					},
+				},
+				PaginationResponse: population.PaginationResponse{
+					PaginationParams: population.PaginationParams{
+						Offset: 0,
+						Limit:  50,
+					},
+					Count:      0,
+					TotalCount: 101,
+				},
+			}
+
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"search",
+				"",
+				"",
+				"name-search",
+				"",
+				"",
+				mockedSearchResults,
+				[]model.SelectableElement{},
+				population.GetAreaTypeParentsResponse{},
+				false,
+				false,
+				2)
+			Convey("Then it sets HasNoResults property", func() {
+				So(coverage.NameSearchOutput.HasNoResults, ShouldBeFalse)
+			})
+
+			Convey("Then it paginates the search results", func() {
+				expectedPagination := coreModel.Pagination{
+					CurrentPage: 2,
+					PagesToDisplay: []coreModel.PageToDisplay{
+						{
+							PageNumber: 1,
+							URL:        "/?page=1",
+						},
+						{
+							PageNumber: 2,
+							URL:        "/?page=2",
+						},
+						{
+							PageNumber: 3,
+							URL:        "/?page=3",
+						},
+					},
+					FirstAndLastPages: []coreModel.PageToDisplay{
+						{
+							PageNumber: 1,
+							URL:        "/?page=1",
+						},
+						{
+							PageNumber: 3,
+							URL:        "/?page=3",
+						},
+					},
+					TotalPages: 3,
+					Limit:      50,
+				}
+				So(coverage.NameSearchOutput.Pagination, ShouldResemble, expectedPagination)
 			})
 		})
 
@@ -607,7 +689,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets HasNoResults property", func() {
 				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
 			})
@@ -645,7 +728,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets HasNoResults property correctly", func() {
 				So(coverage.NameSearchOutput.HasNoResults, ShouldBeTrue)
 			})
@@ -689,7 +773,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				true)
+				true,
+				1)
 			Convey("Then it sets HasNoResults property correctly", func() {
 				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
 			})
@@ -724,7 +809,8 @@ func TestGetCoverage(t *testing.T) {
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets HasNoResults property correctly", func() {
 				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeTrue)
 			})
@@ -762,7 +848,8 @@ func TestGetCoverage(t *testing.T) {
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
@@ -791,7 +878,8 @@ func TestGetCoverage(t *testing.T) {
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				true,
-				false)
+				false,
+				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
@@ -828,7 +916,8 @@ func TestGetCoverage(t *testing.T) {
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
@@ -870,7 +959,8 @@ func TestGetCoverage(t *testing.T) {
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				true,
-				false)
+				false,
+				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
@@ -915,7 +1005,8 @@ func TestGetCoverage(t *testing.T) {
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				false,
-				false)
+				false,
+				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
@@ -978,7 +1069,8 @@ func TestGetCoverage(t *testing.T) {
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				true,
-				false)
+				false,
+				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
 			})
@@ -1003,6 +1095,80 @@ func TestGetCoverage(t *testing.T) {
 					},
 				}
 				So(coverage.ParentSearchOutput.SearchResults, ShouldResemble, expectedResults)
+			})
+		})
+
+		Convey("When a parent search is performed with paginated results", func() {
+			mockedSearchResults := population.GetAreasResponse{
+				Areas: []population.Area{
+					{
+						Label: "parent area one",
+						ID:    "0",
+					},
+				},
+				PaginationResponse: population.PaginationResponse{
+					PaginationParams: population.PaginationParams{
+						Offset: 0,
+						Limit:  50,
+					},
+					Count:      0,
+					TotalCount: 101,
+				},
+			}
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"",
+				"",
+				"",
+				"parent-search",
+				"",
+				"",
+				mockedSearchResults,
+				[]model.SelectableElement{},
+				population.GetAreaTypeParentsResponse{},
+				true,
+				false,
+				2)
+
+			Convey("Then it sets HasNoResults property", func() {
+				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
+			})
+
+			Convey("Then it paginates the search results", func() {
+				expectedPagination := coreModel.Pagination{
+					CurrentPage: 2,
+					PagesToDisplay: []coreModel.PageToDisplay{
+						{
+							PageNumber: 1,
+							URL:        "/?page=1",
+						},
+						{
+							PageNumber: 2,
+							URL:        "/?page=2",
+						},
+						{
+							PageNumber: 3,
+							URL:        "/?page=3",
+						},
+					},
+					FirstAndLastPages: []coreModel.PageToDisplay{
+						{
+							PageNumber: 1,
+							URL:        "/?page=1",
+						},
+						{
+							PageNumber: 3,
+							URL:        "/?page=3",
+						},
+					},
+					TotalPages: 3,
+					Limit:      50,
+				}
+				So(coverage.ParentSearchOutput.Pagination, ShouldResemble, expectedPagination)
 			})
 		})
 	})

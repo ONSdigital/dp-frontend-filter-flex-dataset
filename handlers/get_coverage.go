@@ -219,6 +219,9 @@ func getAreas(pc PopulationClient, ctx context.Context, accessToken, popType, ar
 		AreaTypeID:     areaTypeID,
 		Text:           url.QueryEscape(strings.TrimSpace(query)),
 	})
+	if err != nil {
+		return areas, err
+	}
 
 	err = validatePageNo(areas.TotalCount, areas.Limit, pageNo, err)
 
