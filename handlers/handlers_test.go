@@ -41,8 +41,9 @@ func TestUnitHandlers(t *testing.T) {
 
 func initialiseMockConfig() config.Config {
 	return config.Config{
-		PatternLibraryAssetsPath: "http://localhost:9000/dist",
-		SiteDomain:               "ons",
-		SupportedLanguages:       []string{"en", "cy"},
+		PatternLibraryAssetsPath:    "http://localhost:9000/dist",
+		SiteDomain:                  "ons",
+		SupportedLanguages:          []string{"en", "cy"},
+		DefaultMaximumSearchResults: 50,
 	}
 }
