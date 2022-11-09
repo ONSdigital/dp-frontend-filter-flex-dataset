@@ -137,7 +137,7 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, isValidationError, hasOpts bool) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography string, isValidationError, hasOpts bool) model.Selector {
 	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
 	p.Page.Metadata.Title = areaTypeTitle
 	p.Page.Type = areaPageType
@@ -168,7 +168,23 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 		})
 	}
 
-	p.Selections = selections
+	sort.Slice(selections, func(i, j int) bool {
+		return selections[i].TotalCount < selections[j].TotalCount
+	})
+	if lowest_geography != "" {
+		var filtered_selections []model.Selection
+		var lowest_found = false
+		for _, selection := range selections {
+			if !lowest_found {
+				filtered_selections = append(filtered_selections, selection)
+				lowest_found = selection.Value == lowest_geography
+			}
+		}
+		p.Selections = filtered_selections
+	} else {
+		p.Selections = selections
+	}
+
 	p.InitialSelection = fDim.ID
 	p.IsAreaType = true
 

@@ -77,7 +77,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 	}
 
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, isValidationError, hasOpts)
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, "LADCD", isValidationError, hasOpts)
 	rc.BuildPage(w, selector, "selector")
 }
 
