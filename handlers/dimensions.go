@@ -13,13 +13,13 @@ import (
 )
 
 // DimensionsSelector Handler
-func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient) http.HandlerFunc {
+func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		dimensionsSelector(w, req, rc, fc, pc, collectionID, accessToken, lang)
+		dimensionsSelector(w, req, rc, fc, pc, dc, collectionID, accessToken, lang)
 	})
 }
 
-func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, pc PopulationClient, collectionID, accessToken, lang string) {
+func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, collectionID, accessToken, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -76,8 +76,19 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
+	details, err := dc.GetVersion(ctx, accessToken, "", "", collectionID, currentFilter.Dataset.DatasetID, currentFilter.Dataset.Edition, strconv.Itoa(currentFilter.Dataset.Version))
+	if err != nil {
+		log.Error(ctx, "failed to get dataset", err, log.Data{
+			"dataset": currentFilter.Dataset.DatasetID,
+			"edition": currentFilter.Dataset.Edition,
+			"version": currentFilter.Dataset.Version,
+		})
+		setStatusCode(req, w, err)
+		return
+	}
+
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, "LADCD", isValidationError, hasOpts)
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, isValidationError, hasOpts)
 	rc.BuildPage(w, selector, "selector")
 }
 

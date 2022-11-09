@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
@@ -54,7 +55,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					"number+of+siblings",
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl)),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -77,7 +78,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 			w := runDimensionsSelector(
 				"city",
-				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl)),
+				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
 			)
 
 			Convey("Then the status code should be 404", func() {
@@ -121,7 +122,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl)),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -156,7 +157,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl)),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -190,7 +191,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl)),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -207,7 +208,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl)),
+					DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
 				)
 
 				Convey("Then the status code should be 500", func() {
@@ -282,7 +283,16 @@ func TestDimensionsHandler(t *testing.T) {
 							"selector",
 						)
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc))
+					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.
+						EXPECT().
+						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(dataset.Version{
+							LowestGeography: "",
+						}, nil).
+						AnyTimes()
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -324,7 +334,16 @@ func TestDimensionsHandler(t *testing.T) {
 						BuildPage(gomock.Any(), gomock.Any(), "selector").
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc))
+					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.
+						EXPECT().
+						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(dataset.Version{
+							LowestGeography: "",
+						}, nil).
+						AnyTimes()
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -364,7 +383,16 @@ func TestDimensionsHandler(t *testing.T) {
 						// Assert that the area type boolean is true
 						BuildPage(gomock.Any(), pageIsAreaType{true}, gomock.Any())
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc))
+					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.
+						EXPECT().
+						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(dataset.Version{
+							LowestGeography: "",
+						}, nil).
+						AnyTimes()
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -410,7 +438,16 @@ func TestDimensionsHandler(t *testing.T) {
 						// Confirm the page contains an error
 						BuildPage(gomock.Any(), pageHasError{true}, gomock.Any())
 
-					selector := DimensionsSelector(mockRend, mockFilter, mockPc)
+					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.
+						EXPECT().
+						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(dataset.Version{
+							LowestGeography: "",
+						}, nil).
+						AnyTimes()
+
+					selector := DimensionsSelector(mockRend, mockFilter, mockPc, mockDc)
 
 					w := httptest.NewRecorder()
 					router := mux.NewRouter()
@@ -450,7 +487,16 @@ func TestDimensionsHandler(t *testing.T) {
 					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
 					AnyTimes()
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc))
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dataset.Version{
+						LowestGeography: "",
+					}, nil).
+					AnyTimes()
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -479,7 +525,16 @@ func TestDimensionsHandler(t *testing.T) {
 					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
 					AnyTimes()
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl)))
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dataset.Version{
+						LowestGeography: "",
+					}, nil).
+					AnyTimes()
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc))
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
