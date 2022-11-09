@@ -11,6 +11,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/pagination"
@@ -20,13 +21,13 @@ import (
 )
 
 // GetCoverage handler
-func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient) http.HandlerFunc {
+func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient, cfg *config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		getCoverage(w, req, rc, fc, pc, lang, accessToken, collectionID)
+		getCoverage(w, req, cfg, rc, fc, pc, lang, accessToken, collectionID)
 	})
 }
 
-func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, pc PopulationClient, lang, accessToken, collectionID string) {
+func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, lang, accessToken, collectionID string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -124,13 +125,13 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 	go func() {
 		defer wg.Done()
 		if isNameSearch && q != "" {
-			areas, nsErr = getAreas(pc, ctx, accessToken, filterJob.PopulationType, geogID, q, currentPg)
+			areas, nsErr = getAreas(cfg, pc, ctx, accessToken, filterJob.PopulationType, geogID, q, currentPg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		if isParentSearch && pq != "" {
-			areas, psErr = getAreas(pc, ctx, accessToken, filterJob.PopulationType, p, pq, currentPg)
+			areas, psErr = getAreas(cfg, pc, ctx, accessToken, filterJob.PopulationType, p, pq, currentPg)
 		}
 	}()
 	wg.Wait()
@@ -206,14 +207,14 @@ func getCoverage(w http.ResponseWriter, req *http.Request, rc RenderClient, fc F
 }
 
 // getAreas is a helper function that returns the GetAreasResponse or an error
-func getAreas(pc PopulationClient, ctx context.Context, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
+func getAreas(cfg *config.Config, pc PopulationClient, ctx context.Context, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
 	areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 		AuthTokens: population.AuthTokens{
 			UserAuthToken: accessToken,
 		},
 		PaginationParams: population.PaginationParams{
-			Limit:  50,
-			Offset: pagination.GetOffset(50, pageNo),
+			Limit:  cfg.DefaultMaximumSearchResults,
+			Offset: pagination.GetOffset(cfg.DefaultMaximumSearchResults, pageNo),
 		},
 		PopulationType: popType,
 		AreaTypeID:     areaTypeID,
