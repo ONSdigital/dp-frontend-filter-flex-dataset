@@ -226,9 +226,24 @@ func TestDimensionsHandler(t *testing.T) {
 			}
 
 			Convey("When area types are returned", func() {
-				Convey("Then the page should contain a list of area type selections", func() {
-					const dimensionID = "city"
-					const dimensionLabel = "City"
+				Convey("Then the page should contain a sorted list of area type selections", func() {
+
+					unsortedAreaTypes := []population.AreaType{
+						{
+							ID:         "ladcd",
+							Label:      "Local authority code",
+							TotalCount: 100,
+						},
+						{
+							ID:         "country",
+							Label:      "Country",
+							TotalCount: 1,
+						},
+						{
+							ID:         "region",
+							Label:      "Region",
+							TotalCount: 10,
+						}}
 
 					mockFilter := NewMockFilterClient(mockCtrl)
 					mockFilter.EXPECT().
@@ -251,11 +266,7 @@ func TestDimensionsHandler(t *testing.T) {
 						GetAreaTypes(gomock.Any(), gomock.Any()).
 						Return(
 							population.GetAreaTypesResponse{
-								AreaTypes: []population.AreaType{{
-									ID:         dimensionID,
-									Label:      dimensionLabel,
-									TotalCount: 1,
-								}},
+								AreaTypes: unsortedAreaTypes,
 							},
 							nil,
 						).
@@ -267,18 +278,29 @@ func TestDimensionsHandler(t *testing.T) {
 						Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
 						AnyTimes()
 
-					// Validate page data contains selections
+					// Validate page data contains sorted selections
+					sortedByCountAscending := []model.Selection{
+						{
+							Value:      "country",
+							Label:      "Country",
+							TotalCount: 1,
+						},
+						{
+							Value:      "region",
+							Label:      "Region",
+							TotalCount: 10,
+						},
+						{
+							Value:      "ladcd",
+							Label:      "Local authority code",
+							TotalCount: 100,
+						}}
+
 					mockRend.EXPECT().
 						BuildPage(
 							gomock.Any(),
 							pageMatchesSelections{
-								selections: []model.Selection{
-									{
-										Value:      dimensionID,
-										Label:      dimensionLabel,
-										TotalCount: 1,
-									},
-								},
+								selections: sortedByCountAscending,
 							},
 							"selector",
 						)
@@ -289,6 +311,98 @@ func TestDimensionsHandler(t *testing.T) {
 						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(dataset.Version{
 							LowestGeography: "",
+						}, nil).
+						AnyTimes()
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
+
+					Convey("And the status code should be 200", func() {
+						So(w.Code, ShouldEqual, http.StatusOK)
+					})
+				})
+
+				Convey("Then the page should limit selections by lowest geography", func() {
+
+					areaTypes := []population.AreaType{
+						{
+							ID:         "country",
+							Label:      "Country",
+							TotalCount: 1,
+						},
+						{
+							ID:         "ladcd",
+							Label:      "Local authority code",
+							TotalCount: 100,
+						},
+						{
+							ID:         "region",
+							Label:      "Region",
+							TotalCount: 10,
+						},
+					}
+
+					lowest_geography := "region"
+
+					filteredSelections := []model.Selection{
+						{
+							Value:      "country",
+							Label:      "Country",
+							TotalCount: 1,
+						},
+						{
+							Value:      "region",
+							Label:      "Region",
+							TotalCount: 10,
+						}}
+
+					mockFilter := NewMockFilterClient(mockCtrl)
+					mockFilter.EXPECT().
+						GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.Model{}, "", nil).
+						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(stubAreaTypeDimension, "", nil).
+						AnyTimes()
+					mockFilter.
+						EXPECT().
+						GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(filter.DimensionOptions{}, "", nil).
+						AnyTimes()
+
+					mockPc := NewMockPopulationClient(mockCtrl)
+					mockPc.EXPECT().
+						GetAreaTypes(gomock.Any(), gomock.Any()).
+						Return(
+							population.GetAreaTypesResponse{
+								AreaTypes: areaTypes,
+							},
+							nil,
+						).
+						AnyTimes()
+
+					mockRend := NewMockRenderClient(mockCtrl)
+					mockRend.EXPECT().
+						NewBasePageModel().
+						Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+						AnyTimes()
+
+					mockRend.EXPECT().
+						BuildPage(
+							gomock.Any(),
+							pageMatchesSelections{
+								selections: filteredSelections,
+							},
+							"selector",
+						)
+
+					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.
+						EXPECT().
+						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(dataset.Version{
+							LowestGeography: lowest_geography,
 						}, nil).
 						AnyTimes()
 
