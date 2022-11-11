@@ -159,18 +159,28 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 		}
 	}
 
+	p.Selections = getSelections(areaType, lowest_geography)
+
+	p.InitialSelection = fDim.ID
+	p.IsAreaType = true
+
+	return p
+}
+
+func getSelections(areaTypes []population.AreaType, lowest_geography string) []model.Selection {
 	var selections []model.Selection
-	for _, area := range areaType {
+	for _, areaType := range areaTypes {
 		selections = append(selections, model.Selection{
-			Value:      area.ID,
-			Label:      area.Label,
-			TotalCount: area.TotalCount,
+			Value:      areaType.ID,
+			Label:      areaType.Label,
+			TotalCount: areaType.TotalCount,
 		})
 	}
 
 	sort.Slice(selections, func(i, j int) bool {
 		return selections[i].TotalCount < selections[j].TotalCount
 	})
+
 	if lowest_geography != "" {
 		var filtered_selections []model.Selection
 		var lowest_found = false
@@ -180,15 +190,10 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 				lowest_found = selection.Value == lowest_geography
 			}
 		}
-		p.Selections = filtered_selections
+		return filtered_selections
 	} else {
-		p.Selections = selections
+		return selections
 	}
-
-	p.InitialSelection = fDim.ID
-	p.IsAreaType = true
-
-	return p
 }
 
 // CreateGetCoverage maps data to the coverage model

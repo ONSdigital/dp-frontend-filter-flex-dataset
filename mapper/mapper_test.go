@@ -256,6 +256,48 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		})
 	})
 
+	Convey("Given an unsorted slice of geography areas", t, func() {
+		areas := []population.AreaType{
+			{ID: "three", Label: "Three", TotalCount: 3},
+			{ID: "one", Label: "One", TotalCount: 1},
+			{ID: "two", Label: "Two", TotalCount: 2},
+		}
+
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", false, false)
+
+		Convey("Sorts selections ascending by count", func() {
+			expectedSelections := []model.Selection{
+				{Value: "one", Label: "One", TotalCount: 1},
+				{Value: "two", Label: "Two", TotalCount: 2},
+				{Value: "three", Label: "Three", TotalCount: 3},
+			}
+
+			So(changeDimension.Selections, ShouldResemble, expectedSelections)
+		})
+	})
+
+	Convey("Given an unsorted slice of geography areas and lowest_level of geography", t, func() {
+		areas := []population.AreaType{
+			{ID: "three", Label: "Three", TotalCount: 3},
+			{ID: "two", Label: "Two", TotalCount: 2},
+			{ID: "one", Label: "One", TotalCount: 1},
+		}
+		lowest_geography := "two"
+
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, lowest_geography, false, false)
+
+		Convey("Returns no selections with a count greater than that of the lowest_level", func() {
+			expectedSelections := []model.Selection{
+				{Value: "one", Label: "One", TotalCount: 1},
+				{Value: "two", Label: "Two", TotalCount: 2},
+			}
+
+			So(changeDimension.Selections, ShouldResemble, expectedSelections)
+		})
+	})
+
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
