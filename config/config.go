@@ -9,6 +9,7 @@ import (
 // Config represents service configuration for dp-frontend-filter-flex-dataset
 type Config struct {
 	Debug                      bool          `envconfig:"DEBUG"`
+	EnableMultivariate         bool          `envconfig:"ENABLE_MULTIVARIATE"`
 	BindAddr                   string        `envconfig:"BIND_ADDR"`
 	APIRouterURL               string        `envconfig:"API_ROUTER_URL"`
 	PatternLibraryAssetsPath   string        `envconfig:"PATTERN_LIBRARY_ASSETS_PATH"`
@@ -32,7 +33,7 @@ func Get() (*Config, error) {
 	if cfg.Debug {
 		cfg.PatternLibraryAssetsPath = "http://localhost:9002/dist/assets"
 	} else {
-		cfg.PatternLibraryAssetsPath = "//cdn.ons.gov.uk/dp-design-system/ea0709c"
+		cfg.PatternLibraryAssetsPath = "//cdn.ons.gov.uk/dp-design-system/5d95c91"
 	}
 
 	return cfg, nil
@@ -45,6 +46,7 @@ func get() (*Config, error) {
 
 	cfg = &Config{
 		Debug:                      false,
+		EnableMultivariate:         false,
 		BindAddr:                   "localhost:20100",
 		APIRouterURL:               "http://localhost:23200/v1",
 		SupportedLanguages:         []string{"en", "cy"},

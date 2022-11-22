@@ -1,0 +1,29 @@
+<ul class="ons-list--bare ons-u-mb-no dimension-search ons-u-bb">
+    {{ range .SearchResults }}
+        <li class="ons-u-bt ons-list__item dimension-search__results">
+            <details class="ons-collapsible ons-js-collapsible">
+                <summary class="ons-collapsible__heading ons-js-collapsible-heading">
+                    <h2 class="ons-collapsible__title">{{- .Text -}}</h2>
+                   {{ template "icons/collapsible" }}
+                </summary>
+                <div class="ons-collapsible__content ons-js-collapsible-content">
+                    <p class="ons-u-m-no">{{- .InnerText -}}</p>
+                </div>
+            </details>
+            <button type="submit" name="{{- .Name -}}" value="{{- .Value -}}" class="ons-btn ons-btn--secondary ons-btn--small">
+                <span class="ons-btn__inner">
+                    {{ if .IsSelected }}
+                        <span class="ons-btn__text">
+                            {{- localise "SearchResultsRemove" $.Language 1 -}}
+                        </span>
+                    {{ else }}
+                        <span class="ons-btn__text">
+                            {{- localise "SearchResultsAdd" $.Language 1 -}}
+                        </span>
+                    {{ end }}
+                    <span class="ons-u-vh">{{ .Text -}}</span>
+                </span>
+            </button>
+        </li>
+    {{ end }}
+</ul>
