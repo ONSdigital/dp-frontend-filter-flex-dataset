@@ -266,11 +266,13 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 
 	if len(opts) > 0 && hasFilterByParent {
 		p.CoverageType = parentSearch
-		p.ParentSearchOutput.Options = opts
+		p.ParentSearchOutput.Selections = opts
+		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", lang, len(opts))
 		p.OptionType = parentSearch
 	} else if len(opts) > 0 {
 		p.CoverageType = nameSearch
-		p.NameSearchOutput.Options = opts
+		p.NameSearchOutput.Selections = opts
+		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", lang, len(opts))
 		p.OptionType = nameSearch
 	}
 
@@ -302,6 +304,51 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	}
 
 	p.IsSelectParents = len(parents.AreaTypes) > 0
+
+	return p
+}
+
+// CreateGetChangeDimensions maps data to the ChangeDimensions model
+func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang, fid string) model.ChangeDimensions {
+	p := model.ChangeDimensions{
+		Page: basePage,
+	}
+	p.Breadcrumb = []coreModel.TaxonomyNode{
+		{
+			Title: helper.Localise("Back", lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", fid),
+		},
+	}
+	mapCommonProps(req, &p.Page, "add_remove_variables", "Add or remove variables", lang)
+
+	options := []model.SelectableElement{
+		{
+			Text:  "Tenure of household",
+			Value: "tenure_of_household",
+			Name:  "delete-dimension",
+		},
+	}
+
+	p.Output.Selections = options
+	p.Output.SelectionsTitle = "Variables added"
+	p.Search = model.SearchField{
+		Name:     "search",
+		ID:       "dimensions-search",
+		Language: lang,
+	}
+
+	p.Output.SearchResults = []model.SelectableElement{
+		{
+			Text:       "Activity last week",
+			InnerText:  "Some info about the variable and hopefully it goes the whole length, onto a new line and is so insightful that it will boggle the mind. I know it's had that affect on mine; it really is the most important thing I've ever read, ever ever",
+			IsSelected: false,
+		},
+		{
+			Text:       "Activity on weekends",
+			InnerText:  "Some info about the variable and hopefully it goes the whole length, onto a new line and is so insightful that it will boggle the mind. I know it's had that affect on mine; it really is the most important thing I've ever read, ever ever",
+			IsSelected: true,
+		},
+	}
 
 	return p
 }
