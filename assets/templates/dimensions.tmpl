@@ -1,0 +1,55 @@
+<div class="ons-page__container ons-container">
+    <div class="ons-grid ons-u-ml-no">
+        {{ template "partials/breadcrumb" . }}
+        <h1 class="ons-u-fs-xxxl ons-u-mt-s ons-u-fw-b">{{ .Page.Metadata.Title }}</h1>
+        <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
+            <div class="ons-page__main ons-u-mt-l">
+                <div class="ons-panel ons-panel--info ons-panel--no-title ons-u-mb-s">
+                    <span class="ons-panel__assistive-text ons-u-vh">{{- localise "ImportantInformation" .Language 1 -}}:</span>
+                    <div class="ons-panel__body">
+                        <p>Data in some geographic areas may not be available if you increase the number of variables.</p>
+                    </div>
+                </div>
+                {{ template "partials/common/selections" .Output }}
+                <fieldset class="ons-fieldset ons-u-mt-m">
+                    <legend class="ons-fieldset__legend ons-u-mb-s">Select to search or browse variables</legend>
+                    <div class="ons-radios__items">
+                        <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
+                            <div class="ons-radio ons-radio--no-border">
+                                <input
+                                    type="radio"
+                                    id="dimension-search"
+                                    class="ons-radio__input ons-js-radio ons-js-other"
+                                    value="search"
+                                    name="dimensions">
+                                <label class="ons-radio__label" for="dimension-search">Search for a variable</label>
+                                <div class="ons-radio__other ons-u-pb-no">
+                                    {{ template "partials/common/search" .Search }}
+                                    <div class="ons-u-mt-xs"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
+                            <div class="ons-radio ons-radio--no-border">
+                                <input
+                                    type="radio"
+                                    id="dimension-browse"
+                                    class="ons-radio__input ons-js-radio ons-js-other"
+                                    value="browse"
+                                    name="dimensions">
+                                <label class="ons-radio__label" for="dimension-browse">Browse available variables</label>
+                                <div class="ons-radio__other">
+                                    {{ template "partials/dimensions/results" .Output }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <button type="submit" class="ons-btn ons-u-mt-xl ons-u-mb-s">
+                    <span class="ons-btn__inner">{{- localise "Continue" .Language 1 -}}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

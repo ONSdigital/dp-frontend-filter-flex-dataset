@@ -237,6 +237,7 @@ func TestCreateSelector(t *testing.T) {
 }
 
 func TestCreateAreaTypeSelector(t *testing.T) {
+	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	Convey("Given a slice of geography areas", t, func() {
 		areas := []population.AreaType{
 			{ID: "one", Label: "One", TotalCount: 1},
@@ -851,7 +852,7 @@ func TestGetCoverage(t *testing.T) {
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
+				So(coverage.NameSearchOutput.Selections, ShouldResemble, mockedOpt)
 			})
 		})
 
@@ -881,7 +882,7 @@ func TestGetCoverage(t *testing.T) {
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
+				So(coverage.ParentSearchOutput.Selections, ShouldResemble, mockedOpt)
 			})
 		})
 
@@ -919,7 +920,7 @@ func TestGetCoverage(t *testing.T) {
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
+				So(coverage.NameSearchOutput.Selections, ShouldResemble, mockedOpt)
 			})
 
 			Convey("Then it sets HasNoResults property", func() {
@@ -962,7 +963,7 @@ func TestGetCoverage(t *testing.T) {
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
+				So(coverage.ParentSearchOutput.Selections, ShouldResemble, mockedOpt)
 			})
 
 			Convey("Then it sets HasNoResults property", func() {
@@ -1008,7 +1009,7 @@ func TestGetCoverage(t *testing.T) {
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.NameSearchOutput.Options, ShouldResemble, mockedOpt)
+				So(coverage.NameSearchOutput.Selections, ShouldResemble, mockedOpt)
 			})
 
 			Convey("Then it sets HasNoResults property", func() {
@@ -1072,7 +1073,7 @@ func TestGetCoverage(t *testing.T) {
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
-				So(coverage.ParentSearchOutput.Options, ShouldResemble, mockedOpt)
+				So(coverage.ParentSearchOutput.Selections, ShouldResemble, mockedOpt)
 			})
 
 			Convey("Then it sets HasNoResults property", func() {

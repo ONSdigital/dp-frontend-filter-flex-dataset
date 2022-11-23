@@ -1,15 +1,11 @@
 <fieldset>
-    {{ $len := len .Options }}
+    {{ $len := len .Selections }}
     <legend class="ons-u-fw-b ons-u-pt-s ons-u-mb-xs">
-        {{ if eq $len 1 }}
-            {{- localise "AreasAddedTitle" .Language 1 -}}
-        {{ else }}
-            {{- localise "AreasAddedTitle" .Language 4 -}}
-        {{ end }}
+       {{- .SelectionsTitle -}}
     </legend>
     <div class="ons-u-pb-xs">
         <ul class="ons-list--bare ons-u-mb-no coverage-selection">
-            {{ range .Options }}
+            {{ range .Selections }}
                 <li class="ons-u-mb-no coverage-selection__selected">
                     <button 
                         type="submit" 

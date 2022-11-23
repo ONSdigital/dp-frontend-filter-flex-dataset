@@ -36,7 +36,7 @@
                                             <input type="radio" id="coverage-search" class="ons-radio__input ons-js-radio ons-js-other" value="name-search" name="coverage" {{ if eq .CoverageType "name-search" }} checked="checked" {{ end }}>
                                             <label class="ons-radio__label" for="coverage-search">{{- localise "CoverageSearch" .Language 1 .Geography -}}</label>
                                             <div class="ons-radio__other ons-u-pb-no">
-                                                {{ template "partials/coverage/search" .NameSearch }}
+                                                {{ template "partials/common/search" .NameSearch }}
                                                 <div class="ons-u-mt-xs">
                                                     {{ if .NameSearchOutput.SearchResults }}
                                                         {{ template "partials/coverage/results" .NameSearchOutput }}
@@ -44,8 +44,8 @@
                                                     {{ if .NameSearchOutput.HasNoResults }}
                                                         <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
                                                     {{ end }}
-                                                    {{ if .NameSearchOutput.Options }}
-                                                        {{ template "partials/coverage/options" .NameSearchOutput }}
+                                                    {{ if .NameSearchOutput.Selections }}
+                                                        {{ template "partials/common/selections" .NameSearchOutput }}
                                                     {{ end }}
                                                 </div>
                                             </div>
@@ -61,7 +61,7 @@
                                                 </label>
                                                 <div class="ons-radio__other ons-u-pb-no">
                                                     {{ template "partials/coverage/select" . }}
-                                                    {{ template "partials/coverage/search" .ParentSearch }}
+                                                    {{ template "partials/common/search" .ParentSearch }}
                                                     <div class="ons-u-mt-xs">
                                                         {{ if .ParentSearchOutput.SearchResults }}
                                                             {{ template "partials/coverage/results" .ParentSearchOutput }}
@@ -69,8 +69,8 @@
                                                         {{ if .ParentSearchOutput.HasNoResults }}
                                                             <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
                                                         {{ end }}
-                                                        {{ if .ParentSearchOutput.Options }}
-                                                            {{ template "partials/coverage/options" .ParentSearchOutput }}
+                                                        {{ if .ParentSearchOutput.Selections }}
+                                                            {{ template "partials/common/selections" .ParentSearchOutput }}
                                                         {{ end }}
                                                     </div>
                                                 </div>
