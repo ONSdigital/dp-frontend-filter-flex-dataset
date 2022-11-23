@@ -1,5 +1,9 @@
 package model
 
+import (
+	coreModel "github.com/ONSdigital/dp-renderer/model"
+)
+
 /* SearchOutput represents the presentable data required to display search output section
 HasNoResults is a bool which displays messaging if there are no search results
 SearchResults is an array of search results
@@ -11,6 +15,7 @@ type SearchOutput struct {
 	Selections      []SelectableElement `json:"selections"`
 	SelectionsTitle string              `json:"selections_title"`
 	Language        string              `json:"language"`
+	coreModel.Pagination
 }
 
 /* SelectableElement represents the data required for a selectable element.
