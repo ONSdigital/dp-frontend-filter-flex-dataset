@@ -574,7 +574,7 @@ func TestGetCoverage(t *testing.T) {
 						Name:  "add-option",
 					},
 				}
-				So(coverage.NameSearchOutput.SearchResults, ShouldResemble, expectedResult)
+				So(coverage.NameSearchOutput.Results, ShouldResemble, expectedResult)
 			})
 
 			Convey("Then it sets the search input field value", func() {
@@ -621,7 +621,7 @@ func TestGetCoverage(t *testing.T) {
 						Name:  "add-parent-option",
 					},
 				}
-				So(coverage.ParentSearchOutput.SearchResults, ShouldResemble, expectedResult)
+				So(coverage.ParentSearchOutput.Results, ShouldResemble, expectedResult)
 			})
 
 			Convey("Then it sets the search input field value", func() {
@@ -652,7 +652,7 @@ func TestGetCoverage(t *testing.T) {
 			})
 
 			Convey("Then search results struct is empty", func() {
-				So(coverage.NameSearchOutput.SearchResults, ShouldResemble, []model.SelectableElement(nil))
+				So(coverage.NameSearchOutput.Results, ShouldResemble, []model.SelectableElement(nil))
 			})
 
 			Convey("Then it sets the search input field value", func() {
@@ -696,7 +696,7 @@ func TestGetCoverage(t *testing.T) {
 			})
 
 			Convey("Then search results struct is empty", func() {
-				So(coverage.ParentSearchOutput.SearchResults, ShouldResemble, []model.SelectableElement(nil))
+				So(coverage.ParentSearchOutput.Results, ShouldResemble, []model.SelectableElement(nil))
 			})
 
 			Convey("Then it sets the search input field value", func() {
@@ -731,7 +731,7 @@ func TestGetCoverage(t *testing.T) {
 			})
 
 			Convey("Then search results struct is empty", func() {
-				So(coverage.ParentSearchOutput.SearchResults, ShouldResemble, []model.SelectableElement(nil))
+				So(coverage.ParentSearchOutput.Results, ShouldResemble, []model.SelectableElement(nil))
 			})
 
 			Convey("Then it sets the search input field value", func() {
@@ -940,7 +940,7 @@ func TestGetCoverage(t *testing.T) {
 						Name:       "add-option",
 					},
 				}
-				So(coverage.NameSearchOutput.SearchResults, ShouldResemble, expectedResults)
+				So(coverage.NameSearchOutput.Results, ShouldResemble, expectedResults)
 			})
 		})
 
@@ -1003,7 +1003,122 @@ func TestGetCoverage(t *testing.T) {
 						Name:       "add-parent-option",
 					},
 				}
-				So(coverage.ParentSearchOutput.SearchResults, ShouldResemble, expectedResults)
+				So(coverage.ParentSearchOutput.Results, ShouldResemble, expectedResults)
+			})
+		})
+	})
+}
+
+func TestGetChangeDimensions(t *testing.T) {
+	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
+	Convey("Given a valid page request", t, func() {
+		const lang = "en"
+		req := httptest.NewRequest("", "/", nil)
+
+		Convey("When the parameters are valid", func() {
+			mockFds := []model.FilterDimension{
+				{
+					Dimension: filter.Dimension{
+						Name:       "dim-1",
+						ID:         "dim-1",
+						Label:      "dim one",
+						IsAreaType: helpers.ToBoolPtr(false),
+					},
+				},
+				{
+					Dimension: filter.Dimension{
+						Name:       "dim-2",
+						ID:         "dim-2",
+						Label:      "dim two",
+						IsAreaType: helpers.ToBoolPtr(true),
+					},
+				},
+			}
+			mockPds := population.GetDimensionsResponse{
+				Dimensions: []population.Dimension{
+					{
+						ID:          "dim-1",
+						Label:       "dim one",
+						Description: "description one",
+					},
+					{
+						ID:          "dim-a",
+						Label:       "dim a",
+						Description: "description a",
+					},
+					{
+						ID:          "dim-b",
+						Label:       "dim b",
+						Description: "description b",
+					},
+					{
+						ID:          "dim-c",
+						Label:       "dim c",
+						Description: "description c",
+					},
+				},
+			}
+			p := CreateGetChangeDimensions(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				mockFds,
+				mockPds,
+			)
+			Convey("Then it maps page metadata", func() {
+				So(p.BetaBannerEnabled, ShouldBeTrue)
+				So(p.Type, ShouldEqual, "change_variables")
+				So(p.Language, ShouldEqual, lang)
+				So(p.URI, ShouldEqual, "/")
+				So(p.Metadata.Title, ShouldEqual, "Add or remove variables")
+			})
+
+			Convey("Then it maps non area-type filter dimensions", func() {
+				mockDims := []model.SelectableElement{
+					{
+						Text:  "dim one",
+						Value: "dim-1",
+						Name:  "delete-dimension",
+					},
+				}
+				So(p.Output.Selections, ShouldResemble, mockDims)
+				So(p.Output.Selections, ShouldHaveLength, 1)
+			})
+
+			Convey("Then it maps available population types dimensions", func() {
+				mockPds := []model.SelectableElement{
+					{
+						Text:       "dim one",
+						Value:      "dim-1",
+						Name:       "delete-dimension",
+						IsSelected: true,
+						InnerText:  "description one",
+					},
+					{
+						Text:       "dim a",
+						Value:      "dim-a",
+						Name:       "add-dimension",
+						IsSelected: false,
+						InnerText:  "description a",
+					},
+					{
+						Text:       "dim b",
+						Value:      "dim-b",
+						Name:       "add-dimension",
+						IsSelected: false,
+						InnerText:  "description b",
+					},
+					{
+						Text:       "dim c",
+						Value:      "dim-c",
+						Name:       "add-dimension",
+						IsSelected: false,
+						InnerText:  "description c",
+					},
+				}
+				So(p.Output.Results, ShouldResemble, mockPds)
+				So(p.Output.Results, ShouldHaveLength, 4)
 			})
 		})
 	})
