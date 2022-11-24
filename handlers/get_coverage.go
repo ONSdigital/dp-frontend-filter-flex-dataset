@@ -125,13 +125,13 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, r
 	go func() {
 		defer wg.Done()
 		if isNameSearch && q != "" {
-			areas, nsErr = getAreas(cfg, pc, ctx, accessToken, filterJob.PopulationType, geogID, q, currentPg)
+			areas, nsErr = getAreas(ctx, cfg, pc, accessToken, filterJob.PopulationType, geogID, q, currentPg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		if isParentSearch && pq != "" {
-			areas, psErr = getAreas(cfg, pc, ctx, accessToken, filterJob.PopulationType, p, pq, currentPg)
+			areas, psErr = getAreas(ctx, cfg, pc, accessToken, filterJob.PopulationType, p, pq, currentPg)
 		}
 	}()
 	wg.Wait()
@@ -207,7 +207,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, r
 }
 
 // getAreas is a helper function that returns the GetAreasResponse or an error
-func getAreas(cfg *config.Config, pc PopulationClient, ctx context.Context, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
+func getAreas(ctx context.Context, cfg *config.Config, pc PopulationClient, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
 	areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 		AuthTokens: population.AuthTokens{
 			UserAuthToken: accessToken,
