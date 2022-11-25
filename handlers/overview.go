@@ -177,27 +177,28 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		}
 		wg.Wait()
 
-		if dim.FilterByParent != "" {
-			count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
-				AuthTokens: population.AuthTokens{
-					UserAuthToken: accessToken,
-				},
-				PopulationType:   filterJob.PopulationType,
-				AreaTypeID:       dim.ID,
-				ParentAreaTypeID: dim.FilterByParent,
-				Areas:            optsIDs,
-			})
-			if err != nil {
-				log.Error(ctx, "failed to get parent area count", err, log.Data{
-					"population_type":     filterJob.PopulationType,
-					"area_type_id":        dim.ID,
-					"parent_area_type_id": dim.FilterByParent,
-					"areas":               optsIDs,
-				})
-				return nil, 0, err
-			}
-			totalCount = count
-		}
+		// TODO: Hotfix due to graphQL error
+		// if dim.FilterByParent != "" {
+		// 	count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
+		// 		AuthTokens: population.AuthTokens{
+		// 			UserAuthToken: accessToken,
+		// 		},
+		// 		PopulationType:   filterJob.PopulationType,
+		// 		AreaTypeID:       dim.ID,
+		// 		ParentAreaTypeID: dim.FilterByParent,
+		// 		Areas:            optsIDs,
+		// 	})
+		// 	if err != nil {
+		// 		log.Error(ctx, "failed to get parent area count", err, log.Data{
+		// 			"population_type":     filterJob.PopulationType,
+		// 			"area_type_id":        dim.ID,
+		// 			"parent_area_type_id": dim.FilterByParent,
+		// 			"areas":               optsIDs,
+		// 		})
+		// 		return nil, 0, err
+		// 	}
+		// 	totalCount = count
+		// }
 
 		return options, totalCount, nil
 	}
