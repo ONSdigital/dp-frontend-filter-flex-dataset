@@ -78,7 +78,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 
 	details, err := dc.GetVersion(ctx, accessToken, "", "", collectionID, currentFilter.Dataset.DatasetID, currentFilter.Dataset.Edition, strconv.Itoa(currentFilter.Dataset.Version))
 	if err != nil {
-		log.Error(ctx, "failed to get dataset", err, log.Data{
+		log.Error(ctx, "failed to get dataset version", err, log.Data{
 			"dataset": currentFilter.Dataset.DatasetID,
 			"edition": currentFilter.Dataset.Edition,
 			"version": currentFilter.Dataset.Version,
@@ -87,8 +87,27 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 		return
 	}
 
+	dataset, err := dc.Get(ctx, accessToken, "", collectionID, currentFilter.Dataset.DatasetID)
+	if err != nil {
+		log.Error(ctx, "failed to get dataset", err, log.Data{
+			"dataset": currentFilter.Dataset.DatasetID,
+		})
+		setStatusCode(req, w, err)
+		return
+	}
+
+	releaseDate, err := getReleaseDate(ctx, dc, accessToken, collectionID, currentFilter.Dataset.DatasetID, currentFilter.Dataset.Edition, strconv.Itoa(currentFilter.Dataset.Version))
+	if err != nil {
+		log.Error(ctx, "failed to get release date", err, log.Data{
+			"dataset": currentFilter.Dataset.DatasetID,
+			"edition": currentFilter.Dataset.Edition,
+		})
+		setStatusCode(req, w, err)
+		return
+	}
+
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, isValidationError, hasOpts)
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts)
 	rc.BuildPage(w, selector, "selector")
 }
 
