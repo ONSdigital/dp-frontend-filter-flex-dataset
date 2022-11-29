@@ -192,7 +192,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID, releaseDate string, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -225,6 +225,11 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		ID:    parentSearch,
 		Value: parentQ,
 	}
+
+	p.DatasetId = dataset.ID
+	p.DatasetTitle = dataset.Title
+	p.ReleaseDate = releaseDate
+
 	if len(parents.AreaTypes) > 1 && parentArea == "" {
 		p.ParentSelect = []model.SelectableElement{
 			{
