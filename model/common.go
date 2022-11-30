@@ -6,12 +6,12 @@ import (
 
 /* SearchOutput represents the presentable data required to display search output section
 HasNoResults is a bool which displays messaging if there are no search results
-SearchResults is an array of search results
+Results is an array of results
 Selections is an array of previously added selections
 Language is the user set language */
 type SearchOutput struct {
 	HasNoResults    bool                `json:"has_no_results"`
-	SearchResults   []SelectableElement `json:"search_results"`
+	Results         []SelectableElement `json:"search_results"`
 	Selections      []SelectableElement `json:"selections"`
 	SelectionsTitle string              `json:"selections_title"`
 	Language        string              `json:"language"`

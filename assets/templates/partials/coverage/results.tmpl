@@ -3,7 +3,7 @@
         {{- localise "SearchResults" .Language 4 -}}
     </legend>
     <ul class="ons-list--bare ons-u-mb-no coverage-search ons-u-bb ons-u-mb-xs">
-        {{ range .SearchResults }}
+        {{ range .Results }}
             <li class="ons-u-bt ons-list__item coverage-search__results">
                 {{- .Text -}}
                 <button 
