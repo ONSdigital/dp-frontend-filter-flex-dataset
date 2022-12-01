@@ -200,3 +200,19 @@ one = "<p>Census 2021 statistics are published for a number of different geograp
 [VariableInfoCoverage]
 description = "Coverage variable information"
 one = "<p>Census 2021 statistics are published for the whole of England and Wales. However, you can choose to filter areas by:</p><ul class=\"ons-list\"><li class=\"ons-list__item\">country - for example, Wales</li><li class=\"ons-list__item\">region - for example, London</li><li class=\"ons-list__item\">local authority - for example, Cornwall</li><li class=\"ons-list__item\">health area – for example, Clinical Commissioning Group</li><li class=\"ons-list__item\">statistical area - for example, MSOA or LSOA</li></ul>"
+
+[DimensionsChangeWarning]
+description = "Warning about increasing variables"
+one = "Data in some geographic areas may not be available if you increase the number of variables."
+
+[DimensionsSelect]
+description = "Select to search or browse variables"
+one = "Select to search or browse variables"
+
+[DimensionsSearch]
+description = "Search for a variable"
+one = "Search for a variable"
+
+[DimensionsBrowse]
+description = "Browse available variables"
+one = "Browse available variables"

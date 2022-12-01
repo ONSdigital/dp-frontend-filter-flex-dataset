@@ -38,7 +38,7 @@
                                             <div class="ons-radio__other ons-u-pb-no">
                                                 {{ template "partials/common/search" .NameSearch }}
                                                 <div class="ons-u-mt-xs">
-                                                    {{ if .NameSearchOutput.SearchResults }}
+                                                    {{ if .NameSearchOutput.Results }}
                                                         {{ template "partials/coverage/results" .NameSearchOutput }}
                                                     {{ end }}
                                                     {{ if .NameSearchOutput.HasNoResults }}
@@ -63,7 +63,7 @@
                                                     {{ template "partials/coverage/select" . }}
                                                     {{ template "partials/common/search" .ParentSearch }}
                                                     <div class="ons-u-mt-xs">
-                                                        {{ if .ParentSearchOutput.SearchResults }}
+                                                        {{ if .ParentSearchOutput.Results }}
                                                             {{ template "partials/coverage/results" .ParentSearchOutput }}
                                                         {{ end }}
                                                         {{ if .ParentSearchOutput.HasNoResults }}
