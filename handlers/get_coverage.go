@@ -232,6 +232,9 @@ func getAreas(ctx context.Context, cfg *config.Config, pc PopulationClient, acce
 // validatePageNo checks that the given page number is within range and will return a client error if page number is out of range
 func validatePageNo(tc, limit, pageNo int) error {
 	tp := pagination.GetTotalPages(tc, limit)
+	if tc == 0 && pageNo == 1 {
+		return nil
+	}
 	if pageNo > tp {
 		return &clientErr{errors.New("invalid page number")}
 	}
