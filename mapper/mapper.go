@@ -163,9 +163,10 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 	var selections []model.Selection
 	for _, area := range areaType {
 		selections = append(selections, model.Selection{
-			Value:      area.ID,
-			Label:      area.Label,
-			TotalCount: area.TotalCount,
+			Value:       area.ID,
+			Label:       area.Label,
+			Description: area.Description,
+			TotalCount:  area.TotalCount,
 		})
 	}
 

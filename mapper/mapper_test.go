@@ -240,16 +240,16 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	Convey("Given a slice of geography areas", t, func() {
 		areas := []population.AreaType{
-			{ID: "one", Label: "One", TotalCount: 1},
-			{ID: "two", Label: "Two", TotalCount: 2},
+			{ID: "one", Label: "One", Description: "One description", TotalCount: 1},
+			{ID: "two", Label: "Two", Description: "Two description", TotalCount: 2},
 		}
 
 		req := httptest.NewRequest("", "/", nil)
 		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", false, false)
 
 		expectedSelections := []model.Selection{
-			{Value: "one", Label: "One", TotalCount: 1},
-			{Value: "two", Label: "Two", TotalCount: 2},
+			{Value: "one", Label: "One", Description: "One description", TotalCount: 1},
+			{Value: "two", Label: "Two", Description: "Two description", TotalCount: 2},
 		}
 
 		Convey("Maps each geography dimension into a selection", func() {
