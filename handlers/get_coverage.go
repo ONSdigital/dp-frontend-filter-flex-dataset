@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
@@ -21,13 +22,13 @@ import (
 )
 
 // GetCoverage handler
-func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient, cfg *config.Config) http.HandlerFunc {
+func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, cfg *config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		getCoverage(w, req, cfg, rc, fc, pc, lang, accessToken, collectionID)
+		getCoverage(w, req, cfg, rc, fc, pc, dc, lang, accessToken, collectionID)
 	})
 }
 
-func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, lang, accessToken, collectionID string) {
+func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, lang, accessToken, collectionID string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -48,7 +49,10 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, r
 	var parents population.GetAreaTypeParentsResponse
 	var opts filter.DimensionOptions
 	var areas population.GetAreasResponse
-	var fErr, dErr, pErr, oErr, nsErr, psErr error
+	var datasetDetails dataset.DatasetDetails
+	var releaseDate string
+
+	var fErr, dErr, pErr, oErr, nsErr, psErr, dsErr, rdErr error
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -104,7 +108,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, r
 		hasFilterByParent = true
 	}
 
-	wg.Add(4)
+	wg.Add(6)
 	go func() {
 		defer wg.Done()
 		parents, pErr = pc.GetAreaTypeParents(ctx, population.GetAreaTypeParentsInput{
@@ -117,6 +121,14 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, r
 			PopulationType: filterJob.PopulationType,
 			AreaTypeID:     geogID,
 		})
+	}()
+	go func() {
+		defer wg.Done()
+		datasetDetails, dsErr = dc.Get(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID)
+	}()
+	go func() {
+		defer wg.Done()
+		releaseDate, rdErr = getReleaseDate(ctx, dc, accessToken, collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, strconv.Itoa(filterJob.Dataset.Version))
 	}()
 	go func() {
 		defer wg.Done()
@@ -167,7 +179,22 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, r
 		setStatusCode(req, w, psErr)
 		return
 	}
-
+	if dsErr != nil {
+		log.Error(ctx, "failed to get dataset", pErr, log.Data{
+			"dataset_id": filterJob.Dataset.DatasetID,
+		})
+		setStatusCode(req, w, dsErr)
+		return
+	}
+	if rdErr != nil {
+		log.Error(ctx, "failed to get dataset release date", pErr, log.Data{
+			"dataset_id": filterJob.Dataset.DatasetID,
+			"edition":    filterJob.Dataset.Edition,
+			"version":    strconv.Itoa(filterJob.Dataset.Version),
+		})
+		setStatusCode(req, w, rdErr)
+		return
+	}
 	options := []model.SelectableElement{}
 	var areaType string
 	if hasFilterByParent {
@@ -202,7 +229,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, r
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, geogID, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, geogID, releaseDate, datasetDetails, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
 	rc.BuildPage(w, m, "coverage")
 }
 
