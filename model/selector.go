@@ -16,7 +16,8 @@ type Selector struct {
 
 // Selection represents a dimension selection (e.g. an Area-type of City)
 type Selection struct {
-	Value      string
-	Label      string
-	TotalCount int
+	Value       string
+	Label       string
+	Description string
+	TotalCount  int
 }
