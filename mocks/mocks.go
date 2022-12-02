@@ -16,6 +16,10 @@ var cyLocale = []string{
 	"[AreasAddedTitle]",
 	"one = \"Area added (cy)\"",
 	"other = \"Areas added (cy)\"",
+	"[DimensionsSearchLabel]",
+	"one = \"Dimensions search label (cy)\"",
+	"[CoverageSearchLabel]",
+	"one = \"Coverage search label (cy)\"",
 }
 
 var enLocale = []string{
@@ -32,6 +36,10 @@ var enLocale = []string{
 	"[AreasAddedTitle]",
 	"one = \"Area added\"",
 	"other = \"Areas added\"",
+	"[DimensionsSearchLabel]",
+	"one = \"Dimensions search label\"",
+	"[CoverageSearchLabel]",
+	"one = \"Coverage search label\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes

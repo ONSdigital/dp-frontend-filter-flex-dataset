@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 
@@ -16,19 +17,22 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// ChangeDimensions Handler
-func ChangeDimensions(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient) http.HandlerFunc {
+// GetChangeDimensions Handler
+func GetChangeDimensions(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		changeDimensions(w, req, rc, fc, dc, pc, accessToken, collectionID, lang)
+		getChangeDimensions(w, req, rc, fc, dc, pc, accessToken, collectionID, lang)
 	})
 }
 
-func changeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, accessToken, collectionID, lang string) {
+func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	fid := vars["filterID"]
-	var fErr, imErr, pErr error
-	var pDims population.GetDimensionsResponse
+	q := req.URL.Query().Get("q")
+	isSearch := strings.Contains(req.URL.RawQuery, "q=")
+	f := req.URL.Query().Get("f")
+	var fErr, imErr, pErr, prErr error
+	var pDims, pResults population.GetDimensionsResponse
 	var dims []model.FilterDimension
 	var popType string
 	var isMultivariate bool
@@ -57,7 +61,7 @@ func changeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient,
 		popType = fj.PopulationType
 
 		// check dataset is multivariate
-		isMultivariate, imErr = isMultivariateDataset(dc, ctx, accessToken, collectionID, fj.Dataset.DatasetID)
+		isMultivariate, imErr = isMultivariateDataset(ctx, dc, accessToken, collectionID, fj.Dataset.DatasetID)
 		if !isMultivariate && imErr == nil {
 			http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions", fid), http.StatusMovedPermanently)
 			return
@@ -73,6 +77,19 @@ func changeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient,
 			},
 			PopulationType: popType,
 		})
+
+		if isSearch && q != "" {
+			pResults, prErr = pc.GetDimensions(ctx, population.GetDimensionsInput{
+				AuthTokens: population.AuthTokens{
+					UserAuthToken: accessToken,
+				},
+				PaginationParams: population.PaginationParams{
+					Limit: 1000,
+				},
+				PopulationType: popType,
+				SearchString:   url.QueryEscape(strings.TrimSpace(q)),
+			})
+		}
 	}()
 
 	dimErrs := make([]error, len(fDims.Items))
@@ -117,6 +134,14 @@ func changeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient,
 		setStatusCode(req, w, pErr)
 		return
 	}
+	if prErr != nil {
+		log.Error(ctx, "failed to get population dimensions from query", prErr, log.Data{
+			"population_type": popType,
+			"query":           q,
+		})
+		setStatusCode(req, w, prErr)
+		return
+	}
 	var hasErrs bool
 	for _, err := range dimErrs {
 		if err != nil {
@@ -137,12 +162,12 @@ func changeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient,
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetChangeDimensions(req, basePage, lang, fid, dims, pDims)
+	m := mapper.CreateGetChangeDimensions(req, basePage, lang, fid, q, f, dims, pDims, pResults)
 	rc.BuildPage(w, m, "dimensions")
 }
 
 // isMultivariateDataset determines whether the given filter record is based on a multivariate dataset type
-func isMultivariateDataset(dc DatasetClient, ctx context.Context, accessToken, collectionID, did string) (bool, error) {
+func isMultivariateDataset(ctx context.Context, dc DatasetClient, accessToken, collectionID, did string) (bool, error) {
 	d, err := dc.Get(ctx, accessToken, "", collectionID, did)
 	if err != nil {
 		return false, fmt.Errorf("failed to get dataset: %w", err)

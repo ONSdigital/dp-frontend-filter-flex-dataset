@@ -14,21 +14,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type FormAction int
-
-const (
-	Unknown FormAction = iota
-	CoverageAll
-	Add
-	Delete
-	Search
-	Continue
-	ParentCoverageSearch
-	CoverageDefault = "default"
-	NameSearch      = "name-search"
-	ParentSearch    = "parent-search"
-)
-
 // UpdateCoverage Handler
 func UpdateCoverage(fc FilterClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
