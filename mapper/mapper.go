@@ -14,6 +14,7 @@ import (
 	"github.com/ONSdigital/dp-cookies/cookies"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/pagination"
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -192,7 +193,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -264,25 +265,41 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		results = append(results, result)
 	}
 
+	totalPages := pagination.GetTotalPages(areas.TotalCount, areas.Limit)
+	var paginatedResults coreModel.Pagination
+	if totalPages > 1 {
+		paginatedResults = coreModel.Pagination{
+			CurrentPage:       currentPage,
+			TotalPages:        totalPages,
+			Limit:             areas.Limit,
+			FirstAndLastPages: pagination.GetFirstAndLastPages(req, totalPages),
+			PagesToDisplay:    pagination.GetPagesToDisplay(currentPage, totalPages, req),
+		}
+	}
+
 	if len(opts) > 0 && hasFilterByParent {
 		p.CoverageType = parentSearch
-		p.ParentSearchOutput.Options = opts
+		p.ParentSearchOutput.Selections = opts
+		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", lang, len(opts))
 		p.OptionType = parentSearch
 	} else if len(opts) > 0 {
 		p.CoverageType = nameSearch
-		p.NameSearchOutput.Options = opts
+		p.NameSearchOutput.Selections = opts
+		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", lang, len(opts))
 		p.OptionType = nameSearch
 	}
 
 	switch coverage {
 	case nameSearch:
 		p.CoverageType = nameSearch
-		p.NameSearchOutput.SearchResults = results
-		p.NameSearchOutput.HasNoResults = len(p.NameSearchOutput.SearchResults) == 0
+		p.NameSearchOutput.Results = results
+		p.NameSearchOutput.HasNoResults = len(p.NameSearchOutput.Results) == 0
+		p.NameSearchOutput.Pagination = paginatedResults
 	case parentSearch:
 		p.CoverageType = parentSearch
-		p.ParentSearchOutput.SearchResults = results
-		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.SearchResults) == 0 && !hasValidationErr
+		p.ParentSearchOutput.Results = results
+		p.ParentSearchOutput.HasNoResults = len(p.ParentSearchOutput.Results) == 0 && !hasValidationErr
+		p.ParentSearchOutput.Pagination = paginatedResults
 	}
 
 	if hasValidationErr {
@@ -302,6 +319,58 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	}
 
 	p.IsSelectParents = len(parents.AreaTypes) > 0
+
+	return p
+}
+
+// CreateGetChangeDimensions maps data to the ChangeDimensions model
+func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang, fid string, dims []model.FilterDimension, pDims population.GetDimensionsResponse) model.ChangeDimensions {
+	p := model.ChangeDimensions{
+		Page: basePage,
+	}
+	p.Breadcrumb = []coreModel.TaxonomyNode{
+		{
+			Title: helper.Localise("Back", lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", fid),
+		},
+	}
+	mapCommonProps(req, &p.Page, "change_variables", "Add or remove variables", lang)
+
+	selections := []model.SelectableElement{}
+	for _, dim := range dims {
+		if !*dim.IsAreaType {
+			selections = append(selections, model.SelectableElement{
+				Text:  dim.Label,
+				Value: dim.ID,
+				Name:  "delete-dimension",
+			})
+		}
+	}
+	p.Output.Selections = selections
+	p.Output.SelectionsTitle = "Variables added"
+	p.Search = model.SearchField{
+		Name:     "q",
+		ID:       "dimensions-search",
+		Language: lang,
+	}
+
+	browseResults := []model.SelectableElement{}
+	for _, pDim := range pDims.Dimensions {
+		var sel model.SelectableElement
+		sel.Name = "add-dimension"
+		sel.Text = pDim.Label
+		sel.InnerText = pDim.Description
+		sel.Value = pDim.ID
+		for _, dim := range selections {
+			if strings.Contains(dim.Value, pDim.ID) {
+				sel.IsSelected = true
+				sel.Name = "delete-dimension"
+				break
+			}
+		}
+		browseResults = append(browseResults, sel)
+	}
+	p.Output.Results = browseResults
 
 	return p
 }

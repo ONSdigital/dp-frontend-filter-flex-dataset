@@ -41,6 +41,7 @@ type FilterClient interface {
 
 // DatasetClient is an interface with methods required for a dataset client
 type DatasetClient interface {
+	Get(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, datasetID string) (m dataset.DatasetDetails, err error)
 	GetOptions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension string, q *dataset.QueryParams) (m dataset.Options, err error)
 	GetVersion(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceAuthToken, collectionID, datasetID, edition, version string) (m dataset.Version, err error)
 	GetVersionDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version string) (m dataset.VersionDimensions, err error)
@@ -52,5 +53,6 @@ type PopulationClient interface {
 	GetAreas(ctx context.Context, input population.GetAreasInput) (population.GetAreasResponse, error)
 	GetAreaTypeParents(ctx context.Context, input population.GetAreaTypeParentsInput) (population.GetAreaTypeParentsResponse, error)
 	GetArea(ctx context.Context, input population.GetAreaInput) (population.GetAreaResponse, error)
+	GetDimensions(ctx context.Context, input population.GetDimensionsInput) (population.GetDimensionsResponse, error)
 	GetParentAreaCount(ctx context.Context, input population.GetParentAreaCountInput) (int, error)
 }
