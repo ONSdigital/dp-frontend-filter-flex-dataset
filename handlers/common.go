@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"net/http"
 
@@ -43,6 +45,19 @@ func getReleaseDate(ctx context.Context, dc DatasetClient, userAuthToken, collec
 	} else {
 		return version.ReleaseDate, nil
 	}
+}
+
+// isMultivariateDataset determines whether the given filter record is based on a multivariate dataset type
+func isMultivariateDataset(ctx context.Context, dc DatasetClient, accessToken, collectionID, did string) (bool, error) {
+	d, err := dc.Get(ctx, accessToken, "", collectionID, did)
+	if err != nil {
+		return false, fmt.Errorf("failed to get dataset: %w", err)
+	}
+
+	if strings.Contains(d.Type, "multivariate") {
+		return true, nil
+	}
+	return false, nil
 }
 
 func setStatusCode(req *http.Request, w http.ResponseWriter, err error) {

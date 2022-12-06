@@ -45,5 +45,6 @@ func initialiseMockConfig() config.Config {
 		SiteDomain:                  "ons",
 		SupportedLanguages:          []string{"en", "cy"},
 		DefaultMaximumSearchResults: 50,
+		EnableMultivariate:          true,
 	}
 }

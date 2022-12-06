@@ -5,9 +5,21 @@
         <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
                 {{ template "partials/summary" . }}
+                {{ if .IsMultivariate }}
+                    <a
+                        href="/filters/{{.FilterID}}/dimensions/change"
+                        role="button"
+                        class="ons-btn ons-btn--download ons-btn--secondary ons-btn--link ons-js-submit-btn">
+                        <span class="ons-btn__inner">
+                            {{- localise "VariableChange" .Language 1 -}}
+                        </span>
+                    </a>
+                {{ end }}
                 <form method="post" action="/filters/{{.FilterID}}/submit">
                     <button class="ons-u-mt-xl ons-btn">
-                        <span class="ons-btn__inner">Get the data</span>
+                        <span class="ons-btn__inner">
+                            {{- localise "GetDataBtn" .Language 1 -}}
+                        </span>
                     </button>
                 </form>
             </div>

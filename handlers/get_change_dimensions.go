@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -164,17 +163,4 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 	basePage := rc.NewBasePageModel()
 	m := mapper.CreateGetChangeDimensions(req, basePage, lang, fid, q, f, dims, pDims, pResults)
 	rc.BuildPage(w, m, "dimensions")
-}
-
-// isMultivariateDataset determines whether the given filter record is based on a multivariate dataset type
-func isMultivariateDataset(ctx context.Context, dc DatasetClient, accessToken, collectionID, did string) (bool, error) {
-	d, err := dc.Get(ctx, accessToken, "", collectionID, did)
-	if err != nil {
-		return false, fmt.Errorf("failed to get dataset: %w", err)
-	}
-
-	if strings.Contains(d.Type, "multivariate") {
-		return true, nil
-	}
-	return false, nil
 }

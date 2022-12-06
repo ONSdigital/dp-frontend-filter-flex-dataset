@@ -109,7 +109,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, &cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -178,7 +178,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, &cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -248,7 +248,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, &cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -316,7 +316,7 @@ func TestGetCoverageHandler(t *testing.T) {
 					Return(mockVersion1, nil).AnyTimes()
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, &cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -387,7 +387,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, &cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -459,7 +459,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, &cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -485,7 +485,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -510,7 +510,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, cfg))
 
 			router.ServeHTTP(w, req)
 
@@ -539,7 +539,7 @@ func TestGetCoverageHandler(t *testing.T) {
 			mockDc := NewMockDatasetClient(mockCtrl)
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -586,7 +586,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -632,7 +632,7 @@ func TestGetCoverageHandler(t *testing.T) {
 				Return(mockVersion1, nil).AnyTimes()
 
 			router := mux.NewRouter()
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
 
 			router.ServeHTTP(w, req)
 
@@ -703,7 +703,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -754,7 +754,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -805,7 +805,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -864,7 +864,7 @@ func TestGetCoverageHandler(t *testing.T) {
 				Return(mockVersion1, nil).AnyTimes()
 
 			router := mux.NewRouter()
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, &cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("And the status code should be 400", func() {

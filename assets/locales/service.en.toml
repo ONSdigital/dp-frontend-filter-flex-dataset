@@ -23,6 +23,14 @@ description = "Variable and dataset information"
 one = "Variable and dataset information"
 other = "Variable and dataset information"
 
+[VariableChange]
+description = "Add or remove variable"
+one = "Add or remove variable"
+
+[GetDataBtn]
+description = "Get the data"
+one = "Get the data"
+
 [Selection]
 description = "Selection"
 one = "Selection"

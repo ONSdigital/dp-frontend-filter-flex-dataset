@@ -126,7 +126,7 @@ func TestOverview(t *testing.T) {
 	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, true)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "review_changes")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
@@ -137,6 +137,7 @@ func TestOverview(t *testing.T) {
 			strconv.Itoa(filterJob.Dataset.Version)))
 		So(m.Language, ShouldEqual, lang)
 		So(m.SearchNoIndexEnabled, ShouldBeTrue)
+		So(m.IsMultivariate, ShouldBeTrue)
 
 		So(m.Dimensions[0].Name, ShouldEqual, filterDims[3].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
@@ -173,7 +174,7 @@ func TestOverview(t *testing.T) {
 	})
 
 	Convey("test truncation maps as expected", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, false)
 		So(m.Dimensions[3].OptionsCount, ShouldEqual, filterDims[1].OptionsCount)
 		So(m.Dimensions[3].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[3].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
@@ -190,14 +191,14 @@ func TestOverview(t *testing.T) {
 	})
 
 	Convey("test truncation shows all when parameter given", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims, false, false)
 		So(m.Dimensions[4].OptionsCount, ShouldEqual, filterDims[2].OptionsCount)
 		So(m.Dimensions[4].Options, ShouldHaveLength, 12)
 		So(m.Dimensions[4].IsTruncated, ShouldBeFalse)
 	})
 
 	Convey("test area type dimension options do not truncate and map to 'coverage' dimension", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, false)
 		So(m.Dimensions[1].Options, ShouldHaveLength, 10)
 		So(m.Dimensions[1].IsTruncated, ShouldBeFalse)
 		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
@@ -205,13 +206,13 @@ func TestOverview(t *testing.T) {
 
 	Convey("given hasNoAreaOptions parameter", t, func() {
 		Convey("when parameter is true", func() {
-			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, true)
+			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, true, false)
 			Convey("then isDefaultCoverage is set to true", func() {
 				So(m.Dimensions[1].IsDefaultCoverage, ShouldBeTrue)
 			})
 		})
 		Convey("when parameter is false", func() {
-			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, false)
+			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, false, false)
 			Convey("then isDefaultCoverage is set to false", func() {
 				So(m.Dimensions[1].IsDefaultCoverage, ShouldBeFalse)
 			})
