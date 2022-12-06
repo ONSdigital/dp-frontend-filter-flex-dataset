@@ -10,6 +10,21 @@ import (
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
+type FormAction int
+
+const (
+	Unknown FormAction = iota
+	CoverageAll
+	Add
+	Delete
+	Search
+	Continue
+	ParentCoverageSearch
+	CoverageDefault = "default"
+	NameSearch      = "name-search"
+	ParentSearch    = "parent-search"
+)
+
 func getReleaseDate(ctx context.Context, dc DatasetClient, userAuthToken, collectionID, datasetID, edition, versionID string) (string, error) {
 	var vErr error
 	var version, initialVersion dataset.Version

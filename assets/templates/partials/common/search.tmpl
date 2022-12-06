@@ -1,7 +1,7 @@
 <div class="ons-u-pb-xs">
     <span class="ons-field">
         <label class="ons-label ons-u-pb-xs" for="{{- .ID -}}">
-            {{- localise "CoverageSearchLabel" .Language 1 -}}
+            {{- .Label -}}
         </label>
         <span class="ons-search-component">
             <input 
@@ -20,7 +20,7 @@
                 <span class="ons-btn__inner">
                     {{ template "icons/search" }}
                     <span class="ons-u-ml-xs">
-                        {{- localise "CoverageSearchButtonText" .Language 1 -}}
+                        {{- localise "SearchButtonText" .Language 1 -}}
                     </span>
                 </span>
             </button>

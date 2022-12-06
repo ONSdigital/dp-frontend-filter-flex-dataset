@@ -17,7 +17,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestChangeDimensionsHandler(t *testing.T) {
+func TestGetChangeDimensionsHandler(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	mockCtrl := gomock.NewController(t)
 	cfg := initialiseMockConfig()
@@ -86,7 +86,70 @@ func TestChangeDimensionsHandler(t *testing.T) {
 					Return(population.GetDimensionsResponse{}, nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", ChangeDimensions(mockRend, mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(mockRend, mockFc, mockDc, mockPc))
+				router.ServeHTTP(w, req)
+
+				Convey("Then the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
+			})
+
+			Convey("When the filter is based off a multivariate dataset type and the user performs a search", func() {
+				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", nil)
+				md := dataset.DatasetDetails{
+					Type: "multivariate",
+				}
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.
+					EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
+				mockRend.
+					EXPECT().
+					BuildPage(gomock.Any(), gomock.Any(), "dimensions")
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetFilter(gomock.Any(), gomock.Any()).
+					Return(mf, nil)
+				mockFc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimensions{
+						Items: []filter.Dimension{
+							{
+								Name:       "test dim",
+								ID:         "td1",
+								IsAreaType: new(bool),
+							},
+						},
+					}, "", nil)
+				mockFc.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{
+						Name:       "test dim",
+						ID:         "td1",
+						IsAreaType: new(bool),
+					}, "", nil)
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(md, nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil).
+					AnyTimes()
+
+				router := mux.NewRouter()
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(mockRend, mockFc, mockDc, mockPc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 200", func() {
@@ -118,7 +181,7 @@ func TestChangeDimensionsHandler(t *testing.T) {
 					Return(md, nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/{filterID}/dimensions/change", ChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
+				router.HandleFunc("/filters/{filterID}/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the user is redirected", func() {
@@ -138,7 +201,7 @@ func TestChangeDimensionsHandler(t *testing.T) {
 					Return(filter.Dimensions{}, "", errors.New("Internal error"))
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", ChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl)))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl)))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
@@ -190,7 +253,7 @@ func TestChangeDimensionsHandler(t *testing.T) {
 					Return(population.GetDimensionsResponse{}, nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", ChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
@@ -236,7 +299,7 @@ func TestChangeDimensionsHandler(t *testing.T) {
 					Return(population.GetDimensionsResponse{}, nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", ChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
@@ -268,7 +331,7 @@ func TestChangeDimensionsHandler(t *testing.T) {
 					Return(population.GetDimensionsResponse{}, nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", ChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
@@ -304,7 +367,48 @@ func TestChangeDimensionsHandler(t *testing.T) {
 					Return(population.GetDimensionsResponse{}, errors.New("Internal error"))
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", ChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.ServeHTTP(w, req)
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When the additional population.GetDimensions api method call responds with an error", func() {
+				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", nil)
+				md := dataset.DatasetDetails{
+					Type: "multivariate",
+				}
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetFilter(gomock.Any(), gomock.Any()).
+					Return(mf, nil)
+				mockFc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimensions{}, "", nil)
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(md, nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any()).
+					Return(population.GetDimensionsResponse{}, errors.New("Internal error"))
+
+				router := mux.NewRouter()
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
