@@ -9,6 +9,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-net/v2/handlers"
@@ -17,13 +18,13 @@ import (
 )
 
 // FilterFlexOverview Handler
-func FilterFlexOverview(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient) http.HandlerFunc {
+func FilterFlexOverview(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, cfg config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		filterFlexOverview(w, req, rc, fc, dc, pc, accessToken, collectionID, lang)
+		filterFlexOverview(w, req, rc, fc, dc, pc, cfg, accessToken, collectionID, lang)
 	})
 }
 
-func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, accessToken, collectionID, lang string) {
+func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, cfg config.Config, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -31,7 +32,8 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	var filterDims filter.Dimensions
 	var datasetDims dataset.VersionDimensions
 	var filterJob *filter.GetFilterResponse
-	var fErr, dErr, fdsErr error
+	var fErr, dErr, fdsErr, imErr error
+	var isMultivariate bool
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -50,6 +52,17 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 			log.Error(ctx, "failed to get filter", fErr, log.Data{"filter_id": filterID})
 			setStatusCode(req, w, fErr)
 			return
+		}
+
+		if cfg.EnableMultivariate {
+			isMultivariate, imErr = isMultivariateDataset(ctx, dc, accessToken, collectionID, filterJob.Dataset.DatasetID)
+			if imErr != nil {
+				log.Error(ctx, "failed to determine if dataset type is multivariate", imErr, log.Data{
+					"filter_id": filterID,
+				})
+				setStatusCode(req, w, imErr)
+				return
+			}
 		}
 
 		datasetDims, dErr = dc.GetVersionDimensions(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, fmt.Sprint(filterJob.Dataset.Version))
@@ -84,6 +97,13 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	if fdsErr != nil {
 		log.Error(ctx, "failed to get dimensions", fdsErr, log.Data{"filter_id": filterID})
 		setStatusCode(req, w, fdsErr)
+		return
+	}
+	if imErr != nil {
+		log.Error(ctx, "failed to determine if dataset type is multivariate", imErr, log.Data{
+			"filter_id": filterID,
+		})
+		setStatusCode(req, w, imErr)
 		return
 	}
 	if dErr != nil {
@@ -239,6 +259,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	basePage := rc.NewBasePageModel()
 	showAll := req.URL.Query()["showAll"]
 	path := req.URL.Path
-	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, fDims, datasetDims, hasNoAreaOptions)
+	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, fDims, datasetDims, hasNoAreaOptions, isMultivariate)
 	rc.BuildPage(w, m, "overview")
 }

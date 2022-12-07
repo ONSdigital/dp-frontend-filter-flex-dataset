@@ -22,13 +22,13 @@ import (
 )
 
 // GetCoverage handler
-func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, cfg *config.Config) http.HandlerFunc {
+func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, cfg config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
 		getCoverage(w, req, cfg, rc, fc, pc, dc, lang, accessToken, collectionID)
 	})
 }
 
-func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, lang, accessToken, collectionID string) {
+func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, lang, accessToken, collectionID string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -234,7 +234,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg *config.Config, r
 }
 
 // getAreas is a helper function that returns the GetAreasResponse or an error
-func getAreas(ctx context.Context, cfg *config.Config, pc PopulationClient, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
+func getAreas(ctx context.Context, cfg config.Config, pc PopulationClient, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
 	areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 		AuthTokens: population.AuthTokens{
 			UserAuthToken: accessToken,

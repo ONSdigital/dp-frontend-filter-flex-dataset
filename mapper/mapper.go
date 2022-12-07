@@ -39,13 +39,14 @@ const (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions bool) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions, isMultivariate bool) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
 	mapCommonProps(req, &p.Page, reviewPageType, "Review changes", lang)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
+	p.IsMultivariate = isMultivariate
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
