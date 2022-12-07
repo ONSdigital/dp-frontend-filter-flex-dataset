@@ -36,6 +36,11 @@
                                                 <span class="ons-radio ons-radio--no-border">
                                                     <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }} checked {{ end }}>
                                                     <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">{{ .Label }} ({{ thousandsSeparator .TotalCount }})</label>
+                                                    {{ if .Description }}
+                                                          <div class="ons-radio__other ons-u-fs-s ons-u-pb-no">
+                                                              {{- .Description -}}
+                                                          </div>
+                                                    {{ end }}
                                                 </span>
                                             </span>
                                             {{ if notLastItem $length $i }}<br>{{ end }}

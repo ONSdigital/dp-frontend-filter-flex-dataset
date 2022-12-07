@@ -25,6 +25,14 @@ func TestDimensionsHandler(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	mockCtrl := gomock.NewController(t)
 	cfg := initialiseMockConfig()
+	mockDataset := dataset.DatasetDetails{
+		ID:    "Mock-Dataset-ID",
+		Title: "Mock dataset title",
+	}
+	mockVersion1 := dataset.Version{
+		ID:          "1",
+		ReleaseDate: "2022/11/29",
+	}
 
 	Convey("Dimensions Selector", t, func() {
 		Convey("Given a valid dimension param for a filter", func() {
@@ -53,9 +61,17 @@ func TestDimensionsHandler(t *testing.T) {
 					EXPECT().
 					BuildPage(gomock.Any(), pageHasTitle{dimensionName}, gomock.Any())
 
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
+				mockDc.EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockVersion1, nil).AnyTimes()
+
 				w := runDimensionsSelector(
 					"number+of+siblings",
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -76,9 +92,17 @@ func TestDimensionsHandler(t *testing.T) {
 				Return(filter.Dimension{}, "", &filter.ErrInvalidFilterAPIResponse{ExpectedCode: http.StatusOK, ActualCode: http.StatusNotFound}).
 				AnyTimes()
 
+			mockDc := NewMockDatasetClient(mockCtrl)
+			mockDc.EXPECT().
+				Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockDataset, nil).AnyTimes()
+			mockDc.EXPECT().
+				GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(mockVersion1, nil).AnyTimes()
+
 			w := runDimensionsSelector(
 				"city",
-				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
+				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
 			)
 
 			Convey("Then the status code should be 404", func() {
@@ -120,9 +144,17 @@ func TestDimensionsHandler(t *testing.T) {
 					// Assert that there are no selections passed to BuildPage
 					BuildPage(gomock.Any(), pageMatchesSelections{}, gomock.Any())
 
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
+				mockDc.EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockVersion1, nil).AnyTimes()
+
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -155,9 +187,17 @@ func TestDimensionsHandler(t *testing.T) {
 					// Assert that the area type boolean is false
 					BuildPage(gomock.Any(), pageIsAreaType{false}, gomock.Any())
 
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
+				mockDc.EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockVersion1, nil).AnyTimes()
+
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -189,9 +229,17 @@ func TestDimensionsHandler(t *testing.T) {
 					EXPECT().
 					BuildPage(gomock.Any(), gomock.Any(), gomock.Any())
 
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
+				mockDc.EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockVersion1, nil).AnyTimes()
+
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -206,9 +254,17 @@ func TestDimensionsHandler(t *testing.T) {
 					Return(filter.Model{}, "", errors.New("oh no")).
 					AnyTimes()
 
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
+				mockDc.EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockVersion1, nil).AnyTimes()
+
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), NewMockDatasetClient(mockCtrl)),
+					DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
 				)
 
 				Convey("Then the status code should be 500", func() {
@@ -306,11 +362,15 @@ func TestDimensionsHandler(t *testing.T) {
 						)
 
 					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.EXPECT().
+						Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(mockDataset, nil).AnyTimes()
 					mockDc.
 						EXPECT().
 						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(dataset.Version{
 							LowestGeography: "",
+							Version:         1,
 						}, nil).
 						AnyTimes()
 
@@ -398,11 +458,15 @@ func TestDimensionsHandler(t *testing.T) {
 						)
 
 					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.EXPECT().
+						Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(mockDataset, nil).AnyTimes()
 					mockDc.
 						EXPECT().
 						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(dataset.Version{
 							LowestGeography: lowest_geography,
+							Version:         1,
 						}, nil).
 						AnyTimes()
 
@@ -449,11 +513,15 @@ func TestDimensionsHandler(t *testing.T) {
 						AnyTimes()
 
 					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.EXPECT().
+						Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(mockDataset, nil).AnyTimes()
 					mockDc.
 						EXPECT().
 						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(dataset.Version{
 							LowestGeography: "",
+							Version:         1,
 						}, nil).
 						AnyTimes()
 
@@ -498,11 +566,15 @@ func TestDimensionsHandler(t *testing.T) {
 						BuildPage(gomock.Any(), pageIsAreaType{true}, gomock.Any())
 
 					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.EXPECT().
+						Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(mockDataset, nil).AnyTimes()
 					mockDc.
 						EXPECT().
 						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(dataset.Version{
 							LowestGeography: "",
+							Version:         1,
 						}, nil).
 						AnyTimes()
 
@@ -553,11 +625,15 @@ func TestDimensionsHandler(t *testing.T) {
 						BuildPage(gomock.Any(), pageHasError{true}, gomock.Any())
 
 					mockDc := NewMockDatasetClient(mockCtrl)
+					mockDc.EXPECT().
+						Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(mockDataset, nil).AnyTimes()
 					mockDc.
 						EXPECT().
 						GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(dataset.Version{
 							LowestGeography: "",
+							Version:         1,
 						}, nil).
 						AnyTimes()
 
@@ -602,11 +678,15 @@ func TestDimensionsHandler(t *testing.T) {
 					AnyTimes()
 
 				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
 				mockDc.
 					EXPECT().
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.Version{
 						LowestGeography: "",
+						Version:         1,
 					}, nil).
 					AnyTimes()
 
@@ -640,11 +720,15 @@ func TestDimensionsHandler(t *testing.T) {
 					AnyTimes()
 
 				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
 				mockDc.
 					EXPECT().
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.Version{
 						LowestGeography: "",
+						Version:         1,
 					}, nil).
 					AnyTimes()
 

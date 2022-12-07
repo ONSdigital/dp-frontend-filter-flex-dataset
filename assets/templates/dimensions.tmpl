@@ -11,44 +11,62 @@
                     </div>
                 </div>
                 {{ template "partials/common/selections" .Output }}
-                <fieldset class="ons-fieldset ons-u-mt-m">
-                    <legend class="ons-fieldset__legend ons-u-mb-s">{{- localise "DimensionsSelect" .Language 1 -}}</legend>
-                    <div class="ons-radios__items">
-                        <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
-                            <div class="ons-radio ons-radio--no-border">
-                                <input
-                                    type="radio"
-                                    id="dimension-search"
-                                    class="ons-radio__input ons-js-radio ons-js-other"
-                                    value="search"
-                                    name="dimensions">
-                                <label class="ons-radio__label" for="dimension-search">{{- localise "DimensionsSearch" .Language 1 -}}</label>
-                                <div class="ons-radio__other ons-u-pb-no">
-                                    {{ template "partials/common/search" .Search }}
-                                    <div class="ons-u-mt-xs"></div>
+                <form method="post">
+                    <fieldset class="ons-fieldset ons-u-mt-m">
+                        <legend class="ons-fieldset__legend ons-u-mb-s">{{- localise "DimensionsSelect" .Language 1 -}}</legend>
+                        <div class="ons-radios__items">
+                            <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
+                                <div class="ons-radio ons-radio--no-border">
+                                    <input
+                                        type="radio"
+                                        id="dimension-search"
+                                        class="ons-radio__input ons-js-radio ons-js-other"
+                                        value="search"
+                                        name="dimensions"
+                                        {{ if eq .FormAction "search" }}checked="checked"{{ end }}>
+                                    <label class="ons-radio__label" for="dimension-search">{{- localise "DimensionsSearch" .Language 1 -}}</label>
+                                    <div class="ons-radio__other ons-u-pb-no">
+                                        {{ template "partials/common/search" .Search }}
+                                        <div class="ons-u-mt-xs">
+                                            {{ if .SearchOutput.Results }}
+                                                {{ template "partials/coverage/results" .SearchOutput }}
+                                            {{ end }}
+                                            {{ if .SearchOutput.HasNoResults }}
+                                                <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
+                                            {{ end }}
+                                            {{ if .SearchOutput.Selections }}
+                                                {{ template "partials/common/selections" .SearchOutput }}
+                                            {{ end }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
+                                <div class="ons-radio ons-radio--no-border">
+                                    <input
+                                        type="radio"
+                                        id="dimension-browse"
+                                        class="ons-radio__input ons-js-radio ons-js-other"
+                                        value="browse"
+                                        name="dimensions"
+                                        {{ if eq .FormAction "browse" }}checked="checked"{{ end }}>
+                                    <label class="ons-radio__label" for="dimension-browse">{{- localise "DimensionsBrowse" .Language 1 -}}</label>
+                                    <div class="ons-radio__other">
+                                        {{ template "partials/dimensions/results" .Output }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <br>
-                        <div class="ons-radios__item ons-radios__item--no-border ons-u-fw">
-                            <div class="ons-radio ons-radio--no-border">
-                                <input
-                                    type="radio"
-                                    id="dimension-browse"
-                                    class="ons-radio__input ons-js-radio ons-js-other"
-                                    value="browse"
-                                    name="dimensions">
-                                <label class="ons-radio__label" for="dimension-browse">{{- localise "DimensionsBrowse" .Language 1 -}}</label>
-                                <div class="ons-radio__other">
-                                    {{ template "partials/dimensions/results" .Output }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
-                <button type="submit" class="ons-btn ons-u-mt-xl ons-u-mb-s">
-                    <span class="ons-btn__inner">{{- localise "Continue" .Language 1 -}}</span>
-                </button>
+                    </fieldset>
+                </form>
+                <a href="." role="button" class="ons-btn ons-btn--link ons-js-submit-btn ons-u-mt-xl ons-u-mb-s">
+                    <span class="ons-btn__inner">
+                        <span class="ons-btn__text">
+                            {{- localise "Continue" .Language 1 -}}
+                        </span>
+                    </span>
+                </a>
             </div>
         </div>
     </div>

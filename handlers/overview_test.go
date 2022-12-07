@@ -73,12 +73,13 @@ func TestOverviewHandler(t *testing.T) {
 				mockDc.EXPECT().GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockDatasetDims, nil)
 				mockDc.EXPECT().GetOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), "", "", "0", dims.Items[0].Name,
 					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
+				mockDc.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dataset.DatasetDetails{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -97,13 +98,14 @@ func TestOverviewHandler(t *testing.T) {
 				mockFc.EXPECT().GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dims.Items[0], "", nil)
 				mockDc.EXPECT().GetOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), "", "", "0", dims.Items[0].Name,
 					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
+				mockDc.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dataset.DatasetDetails{}, nil)
 				mockDc.EXPECT().GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockDatasetDims, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -150,12 +152,17 @@ func TestOverviewHandler(t *testing.T) {
 					mockDc.
 						EXPECT().
 						GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(mockDatasetDims, nil)
+						Return(mockDatasetDims, nil).
+						AnyTimes()
+					mockDc.
+						EXPECT().
+						Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(dataset.DatasetDetails{}, nil)
 
 					w := httptest.NewRecorder()
 					req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-					FilterFlexOverview(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc).
+					FilterFlexOverview(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, cfg).
 						ServeHTTP(w, req)
 
 					Convey("Then the status code should be 500", func() {
@@ -227,12 +234,17 @@ func TestOverviewHandler(t *testing.T) {
 						mockDc.
 							EXPECT().
 							GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-							Return(mockDatasetDims, nil)
+							Return(mockDatasetDims, nil).
+							AnyTimes()
+						mockDc.
+							EXPECT().
+							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(dataset.DatasetDetails{}, nil)
 
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -299,12 +311,17 @@ func TestOverviewHandler(t *testing.T) {
 						mockDc.
 							EXPECT().
 							GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-							Return(mockDatasetDims, nil)
+							Return(mockDatasetDims, nil).
+							AnyTimes()
+						mockDc.
+							EXPECT().
+							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(dataset.DatasetDetails{}, nil)
 
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -377,12 +394,17 @@ func TestOverviewHandler(t *testing.T) {
 						mockDc.
 							EXPECT().
 							GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-							Return(mockDatasetDims, nil)
+							Return(mockDatasetDims, nil).
+							AnyTimes()
+						mockDc.
+							EXPECT().
+							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(dataset.DatasetDetails{}, nil)
 
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -482,7 +504,6 @@ func TestOverviewHandler(t *testing.T) {
 
 			Convey("test FilterFlexOverview returns 500 if client GetJobState returns an error", func() {
 				mockFc := NewMockFilterClient(mockCtrl)
-				mockDc := NewMockDatasetClient(mockCtrl)
 				mockFc.
 					EXPECT().
 					GetFilter(ctx, gomock.Any()).
@@ -496,7 +517,35 @@ func TestOverviewHandler(t *testing.T) {
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl), cfg))
+
+				router.ServeHTTP(w, req)
+
+				So(w.Code, ShouldEqual, http.StatusInternalServerError)
+			})
+
+			Convey("test FilterFlexOverview returns 500 if client dc.Get returns an error", func() {
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetFilter(ctx, gomock.Any()).
+					Return(&filter.GetFilterResponse{}, nil)
+				mockFc.
+					EXPECT().
+					GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimensions{}, "", nil)
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dataset.DatasetDetails{}, errors.New("Internal error"))
+
+				w := httptest.NewRecorder()
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+
+				router := mux.NewRouter()
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -528,13 +577,18 @@ func TestOverviewHandler(t *testing.T) {
 				mockDc.
 					EXPECT().
 					GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(dataset.VersionDimensions{}, errors.New("sorry"))
+					Return(dataset.VersionDimensions{}, errors.New("sorry")).
+					AnyTimes()
+				mockDc.
+					EXPECT().
+					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dataset.DatasetDetails{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -559,12 +613,16 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.VersionDimensions{}, nil)
+				mockDc.
+					EXPECT().
+					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dataset.DatasetDetails{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -602,12 +660,16 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.VersionDimensions{}, nil)
+				mockDc.
+					EXPECT().
+					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dataset.DatasetDetails{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg))
 
 				router.ServeHTTP(w, req)
 

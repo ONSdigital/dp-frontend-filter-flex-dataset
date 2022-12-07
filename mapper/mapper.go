@@ -39,13 +39,14 @@ const (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions bool) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions, isMultivariate bool) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
 	mapCommonProps(req, &p.Page, reviewPageType, "Review changes", lang)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
+	p.IsMultivariate = isMultivariate
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
@@ -138,7 +139,7 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography string, isValidationError, hasOpts bool) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool) model.Selector {
 	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
 	p.Page.Metadata.Title = areaTypeTitle
 	p.Page.Type = areaPageType
@@ -163,9 +164,10 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 	var selections []model.Selection
 	for _, area := range areaType {
 		selections = append(selections, model.Selection{
-			Value:      area.ID,
-			Label:      area.Label,
-			TotalCount: area.TotalCount,
+			Value:       area.ID,
+			Label:       area.Label,
+			Description: area.Description,
+			TotalCount:  area.TotalCount,
 		})
 	}
 
@@ -189,11 +191,15 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 	p.InitialSelection = fDim.ID
 	p.IsAreaType = true
 
+	p.DatasetId = dataset.ID
+	p.DatasetTitle = dataset.Title
+	p.ReleaseDate = releaseDate
+
 	return p
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID string, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID, releaseDate string, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -217,15 +223,24 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	p.Dimension = dim
 	p.GeographyID = geogID
 	p.NameSearch = model.SearchField{
-		Name:  nameSearchFieldName,
-		ID:    nameSearch,
-		Value: nameQ,
+		Name:     nameSearchFieldName,
+		ID:       nameSearch,
+		Value:    nameQ,
+		Language: lang,
+		Label:    helper.Localise("CoverageSearchLabel", lang, 1),
 	}
 	p.ParentSearch = model.SearchField{
-		Name:  parentSearchFieldName,
-		ID:    parentSearch,
-		Value: parentQ,
+		Name:     parentSearchFieldName,
+		ID:       parentSearch,
+		Value:    parentQ,
+		Language: lang,
+		Label:    helper.Localise("CoverageSearchLabel", lang, 1),
 	}
+
+	p.DatasetId = dataset.ID
+	p.DatasetTitle = dataset.Title
+	p.ReleaseDate = releaseDate
+
 	if len(parents.AreaTypes) > 1 && parentArea == "" {
 		p.ParentSelect = []model.SelectableElement{
 			{
@@ -324,7 +339,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 }
 
 // CreateGetChangeDimensions maps data to the ChangeDimensions model
-func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang, fid string, dims []model.FilterDimension, pDims population.GetDimensionsResponse) model.ChangeDimensions {
+func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang, fid, q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse) model.ChangeDimensions {
 	p := model.ChangeDimensions{
 		Page: basePage,
 	}
@@ -335,6 +350,7 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 		},
 	}
 	mapCommonProps(req, &p.Page, "change_variables", "Add or remove variables", lang)
+	p.FormAction = formAction
 
 	selections := []model.SelectableElement{}
 	for _, dim := range dims {
@@ -352,9 +368,23 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 		Name:     "q",
 		ID:       "dimensions-search",
 		Language: lang,
+		Value:    q,
+		Label:    helper.Localise("DimensionsSearchLabel", lang, 1),
 	}
 
-	browseResults := []model.SelectableElement{}
+	browseResults := mapDimensionsResponse(pDims, selections)
+	searchResults := mapDimensionsResponse(results, selections)
+
+	p.Output.Results = browseResults
+	p.SearchOutput.Results = searchResults
+	p.SearchOutput.HasNoResults = len(p.SearchOutput.Results) == 0 && formAction == "search"
+
+	return p
+}
+
+// mapDimensionsResponse returns a sorted array of selectable elements
+func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections []model.SelectableElement) []model.SelectableElement {
+	results := []model.SelectableElement{}
 	for _, pDim := range pDims.Dimensions {
 		var sel model.SelectableElement
 		sel.Name = "add-dimension"
@@ -368,11 +398,12 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 				break
 			}
 		}
-		browseResults = append(browseResults, sel)
+		results = append(results, sel)
 	}
-	p.Output.Results = browseResults
-
-	return p
+	sort.SliceStable(results, func(i, j int) bool {
+		return results[i].Text < results[j].Text
+	})
+	return results
 }
 
 // getAddOptionStr is a helper function to determine which add option string should be returned

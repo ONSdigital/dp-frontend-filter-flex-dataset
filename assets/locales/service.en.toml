@@ -23,6 +23,14 @@ description = "Variable and dataset information"
 one = "Variable and dataset information"
 other = "Variable and dataset information"
 
+[VariableChange]
+description = "Add or remove variable"
+one = "Add or remove variable"
+
+[GetDataBtn]
+description = "Get the data"
+one = "Get the data"
+
 [Selection]
 description = "Selection"
 one = "Selection"
@@ -138,7 +146,7 @@ one = "Select all {{.arg0}} within a larger area"
 description = "Enter an area name or code"
 one = "Enter an area name or code"
 
-[CoverageSearchButtonText]
+[SearchButtonText]
 description = "Search"
 one = "Search"
 
@@ -212,6 +220,10 @@ one = "Select to search or browse variables"
 [DimensionsSearch]
 description = "Search for a variable"
 one = "Search for a variable"
+
+[DimensionsSearchLabel]
+description = "Enter a variable name"
+one = "Enter a variable name"
 
 [DimensionsBrowse]
 description = "Browse available variables"

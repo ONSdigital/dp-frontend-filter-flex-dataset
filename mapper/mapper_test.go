@@ -126,7 +126,7 @@ func TestOverview(t *testing.T) {
 	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, true)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "review_changes")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
@@ -137,6 +137,7 @@ func TestOverview(t *testing.T) {
 			strconv.Itoa(filterJob.Dataset.Version)))
 		So(m.Language, ShouldEqual, lang)
 		So(m.SearchNoIndexEnabled, ShouldBeTrue)
+		So(m.IsMultivariate, ShouldBeTrue)
 
 		So(m.Dimensions[0].Name, ShouldEqual, filterDims[3].Label)
 		So(m.Dimensions[0].IsAreaType, ShouldBeTrue)
@@ -173,7 +174,7 @@ func TestOverview(t *testing.T) {
 	})
 
 	Convey("test truncation maps as expected", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, false)
 		So(m.Dimensions[3].OptionsCount, ShouldEqual, filterDims[1].OptionsCount)
 		So(m.Dimensions[3].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[3].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
@@ -190,14 +191,14 @@ func TestOverview(t *testing.T) {
 	})
 
 	Convey("test truncation shows all when parameter given", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims, false, false)
 		So(m.Dimensions[4].OptionsCount, ShouldEqual, filterDims[2].OptionsCount)
 		So(m.Dimensions[4].Options, ShouldHaveLength, 12)
 		So(m.Dimensions[4].IsTruncated, ShouldBeFalse)
 	})
 
 	Convey("test area type dimension options do not truncate and map to 'coverage' dimension", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, false)
 		So(m.Dimensions[1].Options, ShouldHaveLength, 10)
 		So(m.Dimensions[1].IsTruncated, ShouldBeFalse)
 		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
@@ -205,13 +206,13 @@ func TestOverview(t *testing.T) {
 
 	Convey("given hasNoAreaOptions parameter", t, func() {
 		Convey("when parameter is true", func() {
-			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, true)
+			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, true, false)
 			Convey("then isDefaultCoverage is set to true", func() {
 				So(m.Dimensions[1].IsDefaultCoverage, ShouldBeTrue)
 			})
 		})
 		Convey("when parameter is false", func() {
-			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, false)
+			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, false, false)
 			Convey("then isDefaultCoverage is set to false", func() {
 				So(m.Dimensions[1].IsDefaultCoverage, ShouldBeFalse)
 			})
@@ -240,16 +241,16 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	Convey("Given a slice of geography areas", t, func() {
 		areas := []population.AreaType{
-			{ID: "one", Label: "One", TotalCount: 1},
-			{ID: "two", Label: "Two", TotalCount: 2},
+			{ID: "one", Label: "One", Description: "One description", TotalCount: 1},
+			{ID: "two", Label: "Two", Description: "Two description", TotalCount: 2},
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", false, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
 
 		expectedSelections := []model.Selection{
-			{Value: "one", Label: "One", TotalCount: 1},
-			{Value: "two", Label: "Two", TotalCount: 2},
+			{Value: "one", Label: "One", Description: "One description", TotalCount: 1},
+			{Value: "two", Label: "Two", Description: "Two description", TotalCount: 2},
 		}
 
 		Convey("Maps each geography dimension into a selection", func() {
@@ -260,7 +261,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, "12345", nil, filter.Dimension{}, "", false, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
 
 		Convey("it sets page metadata", func() {
 			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
@@ -285,7 +286,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given the current filter dimension", t, func() {
 		const selectionName = "test"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{ID: selectionName}, "", false, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{ID: selectionName}, "", "", dataset.DatasetDetails{}, false, false)
 
 		Convey("it returns the value as an initial selection", func() {
 			So(changeDimension.InitialSelection, ShouldEqual, selectionName)
@@ -294,7 +295,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given a validation error", t, func() {
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", true, false)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, true, false)
 
 		Convey("it returns a populated error", func() {
 			So(changeDimension.Error.Title, ShouldNotBeEmpty)
@@ -303,10 +304,23 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given saved options", t, func() {
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", false, true)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, true)
 
 		Convey("it returns a warning that saved options will be removed", func() {
 			So(changeDimension.HasOptions, ShouldBeTrue)
+		})
+	})
+
+	Convey("Given analytics metadata", t, func() {
+		req := httptest.NewRequest("", "/", nil)
+		releaseDate := "2022/11/29"
+		dataset := dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"}
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", releaseDate, dataset, false, true)
+
+		Convey("it sets DatasetID, DatasetTitle and ReleaseData", func() {
+			So(changeDimension.DatasetId, ShouldEqual, dataset.ID)
+			So(changeDimension.DatasetTitle, ShouldEqual, dataset.Title)
+			So(changeDimension.ReleaseDate, ShouldEqual, releaseDate)
 		})
 	})
 }
@@ -330,6 +344,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"dim",
 				"geogID",
+				"2022/11/29",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -367,6 +383,12 @@ func TestGetCoverage(t *testing.T) {
 			Convey("it sets the SearchNoIndexEnabled to true", func() {
 				So(coverage.SearchNoIndexEnabled, ShouldBeTrue)
 			})
+
+			Convey("it sets analytics values", func() {
+				So(coverage.DatasetId, ShouldEqual, "dataset-id")
+				So(coverage.DatasetTitle, ShouldEqual, "Dataset title")
+				So(coverage.ReleaseDate, ShouldEqual, "2022/11/29")
+			})
 		})
 
 		Convey("When parent types is populated", func() {
@@ -390,6 +412,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
@@ -420,6 +444,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -452,6 +478,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
@@ -491,6 +519,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
@@ -530,6 +560,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -563,6 +595,8 @@ func TestGetCoverage(t *testing.T) {
 				"name-search",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -620,6 +654,8 @@ func TestGetCoverage(t *testing.T) {
 				"name-search",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -686,6 +722,8 @@ func TestGetCoverage(t *testing.T) {
 				"parent-search",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -725,6 +763,8 @@ func TestGetCoverage(t *testing.T) {
 				"name-search",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -770,6 +810,8 @@ func TestGetCoverage(t *testing.T) {
 				"parent-search",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -806,6 +848,8 @@ func TestGetCoverage(t *testing.T) {
 				"parent-search",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
@@ -845,6 +889,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
@@ -875,6 +921,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
@@ -913,6 +961,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
@@ -956,6 +1006,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
@@ -1002,6 +1054,8 @@ func TestGetCoverage(t *testing.T) {
 				"name-search",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
@@ -1066,6 +1120,8 @@ func TestGetCoverage(t *testing.T) {
 				"parent-search",
 				"",
 				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
@@ -1096,6 +1152,82 @@ func TestGetCoverage(t *testing.T) {
 					},
 				}
 				So(coverage.ParentSearchOutput.Results, ShouldResemble, expectedResults)
+			})
+		})
+
+		Convey("When a parent search is performed with paginated results", func() {
+			mockedSearchResults := population.GetAreasResponse{
+				Areas: []population.Area{
+					{
+						Label: "parent area one",
+						ID:    "0",
+					},
+				},
+				PaginationResponse: population.PaginationResponse{
+					PaginationParams: population.PaginationParams{
+						Offset: 0,
+						Limit:  50,
+					},
+					Count:      0,
+					TotalCount: 101,
+				},
+			}
+			coverage := CreateGetCoverage(
+				req,
+				coreModel.Page{},
+				lang,
+				"12345",
+				"Unknown geography",
+				"",
+				"",
+				"",
+				"parent-search",
+				"",
+				"",
+				"",
+				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
+				mockedSearchResults,
+				[]model.SelectableElement{},
+				population.GetAreaTypeParentsResponse{},
+				true,
+				false,
+				2)
+
+			Convey("Then it sets HasNoResults property", func() {
+				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
+			})
+
+			Convey("Then it paginates the search results", func() {
+				expectedPagination := coreModel.Pagination{
+					CurrentPage: 2,
+					PagesToDisplay: []coreModel.PageToDisplay{
+						{
+							PageNumber: 1,
+							URL:        "/?page=1",
+						},
+						{
+							PageNumber: 2,
+							URL:        "/?page=2",
+						},
+						{
+							PageNumber: 3,
+							URL:        "/?page=3",
+						},
+					},
+					FirstAndLastPages: []coreModel.PageToDisplay{
+						{
+							PageNumber: 1,
+							URL:        "/?page=1",
+						},
+						{
+							PageNumber: 3,
+							URL:        "/?page=3",
+						},
+					},
+					TotalPages: 3,
+					Limit:      50,
+				}
+				So(coverage.ParentSearchOutput.Pagination, ShouldResemble, expectedPagination)
 			})
 		})
 	})
@@ -1150,13 +1282,25 @@ func TestGetChangeDimensions(t *testing.T) {
 					},
 				},
 			}
+			mockPdsR := population.GetDimensionsResponse{
+				Dimensions: []population.Dimension{
+					{
+						ID:          "dim-a",
+						Label:       "dim a",
+						Description: "description a",
+					},
+				},
+			}
 			p := CreateGetChangeDimensions(
 				req,
 				coreModel.Page{},
 				lang,
 				"12345",
+				"dim-a",
+				"search",
 				mockFds,
 				mockPds,
+				mockPdsR,
 			)
 			Convey("Then it maps page metadata", func() {
 				So(p.BetaBannerEnabled, ShouldBeTrue)
@@ -1181,13 +1325,6 @@ func TestGetChangeDimensions(t *testing.T) {
 			Convey("Then it maps available population types dimensions", func() {
 				mockPds := []model.SelectableElement{
 					{
-						Text:       "dim one",
-						Value:      "dim-1",
-						Name:       "delete-dimension",
-						IsSelected: true,
-						InnerText:  "description one",
-					},
-					{
 						Text:       "dim a",
 						Value:      "dim-a",
 						Name:       "add-dimension",
@@ -1208,83 +1345,63 @@ func TestGetChangeDimensions(t *testing.T) {
 						IsSelected: false,
 						InnerText:  "description c",
 					},
+					{
+						Text:       "dim one",
+						Value:      "dim-1",
+						Name:       "delete-dimension",
+						IsSelected: true,
+						InnerText:  "description one",
+					},
 				}
 				So(p.Output.Results, ShouldResemble, mockPds)
 				So(p.Output.Results, ShouldHaveLength, 4)
 			})
+
+			Convey("Then it maps available dimensions search results", func() {
+				mockPds := []model.SelectableElement{
+					{
+						Text:       "dim a",
+						Value:      "dim-a",
+						Name:       "add-dimension",
+						IsSelected: false,
+						InnerText:  "description a",
+					},
+				}
+				So(p.SearchOutput.Results, ShouldResemble, mockPds)
+				So(p.SearchOutput.Results, ShouldHaveLength, 1)
+				So(p.SearchOutput.HasNoResults, ShouldBeFalse)
+			})
+
+			Convey("Then it sets HasNoResults", func() {
+				mockPds := []model.SelectableElement{
+					{
+						Text:       "dim a",
+						Value:      "dim-a",
+						Name:       "add-dimension",
+						IsSelected: false,
+						InnerText:  "description a",
+					},
+				}
+				So(p.SearchOutput.Results, ShouldResemble, mockPds)
+				So(p.SearchOutput.Results, ShouldHaveLength, 1)
+				So(p.SearchOutput.HasNoResults, ShouldBeFalse)
+			})
 		})
 
-		Convey("When a parent search is performed with paginated results", func() {
-			mockedSearchResults := population.GetAreasResponse{
-				Areas: []population.Area{
-					{
-						Label: "parent area one",
-						ID:    "0",
-					},
-				},
-				PaginationResponse: population.PaginationResponse{
-					PaginationParams: population.PaginationParams{
-						Offset: 0,
-						Limit:  50,
-					},
-					Count:      0,
-					TotalCount: 101,
-				},
-			}
-			coverage := CreateGetCoverage(
+		Convey("when a valid search with no results is performed", func() {
+			p := CreateGetChangeDimensions(
 				req,
 				coreModel.Page{},
 				lang,
 				"12345",
-				"Unknown geography",
-				"",
-				"",
-				"",
-				"parent-search",
-				"",
-				"",
-				mockedSearchResults,
-				[]model.SelectableElement{},
-				population.GetAreaTypeParentsResponse{},
-				true,
-				false,
-				2)
-
-			Convey("Then it sets HasNoResults property", func() {
-				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
-			})
-
-			Convey("Then it paginates the search results", func() {
-				expectedPagination := coreModel.Pagination{
-					CurrentPage: 2,
-					PagesToDisplay: []coreModel.PageToDisplay{
-						{
-							PageNumber: 1,
-							URL:        "/?page=1",
-						},
-						{
-							PageNumber: 2,
-							URL:        "/?page=2",
-						},
-						{
-							PageNumber: 3,
-							URL:        "/?page=3",
-						},
-					},
-					FirstAndLastPages: []coreModel.PageToDisplay{
-						{
-							PageNumber: 1,
-							URL:        "/?page=1",
-						},
-						{
-							PageNumber: 3,
-							URL:        "/?page=3",
-						},
-					},
-					TotalPages: 3,
-					Limit:      50,
-				}
-				So(coverage.ParentSearchOutput.Pagination, ShouldResemble, expectedPagination)
+				"dim-a",
+				"search",
+				[]model.FilterDimension{},
+				population.GetDimensionsResponse{},
+				population.GetDimensionsResponse{},
+			)
+			Convey("then it sets HasNoResults to true", func() {
+				So(p.SearchOutput.HasNoResults, ShouldBeTrue)
 			})
 		})
 	})
