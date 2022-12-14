@@ -172,7 +172,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 	}
 
 	sort.Slice(selections, func(i, j int) bool {
-		return selections[i].TotalCount < selections[j].TotalCount
+		return getAreaTypeIsLessThan(selections[i], selections[j])
 	})
 	if lowest_geography != "" {
 		var filtered_selections []model.Selection
@@ -196,6 +196,33 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 	p.ReleaseDate = releaseDate
 
 	return p
+}
+
+func getAreaTypeIsLessThan(left, right model.Selection) bool {
+	order := map[string]int{
+		"nat":  100,
+		"ctry": 200,
+		"rgn":  300,
+		"utla": 400,
+		"ltla": 500,
+		"wd":   600,
+		"msoa": 700,
+		"lsoa": 800,
+		"oa":   900,
+	}
+	leftVal, leftOk := order[left.Value]
+	rightVal, rightOk := order[right.Value]
+
+	if leftOk && rightOk {
+		return leftVal < rightVal
+	}
+	if leftOk {
+		return true
+	}
+	if rightOk {
+		return false
+	}
+	return left.TotalCount < right.TotalCount
 }
 
 // CreateGetCoverage maps data to the coverage model
