@@ -258,6 +258,123 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		})
 	})
 
+	Convey("Given a slice of geography areas", t, func() {
+		areas := []population.AreaType{
+			{ID: "nat", Label: "Nation", TotalCount: 1},
+			{ID: "ctry", Label: "Country", TotalCount: 2},
+			{ID: "rgn", Label: "Region", TotalCount: 3},
+			{ID: "utla", Label: "UTLA", TotalCount: 4},
+		}
+
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+
+		expectedSelections := []model.Selection{
+			{Value: "nat", Label: "Nation", TotalCount: 1},
+			{Value: "ctry", Label: "Country", TotalCount: 2},
+			{Value: "rgn", Label: "Region", TotalCount: 3},
+			{Value: "utla", Label: "UTLA", TotalCount: 4},
+		}
+
+		Convey("Maps each geography dimension into a selection", func() {
+			So(changeDimension.Selections, ShouldResemble, expectedSelections)
+		})
+	})
+
+	Convey("Given a slice of standard geography areas out of order", t, func() {
+		areas := []population.AreaType{
+			{ID: "rgn", Label: "Region", TotalCount: 11},
+			{ID: "ctry", Label: "Country", TotalCount: 33},
+			{ID: "nat", Label: "Nation", TotalCount: 1},
+			{ID: "utla", Label: "UTLA", TotalCount: 7},
+		}
+
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+
+		Convey("Sorts selections ascending by standard order", func() {
+			expectedSelections := []model.Selection{
+				{Value: "nat", Label: "Nation", TotalCount: 1},
+				{Value: "ctry", Label: "Country", TotalCount: 33},
+				{Value: "rgn", Label: "Region", TotalCount: 11},
+				{Value: "utla", Label: "UTLA", TotalCount: 7},
+			}
+
+			So(changeDimension.Selections, ShouldResemble, expectedSelections)
+		})
+	})
+
+	Convey("Given a slice of non-standard geography areas", t, func() {
+		areas := []population.AreaType{
+			{ID: "three", Label: "Three", TotalCount: 3},
+			{ID: "two", Label: "Two", TotalCount: 2},
+			{ID: "one", Label: "One", TotalCount: 1},
+		}
+
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+
+		Convey("Sorts known items by order then unknown items by TotalCount", func() {
+			expectedSelections := []model.Selection{
+				{Value: "one", Label: "One", TotalCount: 1},
+				{Value: "two", Label: "Two", TotalCount: 2},
+				{Value: "three", Label: "Three", TotalCount: 3},
+			}
+
+			So(changeDimension.Selections, ShouldResemble, expectedSelections)
+		})
+	})
+
+	Convey("Given a mixed slice of known and unknown geography areas", t, func() {
+		areas := []population.AreaType{
+			{ID: "three", Label: "Three", TotalCount: 3},
+			{ID: "two", Label: "Two", TotalCount: 2},
+			{ID: "nat", Label: "Nation", TotalCount: 3},
+			{ID: "ctry", Label: "Country", TotalCount: 2},
+			{ID: "rgn", Label: "Region", TotalCount: 1},
+			{ID: "one", Label: "One", TotalCount: 1},
+		}
+
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+
+		Convey("Sorts selections ascending by TotalCount", func() {
+			expectedSelections := []model.Selection{
+				{Value: "nat", Label: "Nation", TotalCount: 3},
+				{Value: "ctry", Label: "Country", TotalCount: 2},
+				{Value: "rgn", Label: "Region", TotalCount: 1},
+				{Value: "one", Label: "One", TotalCount: 1},
+				{Value: "two", Label: "Two", TotalCount: 2},
+				{Value: "three", Label: "Three", TotalCount: 3},
+			}
+
+			So(changeDimension.Selections, ShouldResemble, expectedSelections)
+		})
+	})
+
+	Convey("Given an unsorted slice of geography areas and lowest_level of geography", t, func() {
+		areas := []population.AreaType{
+			{ID: "rgn", Label: "Region", TotalCount: 11},
+			{ID: "utla", Label: "UTLA", TotalCount: 7},
+			{ID: "ctry", Label: "Country", TotalCount: 33},
+			{ID: "nat", Label: "Nation", TotalCount: 1},
+		}
+		lowest_geography := "rgn"
+
+		req := httptest.NewRequest("", "/", nil)
+		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, lowest_geography, "", dataset.DatasetDetails{}, false, false)
+
+		Convey("Returns the sorted selections stopping at the lowest_level", func() {
+			expectedSelections := []model.Selection{
+				{Value: "nat", Label: "Nation", TotalCount: 1},
+				{Value: "ctry", Label: "Country", TotalCount: 33},
+				{Value: "rgn", Label: "Region", TotalCount: 11},
+			}
+
+			So(changeDimension.Selections, ShouldResemble, expectedSelections)
+		})
+	})
+
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
