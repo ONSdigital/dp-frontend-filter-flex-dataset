@@ -7,7 +7,7 @@
                 {{ range $i, $dim := .Dimensions }}
                     <div class="ons-summary__item">
                         <dl id="{{.ID}}" class="ons-summary__row ons-summary__row--has-values ons-grid--flex@xxs@m ons-grid--row@xxs@m ons-u-order--sb@xxs@m{{ if eq $i 0 }} ons-u-bt{{ end }}{{ if last $i $.Dimensions }} ons-u-bb{{ end }}">
-                            <dt class="ons-summary__item-title ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-order--1@xxs@m ons-u-flex--2@xxs@m">
+                            <dt class="ons-summary__item-title ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-order--1@xxs@m ons-u-flex--2@xxs@m ons-col-4@m">
                                 <div class="ons-summary__item--text ons-u-fw-b">
                                     {{ if .IsAreaType }}
                                         {{- localise "AreaTypeDescription" $lang 1 -}}
@@ -18,8 +18,8 @@
                                     {{ end }}
                                 </div>
                             </dt>
-                            <dd class="ons-summary__values ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-pl-no@xxs@m ons-u-order--3@xxs@m
-                                    ons-u-fw@xxs@m ons-u-pt-no@xxs@m ons-u-pt-no@xxs@m ons-u-bb-no@xxs@m ons-u-d-b@xxs@m">
+                            <dd class="ons-summary__values ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-pl-no@xxs@m ons-u-order--3@xxs@m ons-u-fw@xxs@m
+                                    ons-u-pt-no@xxs@m ons-u-pt-no@xxs@m ons-u-bb-no@xxs@m ons-u-d-b@xxs@m">
                                 {{ $length := len .Options }}
                                 {{ $strOptCount := intToString .OptionsCount }}
                                 {{ $isTruncated := .IsTruncated }}
@@ -62,8 +62,9 @@
                                     {{ end }}
                                 {{ end }}
                             </dd>
-                            <dd class="ons-summary__actions ons-u-flex-ai-fs ons-u-pt-s ons-u-pb-s ons-u-pl-no@xxs ons-u-ml-xs@xxs ons-u-order--2@xxs@m">
-                                {{ if or (.IsAreaType) (.IsCoverage) }}
+                            {{ if or (.IsAreaType) (.IsCoverage) }}
+                                <dd class="ons-summary__actions ons-u-flex-ai-fs ons-u-pt-s ons-u-pb-s ons-u-pl-no@xxs ons-u-ml-xs@xxs ons-u-order--2@xxs@m
+                                        ons-col-2@m">
                                     <a href="{{ .URI }}" class="ons-summary__button">
                                         {{ localise "Change" $lang 1 }}
                                         <span class="ons-u-vh">
@@ -74,8 +75,8 @@
                                             {{ end }}
                                         </span>
                                     </a>
-                                {{ end }}
-                            </dd>
+                                </dd>
+                            {{ end }}
                         </dl>
                     </div>
                 {{ end }}
