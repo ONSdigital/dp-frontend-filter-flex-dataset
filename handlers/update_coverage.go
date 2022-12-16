@@ -75,7 +75,7 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 			return
 		}
 
-		if opts.TotalCount > 0 && form.Coverage != form.OptionType {
+		if opts.TotalCount > 0 && form.Coverage != form.OptionType || opts.TotalCount > 0 && form.SetParent != form.LargerArea {
 			log.Info(ctx, "invalid options combination, removing existing options", log.Data{"filter_id": filterID})
 			_, err := fc.DeleteDimensionOptions(ctx, accessToken, "", collectionID, filterID, form.Dimension)
 			if err != nil {
@@ -132,6 +132,7 @@ type updateCoverageForm struct {
 	Value       string
 	Dimension   string
 	LargerArea  string
+	SetParent   string
 	Coverage    string
 	GeographyID string
 	OptionType  string
@@ -177,6 +178,7 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 	}
 
 	parent := req.FormValue("larger-area")
+	setParent := req.FormValue("set-parent")
 
 	isSearch, _ := strconv.ParseBool(req.FormValue("is-search"))
 	if isSearch {
@@ -220,6 +222,7 @@ func parseUpdateCoverageForm(req *http.Request) (updateCoverageForm, error) {
 		Value:       value,
 		Dimension:   dimension,
 		LargerArea:  largerArea,
+		SetParent:   setParent,
 		Coverage:    coverage,
 		GeographyID: geogID,
 		OptionType:  optType,

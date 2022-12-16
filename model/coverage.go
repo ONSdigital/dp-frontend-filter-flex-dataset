@@ -18,4 +18,5 @@ type Coverage struct {
 	ParentSearchOutput SearchOutput        `json:"parent_search_output"`
 	IsSelectParents    bool                `json:"is_select_parents"`
 	OptionType         string              `json:"option_type"`
+	SetParent          string              `json:"set_parent"`
 }
