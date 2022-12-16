@@ -34,6 +34,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	var filterJob *filter.GetFilterResponse
 	var fErr, dErr, fdsErr, imErr error
 	var isMultivariate bool
+	var supVar string
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -197,28 +198,28 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		}
 		wg.Wait()
 
-		// TODO: Hotfix due to graphQL error
-		// if dim.FilterByParent != "" {
-		// 	count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
-		// 		AuthTokens: population.AuthTokens{
-		// 			UserAuthToken: accessToken,
-		// 		},
-		// 		PopulationType:   filterJob.PopulationType,
-		// 		AreaTypeID:       dim.ID,
-		// 		ParentAreaTypeID: dim.FilterByParent,
-		// 		Areas:            optsIDs,
-		// 	})
-		// 	if err != nil {
-		// 		log.Error(ctx, "failed to get parent area count", err, log.Data{
-		// 			"population_type":     filterJob.PopulationType,
-		// 			"area_type_id":        dim.ID,
-		// 			"parent_area_type_id": dim.FilterByParent,
-		// 			"areas":               optsIDs,
-		// 		})
-		// 		return nil, 0, err
-		// 	}
-		// 	totalCount = count
-		// }
+		if dim.FilterByParent != "" {
+			count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
+				AuthTokens: population.AuthTokens{
+					UserAuthToken: accessToken,
+				},
+				PopulationType:   filterJob.PopulationType,
+				AreaTypeID:       dim.ID,
+				ParentAreaTypeID: dim.FilterByParent,
+				Areas:            optsIDs,
+				SVarID:           supVar,
+			})
+			if err != nil {
+				log.Error(ctx, "failed to get parent area count", err, log.Data{
+					"population_type":     filterJob.PopulationType,
+					"area_type_id":        dim.ID,
+					"parent_area_type_id": dim.FilterByParent,
+					"areas":               optsIDs,
+				})
+				return nil, 0, err
+			}
+			totalCount = count
+		}
 
 		return options, totalCount, nil
 	}
@@ -232,26 +233,29 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	}
 
 	var fDims []model.FilterDimension
-	for _, dim := range filterDims.Items {
+	for i := len(filterDims.Items) - 1; i >= 0; i-- {
 		// Needed to determine whether dimension is_area_type
-		filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dim.Name)
+		filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, filterDims.Items[i].Name)
 		if err != nil {
-			log.Error(ctx, "failed to get dimension", err, log.Data{"dimension_name": dim.Name})
+			log.Error(ctx, "failed to get dimension", err, log.Data{"dimension_name": filterDims.Items[i].Name})
 			setStatusCode(req, w, err)
 			return
 		}
-		dim.IsAreaType = filterDimension.IsAreaType
-		dim.FilterByParent = filterDimension.FilterByParent
+		filterDims.Items[i].IsAreaType = filterDimension.IsAreaType
+		if !*filterDims.Items[i].IsAreaType {
+			supVar = filterDims.Items[i].ID
+		}
+		filterDims.Items[i].FilterByParent = filterDimension.FilterByParent
 
-		options, count, err := getOptions(dim)
+		options, count, err := getOptions(filterDims.Items[i])
 		if err != nil {
-			log.Error(ctx, "failed to get options for dimension", err, log.Data{"dimension_name": dim.Name})
+			log.Error(ctx, "failed to get options for dimension", err, log.Data{"dimension_name": filterDims.Items[i].Name})
 			setStatusCode(req, w, err)
 			return
 		}
-		dim.Options = options
+		filterDims.Items[i].Options = options
 		fDims = append(fDims, model.FilterDimension{
-			Dimension:    dim,
+			Dimension:    filterDims.Items[i],
 			OptionsCount: count,
 		})
 	}
