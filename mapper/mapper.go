@@ -226,7 +226,7 @@ func getAreaTypeIsLessThan(left, right model.Selection) bool {
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, coverage, dim, geogID, releaseDate string, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, setParent, coverage, dim, geogID, releaseDate string, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
@@ -249,6 +249,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	p.CoverageType = coverage
 	p.Dimension = dim
 	p.GeographyID = geogID
+	p.SetParent = setParent
 	p.NameSearch = model.SearchField{
 		Name:     nameSearchFieldName,
 		ID:       nameSearch,

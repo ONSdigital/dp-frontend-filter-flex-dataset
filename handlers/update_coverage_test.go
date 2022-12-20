@@ -253,7 +253,88 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
 				})
 			})
+		})
 
+		Convey("Given a valid add parent option request with a saved parent option of a different type", func() {
+			stubFormData := url.Values{}
+			stubFormData.Add("dimension", "geography")
+			stubFormData.Add("add-parent-option", "0")
+			stubFormData.Add("coverage", "parent-search")
+			stubFormData.Add("larger-area", "country")
+			stubFormData.Add("set-parent", "parent")
+			stubFormData.Add("geog-id", "city")
+
+			Convey("When additional call to DeleteDimensionOptions is made", func() {
+				const filterID = "1234"
+
+				filterClient := NewMockFilterClient(mockCtrl)
+				filterClient.
+					EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{
+						Items: []filter.DimensionOption{
+							{
+								Option: "Option 1",
+							},
+							{
+								Option: "Option 2",
+							},
+						},
+						TotalCount: 2,
+					}, "", nil)
+				filterClient.
+					EXPECT().
+					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", nil)
+				filterClient.
+					EXPECT().
+					DeleteDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return("", nil)
+
+				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+
+				Convey("Then the location header should match the get coverage screen", func() {
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
+				})
+
+				Convey("And the status code should be 301", func() {
+					So(w.Code, ShouldEqual, http.StatusMovedPermanently)
+				})
+			})
+
+			Convey("When the DeleteDimensionOptions filter API client responds with an error", func() {
+				const filterID = "1234"
+
+				filterClient := NewMockFilterClient(mockCtrl)
+				filterClient.
+					EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{
+						Items: []filter.DimensionOption{
+							{
+								Option: "Option 1",
+							},
+							{
+								Option: "Option 2",
+							},
+						},
+						TotalCount: 2,
+					}, "", nil)
+				filterClient.
+					EXPECT().
+					DeleteDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return("", errors.New("internal error"))
+
+				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+
+				Convey("Then the client should not be redirected", func() {
+					So(w.Header().Get("Location"), ShouldBeEmpty)
+				})
+
+				Convey("And the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
 		})
 
 		Convey("Given a valid delete option request", func() {
