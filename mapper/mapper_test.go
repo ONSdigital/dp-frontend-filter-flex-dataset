@@ -1437,7 +1437,7 @@ func TestGetChangeDimensions(t *testing.T) {
 				lang,
 				"12345",
 				"dim-a",
-				"search",
+				"",
 				mockFds,
 				mockPds,
 				mockPdsR,
@@ -1455,7 +1455,7 @@ func TestGetChangeDimensions(t *testing.T) {
 					{
 						Text:  "dim one",
 						Value: "dim-1",
-						Name:  "delete-dimension",
+						Name:  "delete-option",
 					},
 				}
 				So(p.Output.Selections, ShouldResemble, mockDims)
@@ -1488,7 +1488,7 @@ func TestGetChangeDimensions(t *testing.T) {
 					{
 						Text:       "dim one",
 						Value:      "dim-1",
-						Name:       "delete-dimension",
+						Name:       "delete-option",
 						IsSelected: true,
 						InnerText:  "description one",
 					},

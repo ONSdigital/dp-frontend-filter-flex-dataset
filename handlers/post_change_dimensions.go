@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -35,10 +34,31 @@ func postChangeDimensions(w http.ResponseWriter, req *http.Request, fc FilterCli
 
 	v := url.Values{}
 	v.Set("f", form.PrimaryAction)
+	if form.PrimaryAction == "search" {
+		v.Set("q", form.SearchQ)
+	}
 
 	switch form.Action {
-	case Search:
-		v.Set("q", form.Value)
+	case Add:
+		_, err := fc.AddFlexDimension(ctx, accessToken, "", collectionID, filterID, form.Value, []string{}, false, "")
+		if err != nil {
+			log.Error(ctx, "failed to add flex dimension", err, log.Data{
+				"filter_id": filterID,
+				"name":      form.Value,
+			})
+			setStatusCode(req, w, err)
+			return
+		}
+	case Delete:
+		_, err := fc.RemoveDimension(ctx, accessToken, "", collectionID, filterID, form.Value, "")
+		if err != nil {
+			log.Error(ctx, "failed to remove dimension", err, log.Data{
+				"filter_id": filterID,
+				"name":      form.Value,
+			})
+			setStatusCode(req, w, err)
+			return
+		}
 	}
 	req.URL.RawQuery = v.Encode()
 	http.Redirect(w, req, fmt.Sprint(req.URL), http.StatusSeeOther)
@@ -46,8 +66,8 @@ func postChangeDimensions(w http.ResponseWriter, req *http.Request, fc FilterCli
 
 // changeDimensionsForm represents form-data for the UpdateCoverage handler.
 type changeDimensionsForm struct {
-	Action               FormAction
-	Value, PrimaryAction string
+	Action                        FormAction
+	Value, PrimaryAction, SearchQ string
 }
 
 // parseChangeDimensionsForm parses form data from a http.Request into a updateCoverageForm.
@@ -71,22 +91,16 @@ func parseChangeDimensionsForm(req *http.Request) (changeDimensionsForm, error) 
 		value = addOption
 	}
 
-	delOption := req.FormValue("delete-dimension")
+	delOption := req.FormValue("delete-option")
 	if delOption != "" {
 		action = Delete
 		value = delOption
-	}
-
-	isSearch, _ := strconv.ParseBool(req.FormValue("is-search"))
-	if isSearch {
-		action = Search
-		q := req.FormValue("q")
-		value = q
 	}
 
 	return changeDimensionsForm{
 		Action:        action,
 		Value:         value,
 		PrimaryAction: dimensions,
+		SearchQ:       req.FormValue("q"),
 	}, nil
 }
