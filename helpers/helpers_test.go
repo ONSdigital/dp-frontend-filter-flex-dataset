@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"net/url"
 	"testing"
@@ -119,6 +120,42 @@ func TestPluralise(t *testing.T) {
 
 		Convey("Then empty string is returned", func() {
 			So(sut, ShouldEqual, expectedOutput)
+		})
+	})
+}
+
+func TestTrimCategoryValue(t *testing.T) {
+	Convey("Given a string with the category substring", t, func() {
+		tc := []struct{ given, expected string }{
+			{
+				given:    "abc_1a",
+				expected: "abc",
+			},
+			{
+				given:    "abc_1",
+				expected: "abc_1",
+			},
+			{
+				given:    "abc_123",
+				expected: "abc",
+			},
+			{
+				given:    "abc_123a",
+				expected: "abc",
+			},
+			{
+				given:    "abc",
+				expected: "abc",
+			},
+		}
+
+		Convey("When the string is passed to the TrimCategoryValue function", func() {
+			for _, t := range tc {
+				Convey(fmt.Sprintf("Then the given string '%s' returns '%s'", t.given, t.expected), func() {
+					sut := TrimCategoryValue(t.given)
+					So(sut, ShouldEqual, t.expected)
+				})
+			}
 		})
 	})
 }

@@ -10,7 +10,12 @@
                         <p>{{- localise "DimensionsChangeWarning" .Language 1 -}}</p>
                     </div>
                 </div>
-                {{ template "partials/common/selections" .Output }}
+                {{ if .Output.Selections }}
+                    <form method="post">
+                        <input type="hidden" name="dimensions" value="selections">
+                        {{ template "partials/common/selections" .Output }}
+                    </form>
+                {{ end }}
                 <form method="post">
                     <fieldset class="ons-fieldset ons-u-mt-m">
                         <legend class="ons-fieldset__legend ons-u-mb-s">{{- localise "DimensionsSelect" .Language 1 -}}</legend>
@@ -29,13 +34,10 @@
                                         {{ template "partials/common/search" .Search }}
                                         <div class="ons-u-mt-xs">
                                             {{ if .SearchOutput.Results }}
-                                                {{ template "partials/coverage/results" .SearchOutput }}
+                                                {{ template "partials/dimensions/results" .SearchOutput }}
                                             {{ end }}
                                             {{ if .SearchOutput.HasNoResults }}
                                                 <div class="ons-u-mt-xs">{{- localise "SearchNoResults" .Language 4 -}}</div>
-                                            {{ end }}
-                                            {{ if .SearchOutput.Selections }}
-                                                {{ template "partials/common/selections" .SearchOutput }}
                                             {{ end }}
                                         </div>
                                     </div>

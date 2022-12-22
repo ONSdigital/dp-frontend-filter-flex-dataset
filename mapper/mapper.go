@@ -386,7 +386,7 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 			selections = append(selections, model.SelectableElement{
 				Text:  dim.Label,
 				Value: dim.ID,
-				Name:  "delete-dimension",
+				Name:  "delete-option",
 			})
 		}
 	}
@@ -400,8 +400,8 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 		Label:    helper.Localise("DimensionsSearchLabel", lang, 1),
 	}
 
-	browseResults := mapDimensionsResponse(pDims, selections)
-	searchResults := mapDimensionsResponse(results, selections)
+	browseResults := mapDimensionsResponse(pDims, &selections)
+	searchResults := mapDimensionsResponse(results, &selections)
 
 	p.Output.Results = browseResults
 	p.SearchOutput.Results = searchResults
@@ -411,7 +411,7 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 }
 
 // mapDimensionsResponse returns a sorted array of selectable elements
-func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections []model.SelectableElement) []model.SelectableElement {
+func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[]model.SelectableElement) []model.SelectableElement {
 	results := []model.SelectableElement{}
 	for _, pDim := range pDims.Dimensions {
 		var sel model.SelectableElement
@@ -419,10 +419,13 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections []
 		sel.Text = pDim.Label
 		sel.InnerText = pDim.Description
 		sel.Value = pDim.ID
-		for _, dim := range selections {
-			if strings.Contains(dim.Value, pDim.ID) {
+		pDimId := helpers.TrimCategoryValue(pDim.ID)
+		for _, dim := range *selections {
+			dimV := helpers.TrimCategoryValue(dim.Value)
+			if strings.EqualFold(dimV, pDimId) {
 				sel.IsSelected = true
-				sel.Name = "delete-dimension"
+				sel.Name = "delete-option"
+				sel.Value = dim.Value
 				break
 			}
 		}

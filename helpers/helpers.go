@@ -3,6 +3,7 @@ package helpers
 import (
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -69,4 +70,10 @@ func Pluralise(req *http.Request, key, lang, keyPrefix string, plural int) strin
 		"lookup": str,
 	})
 	return helper.Localise(str, lang, plural)
+}
+
+// TrimCategoryValue trims _[0-9] from the given string and returns the result
+func TrimCategoryValue(s string) string {
+	rx := regexp.MustCompile(`(_[\d])\w+`)
+	return rx.ReplaceAllString(s, "")
 }
