@@ -229,7 +229,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, c, dimension, geogID, releaseDate, datasetDetails, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, parent, c, dimension, geogID, releaseDate, datasetDetails, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
 	rc.BuildPage(w, m, "coverage")
 }
 

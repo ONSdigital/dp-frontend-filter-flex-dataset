@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -40,6 +41,110 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 			})
 		})
 
+		Convey("Given a valid add dimension request", func() {
+			stubFormData := url.Values{}
+			stubFormData.Add("dimensions", "browse")
+			stubFormData.Add("add-dimension", "age")
+
+			Convey("When the user is redirected to the get change dimensions screen", func() {
+				const fid = "1234"
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					AddFlexDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return("", nil)
+
+				w := runPostChangeDimensions(fid, stubFormData, PostChangeDimensions(mockFc))
+
+				Convey("Then the location header should match the get change dimensions screen with form action persisted", func() {
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=browse", fid))
+				})
+
+				Convey("And the status code should be 303", func() {
+					So(w.Code, ShouldEqual, http.StatusSeeOther)
+				})
+			})
+		})
+
+		Convey("Given an invalid add dimension request", func() {
+			stubFormData := url.Values{}
+			stubFormData.Add("dimensions", "browse")
+			stubFormData.Add("add-dimension", "age")
+
+			Convey("When the fc.AddFlexDimension api responds with an error", func() {
+				const fid = "1234"
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					AddFlexDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return("", errors.New("Internal error"))
+
+				w := runPostChangeDimensions(fid, stubFormData, PostChangeDimensions(mockFc))
+
+				Convey("Then the client should not be redirected", func() {
+					So(w.Header().Get("Location"), ShouldBeEmpty)
+				})
+
+				Convey("And the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+		})
+
+		Convey("Given a valid remove dimension request", func() {
+			stubFormData := url.Values{}
+			stubFormData.Add("dimensions", "browse")
+			stubFormData.Add("delete-option", "age")
+
+			Convey("When the user is redirected to the get change dimensions screen", func() {
+				const fid = "1234"
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					RemoveDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return("", nil)
+
+				w := runPostChangeDimensions(fid, stubFormData, PostChangeDimensions(mockFc))
+
+				Convey("Then the location header should match the get change dimensions screen with form action persisted", func() {
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=browse", fid))
+				})
+
+				Convey("And the status code should be 303", func() {
+					So(w.Code, ShouldEqual, http.StatusSeeOther)
+				})
+			})
+		})
+
+		Convey("Given an invalid remove dimension request", func() {
+			stubFormData := url.Values{}
+			stubFormData.Add("dimensions", "browse")
+			stubFormData.Add("delete-option", "age")
+
+			Convey("When the fc.RemoveDimension api responds with an error", func() {
+				const fid = "1234"
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					RemoveDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return("", errors.New("Internal error"))
+
+				w := runPostChangeDimensions(fid, stubFormData, PostChangeDimensions(mockFc))
+
+				Convey("Then the client should not be redirected", func() {
+					So(w.Header().Get("Location"), ShouldBeEmpty)
+				})
+
+				Convey("And the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+		})
+
 		Convey("Given an invalid request", func() {
 			Convey("When the request is missing the hidden required form value", func() {
 				stubFormData := url.Values{}
@@ -54,7 +159,6 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 						So(w.Code, ShouldEqual, http.StatusBadRequest)
 					})
 				})
-
 			})
 		})
 	})

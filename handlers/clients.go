@@ -37,6 +37,8 @@ type FilterClient interface {
 	RemoveDimensionValue(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name, value, ifMatch string) (eTag string, err error)
 	DeleteDimensionOptions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name string) (eTag string, err error)
 	SubmitFilter(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, ifMatch string, sfr filter.SubmitFilterRequest) (resp *filter.SubmitFilterResponse, eTag string, err error)
+	AddFlexDimension(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, name string, options []string, isAreaType bool, ifMatch string) (eTag string, err error)
+	RemoveDimension(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, filterID, name, ifMatch string) (eTag string, err error)
 }
 
 // DatasetClient is an interface with methods required for a dataset client
