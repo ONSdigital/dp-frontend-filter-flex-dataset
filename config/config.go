@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Debug                       bool          `envconfig:"DEBUG"`
 	EnableMultivariate          bool          `envconfig:"ENABLE_MULTIVARIATE"`
+	EnableCustomSort            bool          `envconfig:"ENABLE_CUSTOM_SORT"`
 	BindAddr                    string        `envconfig:"BIND_ADDR"`
 	APIRouterURL                string        `envconfig:"API_ROUTER_URL"`
 	DefaultMaximumSearchResults int           `envconfig:"DEFAULT_MAXIMUM_SEARCH_RESULTS"`
@@ -48,6 +49,7 @@ func get() (*Config, error) {
 	cfg = &Config{
 		Debug:                       false,
 		EnableMultivariate:          false,
+		EnableCustomSort:            false,
 		BindAddr:                    "localhost:20100",
 		APIRouterURL:                "http://localhost:23200/v1",
 		DefaultMaximumSearchResults: 50,

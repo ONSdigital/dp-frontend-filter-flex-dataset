@@ -38,7 +38,7 @@ func Setup(ctx context.Context, r *mux.Router, cfg *config.Config, c Clients) {
 		r.StrictSlash(true).Path("/filters/{filterID}/dimensions/change").Methods("GET").HandlerFunc(handlers.GetChangeDimensions(c.Render, c.Filter, c.Dataset, c.Population))
 		r.StrictSlash(true).Path("/filters/{filterID}/dimensions/change").Methods("POST").HandlerFunc(handlers.PostChangeDimensions(c.Filter))
 	}
-	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("GET").HandlerFunc(handlers.DimensionsSelector(c.Render, c.Filter, c.Population, c.Dataset))
+	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("GET").HandlerFunc(handlers.DimensionsSelector(c.Render, c.Filter, c.Population, c.Dataset, *cfg))
 	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/{name}").Methods("POST").HandlerFunc(handlers.ChangeDimension(c.Filter))
 
 	r.StrictSlash(true).Path("/filters/{filterID}/dimensions/geography/coverage").Methods("GET").HandlerFunc(handlers.GetCoverage(c.Render, c.Filter, c.Population, c.Dataset, *cfg))

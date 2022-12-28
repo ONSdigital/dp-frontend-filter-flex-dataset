@@ -71,7 +71,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					"number+of+siblings",
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -102,7 +102,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 			w := runDimensionsSelector(
 				"city",
-				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
+				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
 			)
 
 			Convey("Then the status code should be 404", func() {
@@ -154,7 +154,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -197,7 +197,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -239,7 +239,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
 				)
 
 				Convey("And the status code should be 200", func() {
@@ -264,7 +264,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 				w := runDimensionsSelector(
 					dimensionName,
-					DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc),
+					DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
 				)
 
 				Convey("Then the status code should be 500", func() {
@@ -374,7 +374,7 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -470,7 +470,7 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -525,7 +525,7 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -578,7 +578,7 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -637,7 +637,7 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					selector := DimensionsSelector(mockRend, mockFilter, mockPc, mockDc)
+					selector := DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg)
 
 					w := httptest.NewRecorder()
 					router := mux.NewRouter()
@@ -690,7 +690,7 @@ func TestDimensionsHandler(t *testing.T) {
 					}, nil).
 					AnyTimes()
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc))
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -732,7 +732,7 @@ func TestDimensionsHandler(t *testing.T) {
 					}, nil).
 					AnyTimes()
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc))
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg))
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
