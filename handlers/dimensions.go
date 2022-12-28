@@ -6,6 +6,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -13,13 +14,13 @@ import (
 )
 
 // DimensionsSelector Handler
-func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient) http.HandlerFunc {
+func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, cfg config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		dimensionsSelector(w, req, rc, fc, pc, dc, collectionID, accessToken, lang)
+		dimensionsSelector(w, req, cfg, rc, fc, pc, dc, collectionID, accessToken, lang)
 	})
 }
 
-func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, collectionID, accessToken, lang string) {
+func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, collectionID, accessToken, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -107,7 +108,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, rc RenderClien
 	}
 
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts)
+	selector := mapper.CreateAreaTypeSelector(req, cfg.EnableCustomSort, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts)
 	rc.BuildPage(w, selector, "selector")
 }
 
