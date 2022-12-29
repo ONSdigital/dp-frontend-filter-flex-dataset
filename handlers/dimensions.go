@@ -14,13 +14,13 @@ import (
 )
 
 // DimensionsSelector Handler
-func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, cfg config.Config) http.HandlerFunc {
+func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, cfg config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		dimensionsSelector(w, req, cfg, rc, fc, pc, dc, collectionID, accessToken, lang)
+		dimensionsSelector(w, req, cfg, rc, fc, pc, dc, zc, collectionID, accessToken, lang)
 	})
 }
 
-func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, collectionID, accessToken, lang string) {
+func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, collectionID, accessToken, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -28,6 +28,12 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 
 	logData := log.Data{
 		"filter_id": filterID,
+	}
+
+	eb, serviceMsg, err := getZebContent(ctx, zc, accessToken, collectionID, lang)
+	// log zebedee error but don't set a server error
+	if err != nil {
+		log.Error(ctx, "unable to get homepage content", err, log.Data{"homepage_content": err})
 	}
 
 	currentFilter, _, err := fc.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
@@ -47,7 +53,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 	basePage := rc.NewBasePageModel()
 
 	if !isAreaType(filterDimension) {
-		selector := mapper.CreateSelector(req, basePage, filterDimension.Name, lang, filterID)
+		selector := mapper.CreateSelector(req, basePage, filterDimension.Name, lang, filterID, serviceMsg, eb)
 		rc.BuildPage(w, selector, "selector")
 		return
 	}
@@ -108,7 +114,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 	}
 
 	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, cfg.EnableCustomSort, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts)
+	selector := mapper.CreateAreaTypeSelector(req, cfg.EnableCustomSort, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts, serviceMsg, eb)
 	rc.BuildPage(w, selector, "selector")
 }
 

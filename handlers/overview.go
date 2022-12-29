@@ -9,6 +9,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
@@ -18,13 +19,13 @@ import (
 )
 
 // FilterFlexOverview Handler
-func FilterFlexOverview(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, cfg config.Config) http.HandlerFunc {
+func FilterFlexOverview(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, zc ZebedeeClient, cfg config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		filterFlexOverview(w, req, rc, fc, dc, pc, cfg, accessToken, collectionID, lang)
+		filterFlexOverview(w, req, rc, fc, dc, pc, zc, cfg, accessToken, collectionID, lang)
 	})
 }
 
-func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, cfg config.Config, accessToken, collectionID, lang string) {
+func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, zc ZebedeeClient, cfg config.Config, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -32,12 +33,18 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	var filterDims filter.Dimensions
 	var datasetDims dataset.VersionDimensions
 	var filterJob *filter.GetFilterResponse
-	var fErr, dErr, fdsErr, imErr error
+	var eb zebedee.EmergencyBanner
+	var fErr, dErr, fdsErr, imErr, zErr error
 	var isMultivariate bool
-	var supVar string
+	var supVar, serviceMsg string
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		eb, serviceMsg, zErr = getZebContent(ctx, zc, accessToken, collectionID, lang)
+	}()
 
 	go func() {
 		defer wg.Done()
@@ -90,6 +97,10 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 
 	wg.Wait()
 
+	// log zebedee error but don't set a server error
+	if zErr != nil {
+		log.Error(ctx, "unable to get homepage content", zErr, log.Data{"homepage_content": zErr})
+	}
 	if fErr != nil {
 		log.Error(ctx, "failed to get filter", fErr, log.Data{"filter_id": filterID})
 		setStatusCode(req, w, fErr)
@@ -263,6 +274,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	basePage := rc.NewBasePageModel()
 	showAll := req.URL.Query()["showAll"]
 	path := req.URL.Path
-	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, fDims, datasetDims, hasNoAreaOptions, isMultivariate)
+	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, fDims, datasetDims, hasNoAreaOptions, isMultivariate, eb, serviceMsg)
 	rc.BuildPage(w, m, "overview")
 }

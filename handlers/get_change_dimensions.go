@@ -9,6 +9,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-net/v2/handlers"
@@ -17,23 +18,24 @@ import (
 )
 
 // GetChangeDimensions Handler
-func GetChangeDimensions(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient) http.HandlerFunc {
+func GetChangeDimensions(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, zc ZebedeeClient) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		getChangeDimensions(w, req, rc, fc, dc, pc, accessToken, collectionID, lang)
+		getChangeDimensions(w, req, rc, fc, dc, pc, zc, accessToken, collectionID, lang)
 	})
 }
 
-func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, accessToken, collectionID, lang string) {
+func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, zc ZebedeeClient, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	fid := vars["filterID"]
 	q := req.URL.Query().Get("q")
 	isSearch := strings.Contains(req.URL.RawQuery, "q=")
 	f := req.URL.Query().Get("f")
-	var fErr, imErr, pErr, prErr error
+	var fErr, imErr, pErr, prErr, zErr error
 	var pDims, pResults population.GetDimensionsResponse
 	var dims []model.FilterDimension
-	var popType string
+	var eb zebedee.EmergencyBanner
+	var popType, serviceMsg string
 	var isMultivariate bool
 
 	// get filter dimensions
@@ -45,7 +47,12 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		eb, serviceMsg, zErr = getZebContent(ctx, zc, accessToken, collectionID, lang)
+	}()
 
 	go func() {
 		defer wg.Done()
@@ -112,6 +119,10 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 	wg.Wait()
 
 	// error handling from waitgroup
+	// log zebedee error but don't set a server error
+	if zErr != nil {
+		log.Error(ctx, "unable to get homepage content", zErr, log.Data{"homepage_content": zErr})
+	}
 	if fErr != nil {
 		log.Error(ctx, "failed to get filter", fErr, log.Data{
 			"filter_id": fid,
@@ -161,6 +172,6 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetChangeDimensions(req, basePage, lang, fid, q, f, dims, pDims, pResults)
+	m := mapper.CreateGetChangeDimensions(req, basePage, lang, fid, q, f, serviceMsg, eb, dims, pDims, pResults)
 	rc.BuildPage(w, m, "dimensions")
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/health"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/assets"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/routes"
@@ -68,6 +69,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *E
 		Dataset:    dataset.NewWithHealthClient(svc.routerHealthClient),
 		Dimension:  dimensionClient,
 		Population: populationClient,
+		Zebedee:    zebedee.NewWithHealthClient(svc.routerHealthClient),
 	}
 
 	// Get healthcheck with checkers
