@@ -11,6 +11,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-cookies/cookies"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
@@ -39,11 +40,11 @@ const (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions, isMultivariate bool) model.Overview {
+func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions, isMultivariate bool, eb zebedee.EmergencyBanner, serviceMsg string) model.Overview {
 	p := model.Overview{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, reviewPageType, "Review changes", lang)
+	mapCommonProps(req, &p.Page, reviewPageType, "Review changes", lang, serviceMsg, eb)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 	p.IsMultivariate = isMultivariate
@@ -123,11 +124,11 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 }
 
 // CreateSelector maps data to the Selector model
-func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, filterID string) model.Selector {
+func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, filterID, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
 	p := model.Selector{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-selector", cases.Title(language.English).String(dimName), lang)
+	mapCommonProps(req, &p.Page, "filter-flex-selector", cases.Title(language.English).String(dimName), lang, serviceMsg, eb)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
@@ -139,8 +140,8 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool) model.Selector {
-	p := CreateSelector(req, basePage, fDim.Label, lang, filterID)
+func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
+	p := CreateSelector(req, basePage, fDim.Label, lang, filterID, serviceMsg, eb)
 	p.Page.Metadata.Title = areaTypeTitle
 	p.Page.Type = areaPageType
 	p.HasOptions = hasOpts
@@ -230,11 +231,11 @@ func getAreaTypeIsLessThan(left, right model.Selection) bool {
 }
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, setParent, coverage, dim, geogID, releaseDate string, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
+func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, setParent, coverage, dim, geogID, releaseDate, serviceMsg string, eb zebedee.EmergencyBanner, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
 	p := model.Coverage{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, coveragePageType, coverageTitle, lang)
+	mapCommonProps(req, &p.Page, coveragePageType, coverageTitle, lang, serviceMsg, eb)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
@@ -371,7 +372,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 }
 
 // CreateGetChangeDimensions maps data to the ChangeDimensions model
-func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang, fid, q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse) model.ChangeDimensions {
+func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang, fid, q, formAction, serviceMsg string, eb zebedee.EmergencyBanner, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse) model.ChangeDimensions {
 	p := model.ChangeDimensions{
 		Page: basePage,
 	}
@@ -381,7 +382,7 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 			URI:   fmt.Sprintf("/filters/%s/dimensions", fid),
 		},
 	}
-	mapCommonProps(req, &p.Page, "change_variables", "Add or remove variables", lang)
+	mapCommonProps(req, &p.Page, "change_variables", "Add or remove variables", lang, serviceMsg, eb)
 	p.FormAction = formAction
 
 	selections := []model.SelectableElement{}
@@ -450,7 +451,7 @@ func getAddOptionStr(isParentSearch bool) string {
 }
 
 // mapCommonProps maps common properties on all filter/flex pages
-func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang string) {
+func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang, serviceMsg string, eb zebedee.EmergencyBanner) {
 	mapCookiePreferences(req, &p.CookiesPreferencesSet, &p.CookiesPolicy)
 	p.BetaBannerEnabled = true
 	p.Type = pageType
@@ -458,6 +459,8 @@ func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang 
 	p.Language = lang
 	p.URI = req.URL.Path
 	p.SearchNoIndexEnabled = true
+	p.ServiceMessage = serviceMsg
+	p.EmergencyBanner = mapEmergencyBanner(eb)
 }
 
 // mapCookiePreferences reads cookie policy and preferences cookies and then maps the values to the page model
@@ -468,4 +471,18 @@ func mapCookiePreferences(req *http.Request, preferencesIsSet *bool, policy *cor
 		Essential: preferencesCookie.Policy.Essential,
 		Usage:     preferencesCookie.Policy.Usage,
 	}
+}
+
+// mapEmergencyBanner maps relevant emergency banner data
+func mapEmergencyBanner(bannerData zebedee.EmergencyBanner) coreModel.EmergencyBanner {
+	var mappedEmergencyBanner coreModel.EmergencyBanner
+	emptyBannerObj := zebedee.EmergencyBanner{}
+	if bannerData != emptyBannerObj {
+		mappedEmergencyBanner.Title = bannerData.Title
+		mappedEmergencyBanner.Type = strings.Replace(bannerData.Type, "_", "-", -1)
+		mappedEmergencyBanner.Description = bannerData.Description
+		mappedEmergencyBanner.URI = bannerData.URI
+		mappedEmergencyBanner.LinkText = bannerData.LinkText
+	}
+	return mappedEmergencyBanner
 }

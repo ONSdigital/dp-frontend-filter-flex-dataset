@@ -9,6 +9,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
@@ -85,8 +86,14 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(mockRend, mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(mockRend, mockFc, mockDc, mockPc, mockZc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 200", func() {
@@ -148,8 +155,14 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					Return(population.GetDimensionsResponse{}, nil).
 					AnyTimes()
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(mockRend, mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(mockRend, mockFc, mockDc, mockPc, mockZc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 200", func() {
@@ -180,8 +193,14 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(md, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/{filterID}/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, NewMockPopulationClient(mockCtrl)))
+				router.HandleFunc("/filters/{filterID}/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the user is redirected", func() {
@@ -201,11 +220,78 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					Return(filter.Dimensions{}, "", errors.New("Internal error"))
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl)))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl), NewMockZebedeeClient(mockCtrl)))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When zebedee.GetHomepageContent api method responds with an error", func() {
+				md := dataset.DatasetDetails{
+					Type: "multivariate",
+				}
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.
+					EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
+				mockRend.
+					EXPECT().
+					BuildPage(gomock.Any(), gomock.Any(), "dimensions")
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetFilter(gomock.Any(), gomock.Any()).
+					Return(mf, nil)
+				mockFc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimensions{
+						Items: []filter.Dimension{
+							{
+								Name:       "test dim",
+								ID:         "td1",
+								IsAreaType: new(bool),
+							},
+						},
+					}, "", nil)
+				mockFc.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{
+						Name:       "test dim",
+						ID:         "td1",
+						IsAreaType: new(bool),
+					}, "", nil)
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(md, nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, errors.New("Internal error"))
+
+				router := mux.NewRouter()
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(mockRend, mockFc, mockDc, mockPc, mockZc))
+				router.ServeHTTP(w, req)
+
+				Convey("Then the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
 				})
 			})
 
@@ -252,8 +338,14 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
@@ -298,8 +390,14 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
@@ -330,8 +428,14 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
@@ -366,8 +470,14 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, errors.New("Internal error"))
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {
@@ -407,8 +517,14 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, errors.New("Internal error"))
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc))
+				router.HandleFunc("/filters/12345/dimensions/change", GetChangeDimensions(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc))
 				router.ServeHTTP(w, req)
 
 				Convey("Then the status code should be 500", func() {

@@ -7,6 +7,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-renderer/model"
 )
 
@@ -57,4 +58,9 @@ type PopulationClient interface {
 	GetArea(ctx context.Context, input population.GetAreaInput) (population.GetAreaResponse, error)
 	GetDimensions(ctx context.Context, input population.GetDimensionsInput) (population.GetDimensionsResponse, error)
 	GetParentAreaCount(ctx context.Context, input population.GetParentAreaCountInput) (int, error)
+}
+
+// ZebedeeClient is an interface with methods required for the zebedee client
+type ZebedeeClient interface {
+	GetHomepageContent(ctx context.Context, userAccessToken, collectionID, lang, path string) (m zebedee.HomepageContent, err error)
 }

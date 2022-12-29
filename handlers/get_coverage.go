@@ -12,6 +12,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
@@ -22,13 +23,13 @@ import (
 )
 
 // GetCoverage handler
-func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, cfg config.Config) http.HandlerFunc {
+func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, cfg config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		getCoverage(w, req, cfg, rc, fc, pc, dc, lang, accessToken, collectionID)
+		getCoverage(w, req, cfg, rc, fc, pc, dc, zc, lang, accessToken, collectionID)
 	})
 }
 
-func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, lang, accessToken, collectionID string) {
+func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, lang, accessToken, collectionID string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -50,13 +51,18 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	var opts filter.DimensionOptions
 	var areas population.GetAreasResponse
 	var datasetDetails dataset.DatasetDetails
-	var releaseDate string
+	var eb zebedee.EmergencyBanner
+	var releaseDate, serviceMsg string
 
-	var fErr, dErr, pErr, oErr, nsErr, psErr, dsErr, rdErr error
+	var fErr, dErr, pErr, oErr, nsErr, psErr, dsErr, rdErr, zErr error
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
+	go func() {
+		defer wg.Done()
+		eb, serviceMsg, zErr = getZebContent(ctx, zc, accessToken, collectionID, lang)
+	}()
 	go func() {
 		defer wg.Done()
 		filterJob, fErr = fc.GetFilter(ctx, filter.GetFilterInput{
@@ -148,6 +154,11 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	}()
 	wg.Wait()
 
+	// error handling from waitgroup
+	// log zebedee error but don't set a server error
+	if zErr != nil {
+		log.Error(ctx, "unable to get homepage content", zErr, log.Data{"homepage_content": zErr})
+	}
 	if pErr != nil {
 		log.Error(ctx, "failed to get parents", pErr, log.Data{
 			"dataset_id":   geogID,
@@ -229,7 +240,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	}
 
 	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, parent, c, dimension, geogID, releaseDate, datasetDetails, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
+	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, parent, c, dimension, geogID, releaseDate, serviceMsg, eb, datasetDetails, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
 	rc.BuildPage(w, m, "coverage")
 }
 

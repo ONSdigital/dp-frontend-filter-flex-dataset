@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 
 	"github.com/ONSdigital/log.go/v2/log"
 )
@@ -26,6 +27,12 @@ const (
 	NameSearch      = "name-search"
 	ParentSearch    = "parent-search"
 )
+
+// getZebContent is a helper function that returns the homepage content required to map the emergency banner and service message
+func getZebContent(ctx context.Context, zc ZebedeeClient, userAuthToken, collectionID, lang string) (zebedee.EmergencyBanner, string, error) {
+	hpc, err := zc.GetHomepageContent(ctx, userAuthToken, collectionID, lang, "/")
+	return hpc.EmergencyBanner, hpc.ServiceMessage, err
+}
 
 func getReleaseDate(ctx context.Context, dc DatasetClient, userAuthToken, collectionID, datasetID, edition, versionID string) (string, error) {
 	var vErr error

@@ -9,6 +9,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -74,16 +75,63 @@ func TestOverviewHandler(t *testing.T) {
 				mockDc.EXPECT().GetOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), "", "", "0", dims.Items[0].Name,
 					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
 				mockDc.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dataset.DatasetDetails{}, nil)
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), cfg))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg))
 
 				router.ServeHTTP(w, req)
 
 				So(w.Code, ShouldEqual, http.StatusOK)
+			})
+
+			Convey("when the zebedee.GetHomepageContent api method responds with an error", func() {
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockDc := NewMockDatasetClient(mockCtrl)
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFilterDims := filter.Dimensions{
+					Items: []filter.Dimension{
+						{
+							Name:       "Test",
+							IsAreaType: new(bool),
+							Options:    []string{"an option", "and another"},
+						},
+					},
+				}
+				mockRend.EXPECT().NewBasePageModel().Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
+				mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "overview")
+				mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(&filter.GetFilterResponse{}, nil)
+				mockFc.EXPECT().GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterDims, "", nil)
+				mockFc.EXPECT().GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterDims.Items[0], "", nil)
+				mockDc.EXPECT().GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockDatasetDims, nil)
+				mockDc.EXPECT().GetOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), "", "", "0", dims.Items[0].Name,
+					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
+				mockDc.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dataset.DatasetDetails{}, nil)
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, errors.New("Internal error"))
+
+				w := httptest.NewRecorder()
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+
+				router := mux.NewRouter()
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg))
+
+				router.ServeHTTP(w, req)
+
+				Convey("then the status is 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
 			})
 
 			Convey("no options on filter job additional call to get options", func() {
@@ -100,12 +148,17 @@ func TestOverviewHandler(t *testing.T) {
 					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
 				mockDc.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dataset.DatasetDetails{}, nil)
 				mockDc.EXPECT().GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockDatasetDims, nil)
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), cfg))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -159,10 +212,16 @@ func TestOverviewHandler(t *testing.T) {
 						Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(dataset.DatasetDetails{}, nil)
 
+					mockZc := NewMockZebedeeClient(mockCtrl)
+					mockZc.
+						EXPECT().
+						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(zebedee.HomepageContent{}, nil)
+
 					w := httptest.NewRecorder()
 					req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-					FilterFlexOverview(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, cfg).
+					FilterFlexOverview(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc, cfg).
 						ServeHTTP(w, req)
 
 					Convey("Then the status code should be 500", func() {
@@ -241,10 +300,16 @@ func TestOverviewHandler(t *testing.T) {
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 							Return(dataset.DatasetDetails{}, nil)
 
+						mockZc := NewMockZebedeeClient(mockCtrl)
+						mockZc.
+							EXPECT().
+							GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(zebedee.HomepageContent{}, nil)
+
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -318,10 +383,16 @@ func TestOverviewHandler(t *testing.T) {
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 							Return(dataset.DatasetDetails{}, nil)
 
+						mockZc := NewMockZebedeeClient(mockCtrl)
+						mockZc.
+							EXPECT().
+							GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(zebedee.HomepageContent{}, nil)
+
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -401,10 +472,16 @@ func TestOverviewHandler(t *testing.T) {
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 							Return(dataset.DatasetDetails{}, nil)
 
+						mockZc := NewMockZebedeeClient(mockCtrl)
+						mockZc.
+							EXPECT().
+							GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(zebedee.HomepageContent{}, nil)
+
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -488,10 +565,16 @@ func TestOverviewHandler(t *testing.T) {
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 							Return(dataset.DatasetDetails{}, nil)
 
+						mockZc := NewMockZebedeeClient(mockCtrl)
+						mockZc.
+							EXPECT().
+							GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(zebedee.HomepageContent{}, nil)
+
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg).
+						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg).
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -516,11 +599,17 @@ func TestOverviewHandler(t *testing.T) {
 					GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimensions{}, "", nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl), cfg))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl), mockZc, cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -544,11 +633,17 @@ func TestOverviewHandler(t *testing.T) {
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.DatasetDetails{}, errors.New("Internal error"))
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), cfg))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -587,11 +682,17 @@ func TestOverviewHandler(t *testing.T) {
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.DatasetDetails{}, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -621,11 +722,17 @@ func TestOverviewHandler(t *testing.T) {
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.DatasetDetails{}, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -668,11 +775,17 @@ func TestOverviewHandler(t *testing.T) {
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.DatasetDetails{}, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg))
 
 				router.ServeHTTP(w, req)
 
@@ -751,11 +864,17 @@ func TestOverviewHandler(t *testing.T) {
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.DatasetDetails{}, nil)
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, cfg))
+				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg))
 
 				router.ServeHTTP(w, req)
 
