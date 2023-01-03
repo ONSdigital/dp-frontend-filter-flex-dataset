@@ -66,6 +66,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		pageDim.OptionsCount = dim.OptionsCount
 		pageDim.ID = dim.ID
 		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
+		pageDim.IsChangeCategories = isMultivariate
 		q := url.Values{}
 
 		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) && !*dim.IsAreaType {
@@ -123,17 +124,50 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 	return p
 }
 
-// CreateSelector maps data to the Selector model
-func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, filterID, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
+// CreateCategorisationsSelector maps data to the Selector model
+func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, dimLabel, lang, filterID, dimId, serviceMsg string, eb zebedee.EmergencyBanner, cats population.GetCategorisationsResponse, isValidationError bool) model.Selector {
 	p := model.Selector{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-selector", cases.Title(language.English).String(dimName), lang, serviceMsg, eb)
+	mapCommonProps(req, &p.Page, "filter-flex-selector", cases.Title(language.English).String(dimLabel), lang, serviceMsg, eb)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
 			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
 		},
+	}
+	p.LeadText = helper.Localise("SelectCategoriesLeadText", lang, 1)
+	p.InitialSelection = dimId
+
+	var selections []model.Selection
+	for _, cat := range cats.Items {
+		cats := []string{}
+		for _, c := range cat.Categories {
+			cats = append(cats, c.Label)
+		}
+		selections = append(selections, model.Selection{
+			Value:      cat.ID,
+			Label:      fmt.Sprintf("%d %s", len(cats), helper.Localise("Category", lang, len(cats))),
+			Categories: cats,
+		})
+	}
+	p.Selections = selections
+
+	if isValidationError {
+		p.Page.Error = coreModel.Error{
+			Title: p.Page.Metadata.Title,
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "SelectCategoriesError",
+						Plural:    1,
+					},
+					URL: "#categories-error",
+				},
+			},
+			Language: lang,
+		}
+		p.ErrorId = "categories-error"
 	}
 
 	return p
@@ -141,10 +175,18 @@ func CreateSelector(req *http.Request, basePage coreModel.Page, dimName, lang, f
 
 // CreateAreaTypeSelector maps data to the Selector model
 func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
-	p := CreateSelector(req, basePage, fDim.Label, lang, filterID, serviceMsg, eb)
-	p.Page.Metadata.Title = areaTypeTitle
-	p.Page.Type = areaPageType
+	p := model.Selector{
+		Page: basePage,
+	}
+	mapCommonProps(req, &p.Page, areaPageType, areaTypeTitle, lang, serviceMsg, eb)
+	p.Breadcrumb = []coreModel.TaxonomyNode{
+		{
+			Title: helper.Localise("Back", lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
+		},
+	}
 	p.HasOptions = hasOpts
+	p.LeadText = helper.Localise("SelectAreaTypeLeadText", lang, 1)
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
@@ -160,6 +202,7 @@ func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage c
 			},
 			Language: lang,
 		}
+		p.ErrorId = "area-type-error"
 	}
 
 	var selections []model.Selection

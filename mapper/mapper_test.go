@@ -226,24 +226,150 @@ func TestOverview(t *testing.T) {
 	})
 }
 
-func TestCreateSelector(t *testing.T) {
+func TestCreateCategorisationsSelector(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	mdl := coreModel.Page{}
 	req := httptest.NewRequest("", "/", nil)
 	lang := "en"
 	eb := getTestEmergencyBanner()
 	sm := getTestServiceMessage()
-	Convey("test create selector maps correctly", t, func() {
-		m := CreateSelector(req, mdl, "dimension Name", lang, "12345", sm, eb)
-		So(m.BetaBannerEnabled, ShouldBeTrue)
-		So(m.Type, ShouldEqual, "filter-flex-selector")
-		So(m.Metadata.Title, ShouldEqual, "Dimension Name")
-		So(m.Language, ShouldEqual, lang)
-		So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
-		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
-		So(m.SearchNoIndexEnabled, ShouldBeTrue)
-		So(m.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
-		So(m.ServiceMessage, ShouldEqual, sm)
+	Convey("Given a request to the CreateCategorisationsSelector", t, func() {
+		Convey("When valid parameters are provided", func() {
+			cats := population.GetCategorisationsResponse{
+				Items: []population.Dimension{
+					{
+						ID: "cat_3a",
+						Categories: []population.Category{
+							{
+								ID:    "1",
+								Label: "Cat one",
+							},
+							{
+								ID:    "2",
+								Label: "Cat two",
+							},
+							{
+								ID:    "3",
+								Label: "Cat three",
+							},
+						},
+					},
+					{
+						ID: "cat_2a",
+						Categories: []population.Category{
+							{
+								ID:    "1",
+								Label: "Cat one",
+							},
+							{
+								ID:    "2",
+								Label: "Cat two",
+							},
+						},
+					},
+					{
+						ID: "cat_4a",
+						Categories: []population.Category{
+							{
+								ID:    "1",
+								Label: "Cat one",
+							},
+							{
+								ID:    "2",
+								Label: "Cat two",
+							},
+							{
+								ID:    "3",
+								Label: "Cat three",
+							},
+							{
+								ID:    "4",
+								Label: "Cat four",
+							},
+						},
+					},
+				},
+			}
+			m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", sm, eb, cats, false)
+
+			Convey("Then it maps the page metadata", func() {
+				So(m.BetaBannerEnabled, ShouldBeTrue)
+				So(m.Type, ShouldEqual, "filter-flex-selector")
+				So(m.Metadata.Title, ShouldEqual, "Dimension")
+				So(m.Language, ShouldEqual, lang)
+				So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
+				So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
+			})
+
+			Convey("Then it sets the lead text", func() {
+				So(m.LeadText, ShouldEqual, "Select categories")
+			})
+
+			Convey("Then it sets SearchNoIndexEnabled to false", func() {
+				So(m.SearchNoIndexEnabled, ShouldBeTrue)
+			})
+
+			Convey("Then it sets InitialSelection to dim1234", func() {
+				So(m.InitialSelection, ShouldEqual, "dim1234")
+			})
+
+			Convey("Then it maps the service message", func() {
+				So(m.ServiceMessage, ShouldEqual, sm)
+			})
+
+			Convey("Then it maps the emergency banner", func() {
+				So(m.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
+			})
+
+			Convey("Then it maps the categories", func() {
+				mockedCats := []model.Selection{
+					{
+						Value: cats.Items[0].ID,
+						Label: "3 categories",
+						Categories: []string{
+							cats.Items[0].Categories[0].Label,
+							cats.Items[0].Categories[1].Label,
+							cats.Items[0].Categories[2].Label,
+						},
+					},
+					{
+						Value: cats.Items[1].ID,
+						Label: "2 categories",
+						Categories: []string{
+							cats.Items[1].Categories[0].Label,
+							cats.Items[1].Categories[1].Label,
+						},
+					},
+					{
+						Value: cats.Items[2].ID,
+						Label: "4 categories",
+						Categories: []string{
+							cats.Items[2].Categories[0].Label,
+							cats.Items[2].Categories[1].Label,
+							cats.Items[2].Categories[2].Label,
+							cats.Items[2].Categories[3].Label,
+						},
+					},
+				}
+				So(m.Selections, ShouldResemble, mockedCats)
+			})
+		})
+		Convey("When a form validation error occurs", func() {
+			m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", sm, eb, population.GetCategorisationsResponse{}, true)
+			Convey("Then it sets the error title", func() {
+				So(m.Error.Title, ShouldEqual, "Dimension")
+			})
+
+			Convey("Then it populates the error items struct", func() {
+				So(m.Error.ErrorItems, ShouldHaveLength, 1)
+				So(m.Error.ErrorItems[0].Description.LocaleKey, ShouldEqual, "SelectCategoriesError")
+				So(m.Error.ErrorItems[0].URL, ShouldEqual, "#categories-error")
+			})
+
+			Convey("Then it sets the ErrorId", func() {
+				So(m.ErrorId, ShouldEqual, "categories-error")
+			})
+		})
 	})
 }
 

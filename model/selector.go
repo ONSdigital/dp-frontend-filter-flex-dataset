@@ -12,6 +12,8 @@ type Selector struct {
 	InitialSelection string
 	IsAreaType       bool
 	HasOptions       bool
+	LeadText         string `json:"lead_text"`
+	ErrorId          string `json:"error_id"`
 }
 
 // Selection represents a dimension selection (e.g. an Area-type of City)
@@ -19,5 +21,6 @@ type Selection struct {
 	Value       string
 	Label       string
 	Description string
+	Categories  []string
 	TotalCount  int
 }

@@ -20,6 +20,13 @@ var cyLocale = []string{
 	"one = \"Dimensions search label (cy)\"",
 	"[CoverageSearchLabel]",
 	"one = \"Coverage search label (cy)\"",
+	"[SelectAreaTypeLeadText]",
+	"one = \"Select area type (cy)\"",
+	"[SelectCategoriesLeadText]",
+	"one = \"Select categories (cy)\"",
+	"[Category]",
+	"one = \"category (cy)\"",
+	"other = \"categories (cy)\"",
 }
 
 var enLocale = []string{
@@ -40,6 +47,13 @@ var enLocale = []string{
 	"one = \"Dimensions search label\"",
 	"[CoverageSearchLabel]",
 	"one = \"Coverage search label\"",
+	"[SelectAreaTypeLeadText]",
+	"one = \"Select area type\"",
+	"[SelectCategoriesLeadText]",
+	"one = \"Select categories\"",
+	"[Category]",
+	"one = \"category\"",
+	"other = \"categories\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes

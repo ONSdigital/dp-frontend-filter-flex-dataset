@@ -62,7 +62,7 @@
                                     {{ end }}
                                 {{ end }}
                             </dd>
-                            {{ if or (.IsAreaType) (.IsCoverage) }}
+                            {{ if or (.IsAreaType) (.IsCoverage) (.IsChangeCategories) }}
                                 <dd class="ons-summary__actions ons-u-flex-ai-fs ons-u-pt-s ons-u-pb-s ons-u-pl-no@xxs ons-u-ml-xs@xxs ons-u-order--2@xxs@m
                                         ons-col-2@m">
                                     <a href="{{ .URI }}" class="ons-summary__button">
@@ -70,8 +70,10 @@
                                         <span class="ons-u-vh">
                                             {{ if .IsAreaType }}
                                                 {{- localise "AreaTypeDescription" $lang 1 -}}
-                                            {{ else }}
+                                            {{ else if .IsCoverage }}
                                                 {{- localise "AreaTypeCoverageTitle" $lang 1 -}}
+                                            {{ else }}
+                                                {{- .Name -}}
                                             {{ end }}
                                         </span>
                                     </a>
