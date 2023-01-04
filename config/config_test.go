@@ -26,7 +26,7 @@ func TestConfig(t *testing.T) {
 				So(cfg.APIRouterURL, ShouldEqual, "http://localhost:23200/v1")
 				So(cfg.BindAddr, ShouldEqual, "localhost:20100")
 				So(cfg.DefaultMaximumSearchResults, ShouldEqual, 50)
-				So(cfg.PatternLibraryAssetsPath, ShouldEqual, "//cdn.ons.gov.uk/dp-design-system/48c4918")
+				So(cfg.PatternLibraryAssetsPath, ShouldEqual, "//cdn.ons.gov.uk/dp-design-system/9696d79")
 				So(cfg.SupportedLanguages, ShouldResemble, []string{"en", "cy"})
 				So(cfg.SiteDomain, ShouldEqual, "localhost")
 				So(cfg.GracefulShutdownTimeout, ShouldEqual, 5*time.Second)
