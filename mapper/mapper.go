@@ -68,38 +68,24 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
 		pageDim.IsChangeCategories = isMultivariate
 		q := url.Values{}
+		midFloor, midCeiling := getTruncationMidRange(dim.OptionsCount)
 
+		var displayedOptions []string
 		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) && !*dim.IsAreaType {
-			firstSlice := dim.Options[:3]
-
-			mid := len(dim.Options) / 2
-			midFloor := mid - 2
-			midCeiling := midFloor + 3
-			midSlice := dim.Options[midFloor:midCeiling]
-
-			lastSlice := dim.Options[len(dim.Options)-3:]
-			pageDim.Options = append(pageDim.Options, firstSlice...)
-			pageDim.Options = append(pageDim.Options, midSlice...)
-			pageDim.Options = append(pageDim.Options, lastSlice...)
-
+			displayedOptions = append(displayedOptions, dim.Options[:3]...)
+			displayedOptions = append(displayedOptions, dim.Options[midFloor:midCeiling]...)
+			displayedOptions = append(displayedOptions, dim.Options[len(dim.Options)-3:]...)
 			q.Add(queryStrKey, dim.Name)
 			helpers.PersistExistingParams(queryStrValues, queryStrKey, dim.Name, q)
 			pageDim.IsTruncated = true
 		} else {
 			helpers.PersistExistingParams(queryStrValues, queryStrKey, dim.Name, q)
-			pageDim.Options = dim.Options
+			displayedOptions = dim.Options
 			pageDim.IsTruncated = false
 		}
 
-		truncatePath := path
-		if q.Encode() != "" {
-			truncatePath += fmt.Sprintf("?%s", q.Encode())
-		}
-		if dim.ID != "" {
-			truncatePath += fmt.Sprintf("#%s", dim.ID)
-		}
-		pageDim.TruncateLink = truncatePath
-
+		pageDim.Options = append(pageDim.Options, displayedOptions...)
+		pageDim.TruncateLink = generateTruncatePath(path, dim.ID, q)
 		p.Dimensions = append(p.Dimensions, pageDim)
 	}
 
@@ -145,11 +131,7 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 		for _, c := range cat.Categories {
 			cats = append(cats, c.Label)
 		}
-		selections = append(selections, model.Selection{
-			Value:      cat.ID,
-			Label:      fmt.Sprintf("%d %s", len(cats), helper.Localise("Category", lang, len(cats))),
-			Categories: cats,
-		})
+		selections = append(selections, mapCats(cats, req.URL.Query()["showAll"], lang, req.URL.Path, cat.ID))
 	}
 	p.Selections = selections
 
@@ -528,4 +510,57 @@ func mapEmergencyBanner(bannerData zebedee.EmergencyBanner) coreModel.EmergencyB
 		mappedEmergencyBanner.LinkText = bannerData.LinkText
 	}
 	return mappedEmergencyBanner
+}
+
+// getTruncationMidRange returns ints that can be used as the truncation mid range
+func getTruncationMidRange(total int) (int, int) {
+	mid := total / 2
+	midFloor := mid - 2
+	midCeiling := midFloor + 3
+	if midFloor < 0 {
+		midFloor = 0
+	}
+	return midFloor, midCeiling
+}
+
+// generateTruncatePath returns the path to truncate or show all
+func generateTruncatePath(path, dimID string, q url.Values) string {
+	truncatePath := path
+	if q.Encode() != "" {
+		truncatePath += fmt.Sprintf("?%s", q.Encode())
+	}
+	if dimID != "" {
+		truncatePath += fmt.Sprintf("#%s", dimID)
+	}
+	return truncatePath
+}
+
+// mapCats is a helper function that returns either truncated or untruncated mapped categories
+func mapCats(cats, queryStrValues []string, lang, path, catID string) model.Selection {
+	q := url.Values{}
+	catsLength := len(cats)
+	midFloor, midCeiling := getTruncationMidRange(catsLength)
+
+	var displayedCats []string
+	var isTruncated bool
+	if catsLength > 9 && !helpers.HasStringInSlice(catID, queryStrValues) {
+		displayedCats = append(displayedCats, cats[:3]...)
+		displayedCats = append(displayedCats, cats[midFloor:midCeiling]...)
+		displayedCats = append(displayedCats, cats[catsLength-3:]...)
+		q.Add(queryStrKey, catID)
+		helpers.PersistExistingParams(queryStrValues, queryStrKey, catID, q)
+		isTruncated = true
+	} else {
+		helpers.PersistExistingParams(queryStrValues, queryStrKey, catID, q)
+		displayedCats = cats
+		isTruncated = false
+	}
+	return model.Selection{
+		Value:           catID,
+		Label:           fmt.Sprintf("%d %s", catsLength, helper.Localise("Category", lang, catsLength)),
+		Categories:      displayedCats,
+		CategoriesCount: catsLength,
+		IsTruncated:     isTruncated,
+		TruncateLink:    generateTruncatePath((path), catID, q),
+	}
 }
