@@ -11,6 +11,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
@@ -36,7 +37,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 	Convey("Dimensions Selector", t, func() {
 		Convey("Given a valid dimension param for a filter", func() {
-			Convey("Then the page title contains the dimension name", func() {
+			Convey("When the filter is not multivariate and the dimension is not an area type ", func() {
 				const dimensionName = "Number Of Siblings"
 
 				mockFilter := NewMockFilterClient(mockCtrl)
@@ -57,9 +58,55 @@ func TestDimensionsHandler(t *testing.T) {
 					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
 					AnyTimes()
 
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
+				mockDc.EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockVersion1, nil).AnyTimes()
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				w := runDimensionsSelector(
+					"number+of+siblings",
+					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg),
+				)
+
+				Convey("Then status code should be 400", func() {
+					So(w.Code, ShouldEqual, http.StatusBadRequest)
+				})
+			})
+
+			Convey("When the filter is multivariate and the dimension is not an area type ", func() {
+				const dimensionName = "Number Of Siblings"
+				mockDataset.Type = "multivariate"
+				cfg.EnableMultivariate = true
+
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.
+					EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Model{}, "", nil)
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{Name: dimensionName}, "", nil).
+					AnyTimes()
+
+				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
 					EXPECT().
-					BuildPage(gomock.Any(), pageHasTitle{dimensionName}, gomock.Any())
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+				mockRend.
+					EXPECT().
+					BuildPage(gomock.Any(), gomock.Any(), "selector")
 
 				mockDc := NewMockDatasetClient(mockCtrl)
 				mockDc.EXPECT().
@@ -69,12 +116,24 @@ func TestDimensionsHandler(t *testing.T) {
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(mockVersion1, nil).AnyTimes()
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetCategorisations(gomock.Any(), gomock.Any()).
+					Return(population.GetCategorisationsResponse{}, nil)
+
 				w := runDimensionsSelector(
 					"number+of+siblings",
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
+					DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg),
 				)
 
-				Convey("And the status code should be 200", func() {
+				Convey("Then status code should be 200", func() {
 					So(w.Code, ShouldEqual, http.StatusOK)
 				})
 			})
@@ -100,176 +159,19 @@ func TestDimensionsHandler(t *testing.T) {
 				GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(mockVersion1, nil).AnyTimes()
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			w := runDimensionsSelector(
 				"city",
-				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
+				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg),
 			)
 
 			Convey("Then the status code should be 404", func() {
 				So(w.Code, ShouldEqual, http.StatusNotFound)
-			})
-		})
-
-		Convey("Given a dimension param which is not an area type", func() {
-			const dimensionName = "siblings"
-
-			stubDimension := filter.Dimension{
-				Name:       dimensionName,
-				IsAreaType: helpers.ToBoolPtr(false),
-			}
-
-			// This will change, but represents the current non-area-type behaviour.
-			Convey("Then the page should contain no selections", func() {
-				mockFilter := NewMockFilterClient(mockCtrl)
-				mockFilter.
-					EXPECT().
-					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.Model{}, "", nil).
-					AnyTimes()
-				mockFilter.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(stubDimension, "", nil).
-					AnyTimes()
-
-				mockRend := NewMockRenderClient(mockCtrl)
-				mockRend.
-					EXPECT().
-					NewBasePageModel().
-					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
-					AnyTimes()
-
-				mockRend.
-					EXPECT().
-					// Assert that there are no selections passed to BuildPage
-					BuildPage(gomock.Any(), pageMatchesSelections{}, gomock.Any())
-
-				mockDc := NewMockDatasetClient(mockCtrl)
-				mockDc.EXPECT().
-					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockDataset, nil).AnyTimes()
-				mockDc.EXPECT().
-					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockVersion1, nil).AnyTimes()
-
-				w := runDimensionsSelector(
-					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
-				)
-
-				Convey("And the status code should be 200", func() {
-					So(w.Code, ShouldEqual, http.StatusOK)
-				})
-			})
-
-			Convey("Then the page should have the area type bool set to false", func() {
-				mockFilter := NewMockFilterClient(mockCtrl)
-				mockFilter.
-					EXPECT().
-					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.Model{}, "", nil).
-					AnyTimes()
-				mockFilter.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(stubDimension, "", nil).
-					AnyTimes()
-
-				mockRend := NewMockRenderClient(mockCtrl)
-				mockRend.
-					EXPECT().
-					NewBasePageModel().
-					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
-					AnyTimes()
-
-				mockRend.
-					EXPECT().
-					// Assert that the area type boolean is false
-					BuildPage(gomock.Any(), pageIsAreaType{false}, gomock.Any())
-
-				mockDc := NewMockDatasetClient(mockCtrl)
-				mockDc.EXPECT().
-					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockDataset, nil).AnyTimes()
-				mockDc.EXPECT().
-					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockVersion1, nil).AnyTimes()
-
-				w := runDimensionsSelector(
-					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
-				)
-
-				Convey("And the status code should be 200", func() {
-					So(w.Code, ShouldEqual, http.StatusOK)
-				})
-			})
-
-			Convey("Then the dimensions API should be queried using the dimension name", func() {
-				mockFilter := NewMockFilterClient(mockCtrl)
-				mockFilter.
-					EXPECT().
-					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.Model{}, "", nil).
-					AnyTimes()
-				mockFilter.
-					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "siblings").
-					Return(stubDimension, "", nil).
-					AnyTimes()
-
-				mockRend := NewMockRenderClient(mockCtrl)
-				mockRend.
-					EXPECT().
-					NewBasePageModel().
-					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
-					AnyTimes()
-
-				mockRend.
-					EXPECT().
-					BuildPage(gomock.Any(), gomock.Any(), gomock.Any())
-
-				mockDc := NewMockDatasetClient(mockCtrl)
-				mockDc.EXPECT().
-					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockDataset, nil).AnyTimes()
-				mockDc.EXPECT().
-					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockVersion1, nil).AnyTimes()
-
-				w := runDimensionsSelector(
-					dimensionName,
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
-				)
-
-				Convey("And the status code should be 200", func() {
-					So(w.Code, ShouldEqual, http.StatusOK)
-				})
-			})
-
-			Convey("When the filter API responds with an error", func() {
-				mockFilter := NewMockFilterClient(mockCtrl)
-				mockFilter.EXPECT().
-					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.Model{}, "", errors.New("oh no")).
-					AnyTimes()
-
-				mockDc := NewMockDatasetClient(mockCtrl)
-				mockDc.EXPECT().
-					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockDataset, nil).AnyTimes()
-				mockDc.EXPECT().
-					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(mockVersion1, nil).AnyTimes()
-
-				w := runDimensionsSelector(
-					dimensionName,
-					DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg),
-				)
-
-				Convey("Then the status code should be 500", func() {
-					So(w.Code, ShouldEqual, http.StatusInternalServerError)
-				})
 			})
 		})
 
@@ -374,7 +276,13 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
+					mockZc := NewMockZebedeeClient(mockCtrl)
+					mockZc.
+						EXPECT().
+						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(zebedee.HomepageContent{}, nil)
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -470,7 +378,13 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
+					mockZc := NewMockZebedeeClient(mockCtrl)
+					mockZc.
+						EXPECT().
+						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(zebedee.HomepageContent{}, nil)
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -525,7 +439,13 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
+					mockZc := NewMockZebedeeClient(mockCtrl)
+					mockZc.
+						EXPECT().
+						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(zebedee.HomepageContent{}, nil)
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -578,7 +498,13 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
+					mockZc := NewMockZebedeeClient(mockCtrl)
+					mockZc.
+						EXPECT().
+						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(zebedee.HomepageContent{}, nil)
+
+					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -637,7 +563,13 @@ func TestDimensionsHandler(t *testing.T) {
 						}, nil).
 						AnyTimes()
 
-					selector := DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg)
+					mockZc := NewMockZebedeeClient(mockCtrl)
+					mockZc.
+						EXPECT().
+						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(zebedee.HomepageContent{}, nil)
+
+					selector := DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg)
 
 					w := httptest.NewRecorder()
 					router := mux.NewRouter()
@@ -690,10 +622,72 @@ func TestDimensionsHandler(t *testing.T) {
 					}, nil).
 					AnyTimes()
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, cfg))
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When the zebedee API responds with an error", func() {
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Model{}, "", nil)
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(stubAreaTypeDimension, "", nil).
+					AnyTimes()
+				mockFilter.
+					EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{}, "", nil).
+					AnyTimes()
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.EXPECT().
+					GetAreaTypes(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaTypesResponse{}, nil)
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+				mockRend.
+					EXPECT().
+					BuildPage(gomock.Any(), gomock.Any(), gomock.Any())
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
+				mockDc.
+					EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dataset.Version{
+						LowestGeography: "",
+						Version:         1,
+					}, nil).
+					AnyTimes()
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, errors.New("Internal error"))
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
+
+				Convey("Then the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
 				})
 			})
 
@@ -732,7 +726,93 @@ func TestDimensionsHandler(t *testing.T) {
 					}, nil).
 					AnyTimes()
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, cfg))
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg))
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When the dataset client responds with an error on Get", func() {
+				mockDataset.Type = "multivariate"
+
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Model{}, "", nil)
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", nil).
+					AnyTimes()
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, errors.New("Internal error"))
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg))
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When the population client responds with an error on GetCategorisations", func() {
+				mockDataset.Type = "multivariate"
+
+				mockFilter := NewMockFilterClient(mockCtrl)
+				mockFilter.EXPECT().
+					GetJobState(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Model{}, "", nil)
+				mockFilter.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", nil).
+					AnyTimes()
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+					AnyTimes()
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil)
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetCategorisations(gomock.Any(), gomock.Any()).
+					Return(population.GetCategorisationsResponse{}, errors.New("Internal error"))
+
+				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)

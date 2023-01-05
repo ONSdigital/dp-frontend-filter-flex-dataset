@@ -9,6 +9,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -107,9 +108,77 @@ func TestGetCoverageHandler(t *testing.T) {
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(mockVersion1, nil).AnyTimes()
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, mockZc, cfg))
+				router.ServeHTTP(w, req)
+
+				Convey("And the status code should be 200", func() {
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
+			})
+
+			Convey("When the zebedee.GetHomepageContent api function responds with an error", func() {
+				w := httptest.NewRecorder()
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+
+				mockRend := NewMockRenderClient(mockCtrl)
+				mockRend.
+					EXPECT().
+					NewBasePageModel().
+					Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
+				mockRend.
+					EXPECT().
+					BuildPage(gomock.Any(), gomock.Any(), "coverage")
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockFilterDims, "", nil)
+				mockFc.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[0].Name).
+					Return(mockFilterDims.Items[0], "", nil)
+				mockFc.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), mockFilterDims.Items[1].Name).
+					Return(mockFilterDims.Items[1], "", nil)
+				mockFc.EXPECT().
+					GetFilter(gomock.Any(), gomock.Any()).
+					Return(mockFilterVersion1, nil)
+				mockFc.EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{}, "", nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.EXPECT().
+					GetAreaTypeParents(gomock.Any(), gomock.Any()).
+					Return(population.GetAreaTypeParentsResponse{}, nil)
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockDataset, nil).AnyTimes()
+				mockDc.EXPECT().
+					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(mockVersion1, nil).AnyTimes()
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, errors.New("Internal error"))
+
+				router := mux.NewRouter()
+
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, mockZc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -176,9 +245,15 @@ func TestGetCoverageHandler(t *testing.T) {
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(mockVersion1, nil).AnyTimes()
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, mockZc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -246,9 +321,15 @@ func TestGetCoverageHandler(t *testing.T) {
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(mockVersion1, nil).AnyTimes()
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, mockZc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -315,8 +396,14 @@ func TestGetCoverageHandler(t *testing.T) {
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(mockVersion1, nil).AnyTimes()
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, mockZc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -385,9 +472,15 @@ func TestGetCoverageHandler(t *testing.T) {
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(mockVersion1, nil).AnyTimes()
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, mockZc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -457,9 +550,15 @@ func TestGetCoverageHandler(t *testing.T) {
 					GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(mockVersion1, nil).AnyTimes()
 
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
 				router := mux.NewRouter()
 
-				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, cfg))
+				router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(mockRend, mockFc, mockPc, mockDc, mockZc, cfg))
 				router.ServeHTTP(w, req)
 
 				Convey("And the status code should be 200", func() {
@@ -483,9 +582,15 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			mockDc := NewMockDatasetClient(mockCtrl)
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -508,9 +613,15 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			mockDc := NewMockDatasetClient(mockCtrl)
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg))
 
 			router.ServeHTTP(w, req)
 
@@ -537,9 +648,15 @@ func TestGetCoverageHandler(t *testing.T) {
 				Return(filter.Dimension{}, "", errors.New("sorry"))
 
 			mockDc := NewMockDatasetClient(mockCtrl)
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -584,9 +701,15 @@ func TestGetCoverageHandler(t *testing.T) {
 				GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(mockVersion1, nil).AnyTimes()
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, mockZc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -631,8 +754,14 @@ func TestGetCoverageHandler(t *testing.T) {
 				GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(mockVersion1, nil).AnyTimes()
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, mockZc, cfg))
 
 			router.ServeHTTP(w, req)
 
@@ -701,9 +830,15 @@ func TestGetCoverageHandler(t *testing.T) {
 				GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(mockVersion1, nil).AnyTimes()
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, mockZc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -752,9 +887,15 @@ func TestGetCoverageHandler(t *testing.T) {
 				GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(mockVersion1, nil).AnyTimes()
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, mockZc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -803,9 +944,15 @@ func TestGetCoverageHandler(t *testing.T) {
 				GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(mockVersion1, nil).AnyTimes()
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
 
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, mockZc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("Then the status code should be 500", func() {
@@ -863,8 +1010,14 @@ func TestGetCoverageHandler(t *testing.T) {
 				GetVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(mockVersion1, nil).AnyTimes()
 
+			mockZc := NewMockZebedeeClient(mockCtrl)
+			mockZc.
+				EXPECT().
+				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(zebedee.HomepageContent{}, nil)
+
 			router := mux.NewRouter()
-			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, cfg))
+			router.HandleFunc("/filters/12345/dimensions/geography/coverage", GetCoverage(NewMockRenderClient(mockCtrl), mockFc, mockPc, mockDc, mockZc, cfg))
 			router.ServeHTTP(w, req)
 
 			Convey("And the status code should be 400", func() {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -14,20 +15,27 @@ import (
 )
 
 // DimensionsSelector Handler
-func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, cfg config.Config) http.HandlerFunc {
+func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, cfg config.Config) http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		dimensionsSelector(w, req, cfg, rc, fc, pc, dc, collectionID, accessToken, lang)
+		dimensionsSelector(w, req, cfg, rc, fc, pc, dc, zc, collectionID, accessToken, lang)
 	})
 }
 
-func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, collectionID, accessToken, lang string) {
+func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, collectionID, accessToken, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
 	dimensionName := vars["name"]
+	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
 
 	logData := log.Data{
 		"filter_id": filterID,
+	}
+
+	eb, serviceMsg, err := getZebContent(ctx, zc, accessToken, collectionID, lang)
+	// log zebedee error but don't set a server error
+	if err != nil {
+		log.Error(ctx, "unable to get homepage content", err, log.Data{"homepage_content": err})
 	}
 
 	currentFilter, _, err := fc.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
@@ -47,7 +55,41 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 	basePage := rc.NewBasePageModel()
 
 	if !isAreaType(filterDimension) {
-		selector := mapper.CreateSelector(req, basePage, filterDimension.Name, lang, filterID)
+		isMultivariate, err := isMultivariateDataset(ctx, dc, accessToken, collectionID, currentFilter.Dataset.DatasetID)
+		if err != nil {
+			log.Error(ctx, "failed to determine if filter is multivariate", err, log.Data{
+				"filter_id":  filterID,
+				"dataset_id": currentFilter.Dataset.DatasetID,
+			})
+			setStatusCode(req, w, err)
+			return
+		}
+		if !isMultivariate || !cfg.EnableMultivariate {
+			err = &clientErr{errors.New("invalid request")}
+			setStatusCode(req, w, err)
+			return
+		}
+		cats, err := pc.GetCategorisations(ctx, population.GetCategorisationsInput{
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+			PaginationParams: population.PaginationParams{
+				Limit: 1000,
+			},
+			PopulationType: currentFilter.PopulationType,
+			Dimension:      dimensionName,
+		})
+		if err != nil {
+			log.Error(ctx, "failed to get categorisations", err, log.Data{
+				"filter_id":       filterID,
+				"population_type": currentFilter.PopulationType,
+				"dimension":       dimensionName,
+			})
+			setStatusCode(req, w, err)
+			return
+		}
+
+		selector := mapper.CreateCategorisationsSelector(req, basePage, filterDimension.Label, lang, filterID, dimensionName, serviceMsg, eb, cats, isValidationError)
 		rc.BuildPage(w, selector, "selector")
 		return
 	}
@@ -107,8 +149,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 		return
 	}
 
-	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
-	selector := mapper.CreateAreaTypeSelector(req, cfg.EnableCustomSort, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts)
+	selector := mapper.CreateAreaTypeSelector(req, cfg.EnableCustomSort, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts, serviceMsg, eb)
 	rc.BuildPage(w, selector, "selector")
 }
 

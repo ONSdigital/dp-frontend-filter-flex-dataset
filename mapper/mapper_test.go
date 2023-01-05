@@ -10,6 +10,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
@@ -124,9 +125,11 @@ func TestOverview(t *testing.T) {
 			},
 		},
 	}
+	eb := getTestEmergencyBanner()
+	sm := getTestServiceMessage()
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, true)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, true, eb, sm)
 		So(m.BetaBannerEnabled, ShouldBeTrue)
 		So(m.Type, ShouldEqual, "review_changes")
 		So(m.Metadata.Title, ShouldEqual, "Review changes")
@@ -170,11 +173,14 @@ func TestOverview(t *testing.T) {
 		So(m.Dimensions[3].URI, ShouldEqual, fmt.Sprintf("%s/%s", "", filterDims[1].Name))
 		So(m.Dimensions[3].IsTruncated, ShouldBeTrue)
 
+		So(m.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
+		So(m.ServiceMessage, ShouldEqual, sm)
+
 		// TODO: Removing test coverage until endpoint is created
 	})
 
 	Convey("test truncation maps as expected", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, false, zebedee.EmergencyBanner{}, "")
 		So(m.Dimensions[3].OptionsCount, ShouldEqual, filterDims[1].OptionsCount)
 		So(m.Dimensions[3].Options, ShouldHaveLength, 9)
 		So(m.Dimensions[3].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
@@ -191,14 +197,14 @@ func TestOverview(t *testing.T) {
 	})
 
 	Convey("test truncation shows all when parameter given", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims, false, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", []string{"Truncated dim 2"}, filterJob, filterDims, datasetDims, false, false, zebedee.EmergencyBanner{}, "")
 		So(m.Dimensions[4].OptionsCount, ShouldEqual, filterDims[2].OptionsCount)
 		So(m.Dimensions[4].Options, ShouldHaveLength, 12)
 		So(m.Dimensions[4].IsTruncated, ShouldBeFalse)
 	})
 
 	Convey("test area type dimension options do not truncate and map to 'coverage' dimension", t, func() {
-		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, false)
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, filterDims, datasetDims, false, false, zebedee.EmergencyBanner{}, "")
 		So(m.Dimensions[1].Options, ShouldHaveLength, 10)
 		So(m.Dimensions[1].IsTruncated, ShouldBeFalse)
 		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
@@ -206,13 +212,13 @@ func TestOverview(t *testing.T) {
 
 	Convey("given hasNoAreaOptions parameter", t, func() {
 		Convey("when parameter is true", func() {
-			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, true, false)
+			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, true, false, zebedee.EmergencyBanner{}, "")
 			Convey("then isDefaultCoverage is set to true", func() {
 				So(m.Dimensions[1].IsDefaultCoverage, ShouldBeTrue)
 			})
 		})
 		Convey("when parameter is false", func() {
-			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, false, false)
+			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, false, false, zebedee.EmergencyBanner{}, "")
 			Convey("then isDefaultCoverage is set to false", func() {
 				So(m.Dimensions[1].IsDefaultCoverage, ShouldBeFalse)
 			})
@@ -220,25 +226,157 @@ func TestOverview(t *testing.T) {
 	})
 }
 
-func TestCreateSelector(t *testing.T) {
+func TestCreateCategorisationsSelector(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	mdl := coreModel.Page{}
 	req := httptest.NewRequest("", "/", nil)
 	lang := "en"
-	Convey("test create selector maps correctly", t, func() {
-		m := CreateSelector(req, mdl, "dimension Name", lang, "12345")
-		So(m.BetaBannerEnabled, ShouldBeTrue)
-		So(m.Type, ShouldEqual, "filter-flex-selector")
-		So(m.Metadata.Title, ShouldEqual, "Dimension Name")
-		So(m.Language, ShouldEqual, lang)
-		So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
-		So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
-		So(m.SearchNoIndexEnabled, ShouldBeTrue)
+	eb := getTestEmergencyBanner()
+	sm := getTestServiceMessage()
+	Convey("Given a request to the CreateCategorisationsSelector", t, func() {
+		Convey("When valid parameters are provided", func() {
+			cats := population.GetCategorisationsResponse{
+				Items: []population.Dimension{
+					{
+						ID: "cat_3a",
+						Categories: []population.Category{
+							{
+								ID:    "1",
+								Label: "Cat one",
+							},
+							{
+								ID:    "2",
+								Label: "Cat two",
+							},
+							{
+								ID:    "3",
+								Label: "Cat three",
+							},
+						},
+					},
+					{
+						ID: "cat_2a",
+						Categories: []population.Category{
+							{
+								ID:    "1",
+								Label: "Cat one",
+							},
+							{
+								ID:    "2",
+								Label: "Cat two",
+							},
+						},
+					},
+					{
+						ID: "cat_4a",
+						Categories: []population.Category{
+							{
+								ID:    "1",
+								Label: "Cat one",
+							},
+							{
+								ID:    "2",
+								Label: "Cat two",
+							},
+							{
+								ID:    "3",
+								Label: "Cat three",
+							},
+							{
+								ID:    "4",
+								Label: "Cat four",
+							},
+						},
+					},
+				},
+			}
+			m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", sm, eb, cats, false)
+
+			Convey("Then it maps the page metadata", func() {
+				So(m.BetaBannerEnabled, ShouldBeTrue)
+				So(m.Type, ShouldEqual, "filter-flex-selector")
+				So(m.Metadata.Title, ShouldEqual, "Dimension")
+				So(m.Language, ShouldEqual, lang)
+				So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
+				So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
+			})
+
+			Convey("Then it sets the lead text", func() {
+				So(m.LeadText, ShouldEqual, "Select categories")
+			})
+
+			Convey("Then it sets SearchNoIndexEnabled to false", func() {
+				So(m.SearchNoIndexEnabled, ShouldBeTrue)
+			})
+
+			Convey("Then it sets InitialSelection to dim1234", func() {
+				So(m.InitialSelection, ShouldEqual, "dim1234")
+			})
+
+			Convey("Then it maps the service message", func() {
+				So(m.ServiceMessage, ShouldEqual, sm)
+			})
+
+			Convey("Then it maps the emergency banner", func() {
+				So(m.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
+			})
+
+			Convey("Then it maps the categories", func() {
+				mockedCats := []model.Selection{
+					{
+						Value: cats.Items[0].ID,
+						Label: "3 categories",
+						Categories: []string{
+							cats.Items[0].Categories[0].Label,
+							cats.Items[0].Categories[1].Label,
+							cats.Items[0].Categories[2].Label,
+						},
+					},
+					{
+						Value: cats.Items[1].ID,
+						Label: "2 categories",
+						Categories: []string{
+							cats.Items[1].Categories[0].Label,
+							cats.Items[1].Categories[1].Label,
+						},
+					},
+					{
+						Value: cats.Items[2].ID,
+						Label: "4 categories",
+						Categories: []string{
+							cats.Items[2].Categories[0].Label,
+							cats.Items[2].Categories[1].Label,
+							cats.Items[2].Categories[2].Label,
+							cats.Items[2].Categories[3].Label,
+						},
+					},
+				}
+				So(m.Selections, ShouldResemble, mockedCats)
+			})
+		})
+		Convey("When a form validation error occurs", func() {
+			m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", sm, eb, population.GetCategorisationsResponse{}, true)
+			Convey("Then it sets the error title", func() {
+				So(m.Error.Title, ShouldEqual, "Dimension")
+			})
+
+			Convey("Then it populates the error items struct", func() {
+				So(m.Error.ErrorItems, ShouldHaveLength, 1)
+				So(m.Error.ErrorItems[0].Description.LocaleKey, ShouldEqual, "SelectCategoriesError")
+				So(m.Error.ErrorItems[0].URL, ShouldEqual, "#categories-error")
+			})
+
+			Convey("Then it sets the ErrorId", func() {
+				So(m.ErrorId, ShouldEqual, "categories-error")
+			})
+		})
 	})
 }
 
 func TestCreateAreaTypeSelector(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
+	eb := getTestEmergencyBanner()
+	sm := getTestServiceMessage()
 	Convey("Given a slice of geography areas", t, func() {
 		areas := []population.AreaType{
 			{ID: "one", Label: "One", Description: "One description", TotalCount: 1},
@@ -246,7 +384,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
 
 		expectedSelections := []model.Selection{
 			{Value: "one", Label: "One", Description: "One description", TotalCount: 1},
@@ -267,7 +405,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
 
 		expectedSelections := []model.Selection{
 			{Value: "nat", Label: "Nation", TotalCount: 1},
@@ -290,7 +428,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, true, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+		changeDimension := CreateAreaTypeSelector(req, true, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
 
 		Convey("Sorts selections ascending by standard order", func() {
 			expectedSelections := []model.Selection{
@@ -312,7 +450,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
 
 		Convey("Sorts known items by order then unknown items by TotalCount", func() {
 			expectedSelections := []model.Selection{
@@ -336,7 +474,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, true, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+		changeDimension := CreateAreaTypeSelector(req, true, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
 
 		Convey("Sorts selections ascending by TotalCount", func() {
 			expectedSelections := []model.Selection{
@@ -362,7 +500,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		lowest_geography := "rgn"
 
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, true, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, lowest_geography, "", dataset.DatasetDetails{}, false, false)
+		changeDimension := CreateAreaTypeSelector(req, true, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, lowest_geography, "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
 
 		Convey("Returns the sorted selections stopping at the lowest_level", func() {
 			expectedSelections := []model.Selection{
@@ -378,7 +516,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, lang, "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false)
+		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, lang, "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, sm, eb)
 
 		Convey("it sets page metadata", func() {
 			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
@@ -396,14 +534,21 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 		Convey("it sets SearchNoIndexEnabled to true", func() {
 			So(changeDimension.SearchNoIndexEnabled, ShouldBeTrue)
+		})
 
+		Convey("it maps the emergency banner", func() {
+			So(changeDimension.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
+		})
+
+		Convey("it maps the service message", func() {
+			So(changeDimension.ServiceMessage, ShouldEqual, sm)
 		})
 	})
 
 	Convey("Given the current filter dimension", t, func() {
 		const selectionName = "test"
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", nil, filter.Dimension{ID: selectionName}, "", "", dataset.DatasetDetails{}, false, false)
+		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", nil, filter.Dimension{ID: selectionName}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
 
 		Convey("it returns the value as an initial selection", func() {
 			So(changeDimension.InitialSelection, ShouldEqual, selectionName)
@@ -412,7 +557,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given a validation error", t, func() {
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, true, false)
+		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, true, false, "", zebedee.EmergencyBanner{})
 
 		Convey("it returns a populated error", func() {
 			So(changeDimension.Error.Title, ShouldNotBeEmpty)
@@ -421,7 +566,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given saved options", t, func() {
 		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, true)
+		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, true, "", zebedee.EmergencyBanner{})
 
 		Convey("it returns a warning that saved options will be removed", func() {
 			So(changeDimension.HasOptions, ShouldBeTrue)
@@ -432,7 +577,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		req := httptest.NewRequest("", "/", nil)
 		releaseDate := "2022/11/29"
 		dataset := dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"}
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", releaseDate, dataset, false, true)
+		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", releaseDate, dataset, false, true, "", zebedee.EmergencyBanner{})
 
 		Convey("it sets DatasetID, DatasetTitle and ReleaseData", func() {
 			So(changeDimension.DatasetId, ShouldEqual, dataset.ID)
@@ -447,6 +592,8 @@ func TestGetCoverage(t *testing.T) {
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
+		eb := getTestEmergencyBanner()
+		sm := getTestServiceMessage()
 
 		Convey("When the parameters are valid", func() {
 			coverage := CreateGetCoverage(
@@ -463,6 +610,8 @@ func TestGetCoverage(t *testing.T) {
 				"dim",
 				"geogID",
 				"2022/11/29",
+				sm,
+				eb,
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -507,6 +656,14 @@ func TestGetCoverage(t *testing.T) {
 				So(coverage.DatasetTitle, ShouldEqual, "Dataset title")
 				So(coverage.ReleaseDate, ShouldEqual, "2022/11/29")
 			})
+
+			Convey("it sets the emergency banner values", func() {
+				So(coverage.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
+			})
+
+			Convey("it maps the service message value", func() {
+				So(coverage.ServiceMessage, ShouldEqual, sm)
+			})
 		})
 
 		Convey("When parent types is populated", func() {
@@ -532,6 +689,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -565,6 +724,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -600,6 +761,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -642,6 +805,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -684,6 +849,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -720,6 +887,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
@@ -780,6 +949,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
@@ -849,6 +1020,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
@@ -895,6 +1068,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -943,6 +1118,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -982,6 +1159,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
@@ -1024,6 +1203,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				mockedOpt,
@@ -1057,6 +1238,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				mockedOpt,
@@ -1098,6 +1281,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
@@ -1144,6 +1329,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
@@ -1193,6 +1380,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
@@ -1260,6 +1449,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
@@ -1325,6 +1516,8 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
@@ -1378,6 +1571,8 @@ func TestGetChangeDimensions(t *testing.T) {
 	Convey("Given a valid page request", t, func() {
 		const lang = "en"
 		req := httptest.NewRequest("", "/", nil)
+		eb := getTestEmergencyBanner()
+		sm := getTestServiceMessage()
 
 		Convey("When the parameters are valid", func() {
 			mockFds := []model.FilterDimension{
@@ -1438,6 +1633,8 @@ func TestGetChangeDimensions(t *testing.T) {
 				"12345",
 				"dim-a",
 				"",
+				sm,
+				eb,
 				mockFds,
 				mockPds,
 				mockPdsR,
@@ -1526,6 +1723,14 @@ func TestGetChangeDimensions(t *testing.T) {
 				So(p.SearchOutput.Results, ShouldHaveLength, 1)
 				So(p.SearchOutput.HasNoResults, ShouldBeFalse)
 			})
+
+			Convey("Then it maps the emergency banner", func() {
+				So(p.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
+			})
+
+			Convey("Then it maps the service message", func() {
+				So(p.ServiceMessage, ShouldEqual, sm)
+			})
 		})
 
 		Convey("when a valid search with no results is performed", func() {
@@ -1536,6 +1741,8 @@ func TestGetChangeDimensions(t *testing.T) {
 				"12345",
 				"dim-a",
 				"search",
+				"",
+				zebedee.EmergencyBanner{},
 				[]model.FilterDimension{},
 				population.GetDimensionsResponse{},
 				population.GetDimensionsResponse{},
@@ -1571,4 +1778,28 @@ func TestUnitMapCookiesPreferences(t *testing.T) {
 		So(pageModel.CookiesPolicy.Essential, ShouldBeTrue)
 		So(pageModel.CookiesPolicy.Usage, ShouldBeTrue)
 	})
+}
+
+func getTestEmergencyBanner() zebedee.EmergencyBanner {
+	return zebedee.EmergencyBanner{
+		Type:        "notable_death",
+		Title:       "This is not not an emergency",
+		Description: "Something has gone wrong",
+		URI:         "google.com",
+		LinkText:    "More info",
+	}
+}
+
+func getTestServiceMessage() string {
+	return "Test service message"
+}
+
+func mappedEmergencyBanner() coreModel.EmergencyBanner {
+	return coreModel.EmergencyBanner{
+		Type:        "notable-death",
+		Title:       "This is not not an emergency",
+		Description: "Something has gone wrong",
+		URI:         "google.com",
+		LinkText:    "More info",
+	}
 }

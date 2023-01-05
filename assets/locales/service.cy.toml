@@ -228,3 +228,16 @@ one = "Enter a variable name"
 [DimensionsBrowse]
 description = "Browse available variables"
 one = "Browse available variables"
+
+[SelectCategoriesLeadText]
+description = "Select the number of categories"
+one = "Select the number of categories"
+
+[SelectCategoriesError]
+description = "Select a category"
+one = "Select a category"
+
+[Category]
+description = "category"
+one = "category"
+other = "categories"
