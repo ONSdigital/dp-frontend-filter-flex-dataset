@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"sync"
 
@@ -125,7 +126,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		}
 
 		var options []string
-		for _, opt := range opts.Items {
+		for _, opt := range sortOptionsByCode(opts.Items) {
 			options = append(options, opt.Label)
 		}
 
@@ -261,4 +262,37 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	path := req.URL.Path
 	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, fDims, datasetDims, hasNoAreaOptions, isMultivariate)
 	rc.BuildPage(w, m, "overview")
+}
+
+// sorts options by code - numerically if possible, with negatives listed last
+func sortOptionsByCode(items []dataset.Option) []dataset.Option {
+	sorted := []dataset.Option{}
+	sorted = append(sorted, items...)
+
+	doNumericSort := func(items []dataset.Option) bool {
+		for _, item := range items {
+			_, err := strconv.Atoi(item.Option)
+			if err != nil {
+				return false
+			}
+		}
+		return true
+	}
+
+	if doNumericSort(items) {
+		sort.Slice(sorted, func(i, j int) bool {
+			left, _ := strconv.Atoi(sorted[i].Option)
+			right, _ := strconv.Atoi(sorted[j].Option)
+			if left*right < 0 {
+				return right < 0
+			} else {
+				return left*left < right*right
+			}
+		})
+	} else {
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].Option < sorted[j].Option
+		})
+	}
+	return sorted
 }
