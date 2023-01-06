@@ -36,7 +36,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 	var eb zebedee.EmergencyBanner
 	var fErr, dErr, fdsErr, imErr, zErr error
 	var isMultivariate bool
-	var supVar, serviceMsg string
+	var serviceMsg string
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -209,28 +209,29 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 		}
 		wg.Wait()
 
-		if dim.FilterByParent != "" {
-			count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
-				AuthTokens: population.AuthTokens{
-					UserAuthToken: accessToken,
-				},
-				PopulationType:   filterJob.PopulationType,
-				AreaTypeID:       dim.ID,
-				ParentAreaTypeID: dim.FilterByParent,
-				Areas:            optsIDs,
-				SVarID:           supVar,
-			})
-			if err != nil {
-				log.Error(ctx, "failed to get parent area count", err, log.Data{
-					"population_type":     filterJob.PopulationType,
-					"area_type_id":        dim.ID,
-					"parent_area_type_id": dim.FilterByParent,
-					"areas":               optsIDs,
-				})
-				return nil, 0, err
-			}
-			totalCount = count
-		}
+		// TODO: pc.GetParentAreaCount is causing issues in production
+		// if dim.FilterByParent != "" {
+		// 	count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
+		// 		AuthTokens: population.AuthTokens{
+		// 			UserAuthToken: accessToken,
+		// 		},
+		// 		PopulationType:   filterJob.PopulationType,
+		// 		AreaTypeID:       dim.ID,
+		// 		ParentAreaTypeID: dim.FilterByParent,
+		// 		Areas:            optsIDs,
+		// 		SVarID:           supVar,
+		// 	})
+		// 	if err != nil {
+		// 		log.Error(ctx, "failed to get parent area count", err, log.Data{
+		// 			"population_type":     filterJob.PopulationType,
+		// 			"area_type_id":        dim.ID,
+		// 			"parent_area_type_id": dim.FilterByParent,
+		// 			"areas":               optsIDs,
+		// 		})
+		// 		return nil, 0, err
+		// 	}
+		// 	totalCount = count
+		// }
 
 		return options, totalCount, nil
 	}
@@ -253,9 +254,10 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, rc RenderClien
 			return
 		}
 		filterDims.Items[i].IsAreaType = filterDimension.IsAreaType
-		if !*filterDims.Items[i].IsAreaType {
-			supVar = filterDims.Items[i].ID
-		}
+		// TODO: pc.GetParentAreaCount is causing production issues
+		// if !*filterDims.Items[i].IsAreaType {
+		// 	supVar = filterDims.Items[i].ID
+		// }
 		filterDims.Items[i].FilterByParent = filterDimension.FilterByParent
 
 		options, count, err := getOptions(filterDims.Items[i])
