@@ -210,6 +210,21 @@ func TestOverview(t *testing.T) {
 		So(m.Dimensions[1].IsCoverage, ShouldBeTrue)
 	})
 
+	Convey("test filter dims format labels using cleanDimensionLabel", t, func() {
+		newFilterDims := append([]model.FilterDimension{}, filterDims...)
+		newFilterDims = append(newFilterDims, []model.FilterDimension{
+			{
+				Dimension: filter.Dimension{
+					Label:      "Example (21 categories)",
+					IsAreaType: helpers.ToBoolPtr(false),
+				},
+			},
+		}...)
+
+		m := CreateFilterFlexOverview(req, mdl, lang, "", showAll, filterJob, newFilterDims, datasetDims, false, false, zebedee.EmergencyBanner{}, "")
+		So(m.Dimensions[5].Name, ShouldEqual, "Example")
+	})
+
 	Convey("given hasNoAreaOptions parameter", t, func() {
 		Convey("when parameter is true", func() {
 			m := CreateFilterFlexOverview(req, mdl, lang, "", []string{""}, filterJob, filterDims, datasetDims, true, false, zebedee.EmergencyBanner{}, "")
@@ -1719,12 +1734,12 @@ func TestGetChangeDimensions(t *testing.T) {
 				Dimensions: []population.Dimension{
 					{
 						ID:          "dim-1",
-						Label:       "dim one",
+						Label:       "dim one (100 categories)",
 						Description: "description one",
 					},
 					{
 						ID:          "dim-a",
-						Label:       "dim a",
+						Label:       "dim a (1 category)",
 						Description: "description a",
 					},
 					{
@@ -1903,9 +1918,9 @@ func TestUnitMapCookiesPreferences(t *testing.T) {
 }
 
 func TestCleanDimensionsLabel(t *testing.T) {
-	Convey("Removes categories count from end of label - case insensitive", t, func() {
-		So(cleanDimensionLabel("Example (10 categories)"), ShouldEqual, "Example")
-		So(cleanDimensionLabel("Example (10 Categories)"), ShouldEqual, "Example")
+	Convey("Removes categories count from label - case insensitive", t, func() {
+		So(cleanDimensionLabel("Example (100 categories)"), ShouldEqual, "Example")
+		So(cleanDimensionLabel("Example (7 Categories)"), ShouldEqual, "Example")
 		So(cleanDimensionLabel("Example (1 category)"), ShouldEqual, "Example")
 		So(cleanDimensionLabel("Example (1 Category)"), ShouldEqual, "Example")
 	})

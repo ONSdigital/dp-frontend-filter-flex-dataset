@@ -62,7 +62,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 
 	for _, dim := range filterDims {
 		pageDim := model.Dimension{}
-		pageDim.Name = dim.Label
+		pageDim.Name = cleanDimensionLabel(dim.Label)
 		pageDim.IsAreaType = *dim.IsAreaType
 		pageDim.OptionsCount = dim.OptionsCount
 		pageDim.ID = dim.ID
