@@ -1902,6 +1902,15 @@ func TestUnitMapCookiesPreferences(t *testing.T) {
 	})
 }
 
+func TestCleanDimensionsLabel(t *testing.T) {
+	Convey("Removes categories count from end of label - case insensitive", t, func() {
+		So(cleanDimensionLabel("Example (10 categories)"), ShouldEqual, "Example")
+		So(cleanDimensionLabel("Example (10 Categories)"), ShouldEqual, "Example")
+		So(cleanDimensionLabel("Example (1 category)"), ShouldEqual, "Example")
+		So(cleanDimensionLabel("Example (1 Category)"), ShouldEqual, "Example")
+	})
+}
+
 func getTestEmergencyBanner() zebedee.EmergencyBanner {
 	return zebedee.EmergencyBanner{
 		Type:        "notable_death",

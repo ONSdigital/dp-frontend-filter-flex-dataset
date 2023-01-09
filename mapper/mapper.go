@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -414,7 +415,7 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 	for _, dim := range dims {
 		if !*dim.IsAreaType {
 			selections = append(selections, model.SelectableElement{
-				Text:  dim.Label,
+				Text:  cleanDimensionLabel(dim.Label),
 				Value: dim.ID,
 				Name:  "delete-option",
 			})
@@ -446,7 +447,7 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[
 	for _, pDim := range pDims.Dimensions {
 		var sel model.SelectableElement
 		sel.Name = "add-dimension"
-		sel.Text = pDim.Label
+		sel.Text = cleanDimensionLabel(pDim.Label)
 		sel.InnerText = pDim.Description
 		sel.Value = pDim.ID
 		pDimId := helpers.TrimCategoryValue(pDim.ID)
@@ -465,6 +466,13 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[
 		return results[i].Text < results[j].Text
 	})
 	return results
+}
+
+// cleanDimensionlabel is a helper function that parses dimension labels from cantabular into display text
+func cleanDimensionLabel(label string) string {
+	matcher := regexp.MustCompile(`(\(\d+ ((C|c)ategories|(C|c)ategory)\))`)
+	result := matcher.ReplaceAllString(label, "")
+	return strings.TrimSpace(result)
 }
 
 // getAddOptionStr is a helper function to determine which add option string should be returned
