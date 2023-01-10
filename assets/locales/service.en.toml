@@ -175,8 +175,8 @@ description = "Show all {{$strOptCount}} categories"
 one = "Show all {{.arg0}} categories"
 
 [TruncateShowFewer]
-description = "Show less categories"
-one = "Show less categories"
+description = "Show fewer categories"
+one = "Show fewer categories"
 
 [SearchResults]
 description = "Results"
