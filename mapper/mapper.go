@@ -127,7 +127,7 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 	var selections []model.Selection
 	for _, cat := range cats.Items {
 		cats := []string{}
-		for _, c := range cat.Categories {
+		for _, c := range sortCategoriesByID(cat.Categories) {
 			cats = append(cats, c.Label)
 		}
 		selections = append(selections, mapCats(cats, req.URL.Query()["showAll"], lang, req.URL.Path, cat.ID))
@@ -569,4 +569,37 @@ func mapCats(cats, queryStrValues []string, lang, path, catID string) model.Sele
 		IsTruncated:     isTruncated,
 		TruncateLink:    generateTruncatePath((path), catID, q),
 	}
+}
+
+// sorts population categories by ID - numerically if possible, with negatives listed last
+func sortCategoriesByID(items []population.Category) []population.Category {
+	sorted := []population.Category{}
+	sorted = append(sorted, items...)
+
+	doNumericSort := func(items []population.Category) bool {
+		for _, item := range items {
+			_, err := strconv.Atoi(item.ID)
+			if err != nil {
+				return false
+			}
+		}
+		return true
+	}
+
+	if doNumericSort(items) {
+		sort.Slice(sorted, func(i, j int) bool {
+			left, _ := strconv.Atoi(sorted[i].ID)
+			right, _ := strconv.Atoi(sorted[j].ID)
+			if left*right < 0 {
+				return right < 0
+			} else {
+				return left*left < right*right
+			}
+		})
+	} else {
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].ID < sorted[j].ID
+		})
+	}
+	return sorted
 }
