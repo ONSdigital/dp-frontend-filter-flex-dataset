@@ -20,8 +20,6 @@ import (
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	"github.com/ONSdigital/log.go/v2/log"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 // Constants...
@@ -116,7 +114,7 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 	p := model.Selector{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-selector", cases.Title(language.English).String(dimLabel), lang, serviceMsg, eb)
+	mapCommonProps(req, &p.Page, "filter-flex-selector", cleanDimensionLabel(dimLabel), lang, serviceMsg, eb)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
