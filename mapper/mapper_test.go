@@ -331,6 +331,9 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 							cats.Items[0].Categories[1].Label,
 							cats.Items[0].Categories[2].Label,
 						},
+						IsTruncated:     false,
+						TruncateLink:    "/#cat_3a",
+						CategoriesCount: 3,
 					},
 					{
 						Value: cats.Items[1].ID,
@@ -339,6 +342,9 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 							cats.Items[1].Categories[0].Label,
 							cats.Items[1].Categories[1].Label,
 						},
+						IsTruncated:     false,
+						TruncateLink:    "/#cat_2a",
+						CategoriesCount: 2,
 					},
 					{
 						Value: cats.Items[2].ID,
@@ -349,6 +355,9 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 							cats.Items[2].Categories[2].Label,
 							cats.Items[2].Categories[3].Label,
 						},
+						IsTruncated:     false,
+						TruncateLink:    "/#cat_4a",
+						CategoriesCount: 4,
 					},
 				}
 				So(m.Selections, ShouldResemble, mockedCats)
@@ -368,6 +377,119 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 
 			Convey("Then it sets the ErrorId", func() {
 				So(m.ErrorId, ShouldEqual, "categories-error")
+			})
+		})
+
+		Convey("When categories are greater than 9", func() {
+			cats := population.GetCategorisationsResponse{
+				Items: []population.Dimension{
+					{
+						ID: "cat_12a",
+						Categories: []population.Category{
+							{
+								ID:    "1",
+								Label: "Cat one",
+							},
+							{
+								ID:    "2",
+								Label: "Cat two",
+							},
+							{
+								ID:    "3",
+								Label: "Cat three",
+							},
+							{
+								ID:    "4",
+								Label: "Cat four",
+							},
+							{
+								ID:    "5",
+								Label: "Cat five",
+							},
+							{
+								ID:    "6",
+								Label: "Cat six",
+							},
+							{
+								ID:    "7",
+								Label: "Cat seven",
+							},
+							{
+								ID:    "8",
+								Label: "Cat eight",
+							},
+							{
+								ID:    "9",
+								Label: "Cat nine",
+							},
+							{
+								ID:    "10",
+								Label: "Cat ten",
+							},
+							{
+								ID:    "11",
+								Label: "Cat eleven",
+							},
+							{
+								ID:    "12",
+								Label: "Cat twelve",
+							},
+						},
+					},
+				},
+			}
+			Convey("Then categories are truncated as expected", func() {
+				m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", "", zebedee.EmergencyBanner{}, cats, false)
+				truncCat := []model.Selection{
+					{
+						Value: cats.Items[0].ID,
+						Label: "12 categories",
+						Categories: []string{
+							cats.Items[0].Categories[0].Label,
+							cats.Items[0].Categories[1].Label,
+							cats.Items[0].Categories[2].Label,
+							cats.Items[0].Categories[4].Label,
+							cats.Items[0].Categories[5].Label,
+							cats.Items[0].Categories[6].Label,
+							cats.Items[0].Categories[9].Label,
+							cats.Items[0].Categories[10].Label,
+							cats.Items[0].Categories[11].Label,
+						},
+						CategoriesCount: 12,
+						IsTruncated:     true,
+						TruncateLink:    "/?showAll=cat_12a#cat_12a",
+					},
+				}
+				So(m.Selections, ShouldResemble, truncCat)
+			})
+
+			Convey("Then a showAll request shows all categories as expected", func() {
+				req := httptest.NewRequest("", "/?showAll=cat_12a", nil)
+				m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", "", zebedee.EmergencyBanner{}, cats, false)
+				allCats := []model.Selection{
+					{
+						Value: cats.Items[0].ID,
+						Label: "12 categories",
+						Categories: []string{
+							cats.Items[0].Categories[0].Label,
+							cats.Items[0].Categories[1].Label,
+							cats.Items[0].Categories[2].Label,
+							cats.Items[0].Categories[3].Label,
+							cats.Items[0].Categories[4].Label,
+							cats.Items[0].Categories[5].Label,
+							cats.Items[0].Categories[6].Label,
+							cats.Items[0].Categories[7].Label,
+							cats.Items[0].Categories[8].Label,
+							cats.Items[0].Categories[9].Label,
+							cats.Items[0].Categories[10].Label,
+							cats.Items[0].Categories[11].Label,
+						},
+						CategoriesCount: 12,
+						IsTruncated:     false,
+						TruncateLink:    "/#cat_12a",
+					},
+				}
+				So(m.Selections, ShouldResemble, allCats)
 			})
 		})
 	})

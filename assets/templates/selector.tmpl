@@ -33,6 +33,7 @@
                                     </legend>
                                     <div class="ons-radios__items">
                                         {{ range $i, $selection := .Selections }}
+                                            {{ $isTruncated := .IsTruncated }}
                                             <div class="ons-radios__item ons-radios__item--no-border ons-u-mb-s">
                                                 <div class="ons-radio ons-radio--no-border">
                                                     <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }} checked {{ end }}>
@@ -48,11 +49,19 @@
                                                         </div>
                                                     {{ end }}
                                                     {{ if .Categories }}
-                                                        <ul class="ons-list ons-list--categorisations ons-u-mb-no ons-u-fs-s">
+                                                        {{ $catLength := len .Categories }}
+                                                        {{ $strOptCount := intToString .CategoriesCount }}
+                                                        <ul class="ons-list{{ if $isTruncated }}--truncated{{end}}{{ if or (gt $catLength 9) ($isTruncated) }} ons-u-mb-xs{{else}}
+                                                                ons-u-mb-no{{end}} ons-list--categorisations ons-u-fs-s">
                                                             {{ range .Categories }}
-                                                                <li class="ons-list__item">{{- . -}}</li>
+                                                                <li class="ons-list__item{{ if $isTruncated }}--truncated{{end}}">{{- . -}}</li>
                                                             {{ end }}
                                                         </ul>
+                                                        {{ if $isTruncated }}
+                                                            <a href="{{.TruncateLink}}" class="ons-u-fs-s">{{- localise "TruncateShowAll" $.Language 1 $strOptCount -}}</a>
+                                                        {{ else if gt $catLength 9 }}
+                                                            <a href="{{.TruncateLink}}" class="ons-u-fs-s">{{- localise "TruncateShowFewer" $.Language 1 -}}</a>
+                                                        {{ end }}
                                                     {{ end }}
                                                 </div>
                                             </div>
