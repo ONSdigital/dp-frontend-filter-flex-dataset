@@ -8,7 +8,6 @@ import (
 )
 
 func TestSortCategoriesByID(t *testing.T) {
-
 	Convey("Population categories are sorted", t, func() {
 		getIDList := func(items []population.Category) []string {
 			results := []string{}
@@ -123,7 +122,6 @@ func TestSortCategoriesByID(t *testing.T) {
 }
 
 func TestSortAreaTypes(t *testing.T) {
-
 	Convey("Population AreaTypes are sorted", t, func() {
 		getIDList := func(items []population.AreaType) []string {
 			results := []string{}

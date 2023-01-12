@@ -22,6 +22,7 @@ func TestConfig(t *testing.T) {
 			Convey("Then the values should be set to the expected defaults", func() {
 				So(cfg.Debug, ShouldBeFalse)
 				So(cfg.EnableMultivariate, ShouldBeFalse)
+				So(cfg.EnableCustomSort, ShouldBeFalse)
 				So(cfg.APIRouterURL, ShouldEqual, "http://localhost:23200/v1")
 				So(cfg.BindAddr, ShouldEqual, "localhost:20100")
 				So(cfg.DefaultMaximumSearchResults, ShouldEqual, 50)

@@ -7,7 +7,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 )
 
-// sorts population categories by ID - numerically if possible, with negatives listed last
+// sortCategoriesByID sorts population categories by ID - numerically if possible, with negatives listed last
 func sortCategoriesByID(items []population.Category) []population.Category {
 	sorted := []population.Category{}
 	sorted = append(sorted, items...)
@@ -40,7 +40,7 @@ func sortCategoriesByID(items []population.Category) []population.Category {
 	return sorted
 }
 
-// sorts area types by pre-defined heirarchies
+// sortAreaTypes sorts area types by Hierarchy_Order field descending, then TotalCount
 func sortAreaTypes(areaTypes []population.AreaType) []population.AreaType {
 	sorted := append([]population.AreaType{}, areaTypes...)
 	sort.Slice(sorted, func(i, j int) bool {
