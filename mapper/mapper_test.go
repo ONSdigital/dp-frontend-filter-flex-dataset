@@ -558,10 +558,10 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given a slice of standard geography areas out of order", t, func() {
 		areas := []population.AreaType{
-			{ID: "rgn", Label: "Region", TotalCount: 11},
-			{ID: "ctry", Label: "Country", TotalCount: 33},
-			{ID: "nat", Label: "Nation", TotalCount: 1},
-			{ID: "utla", Label: "UTLA", TotalCount: 7},
+			{ID: "rgn", Label: "Region", TotalCount: 11, Hierarchy_Order: 800},
+			{ID: "ctry", Label: "Country", TotalCount: 33, Hierarchy_Order: 900},
+			{ID: "nat", Label: "Nation", TotalCount: 1, Hierarchy_Order: 1000},
+			{ID: "utla", Label: "UTLA", TotalCount: 7, Hierarchy_Order: 700},
 		}
 
 		req := httptest.NewRequest("", "/", nil)
@@ -579,60 +579,12 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		})
 	})
 
-	Convey("Given a slice of non-standard geography areas", t, func() {
-		areas := []population.AreaType{
-			{ID: "three", Label: "Three", TotalCount: 3},
-			{ID: "two", Label: "Two", TotalCount: 2},
-			{ID: "one", Label: "One", TotalCount: 1},
-		}
-
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, false, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
-
-		Convey("Sorts known items by order then unknown items by TotalCount", func() {
-			expectedSelections := []model.Selection{
-				{Value: "one", Label: "One", TotalCount: 1},
-				{Value: "two", Label: "Two", TotalCount: 2},
-				{Value: "three", Label: "Three", TotalCount: 3},
-			}
-
-			So(changeDimension.Selections, ShouldResemble, expectedSelections)
-		})
-	})
-
-	Convey("Given a mixed slice of known and unknown geography areas", t, func() {
-		areas := []population.AreaType{
-			{ID: "three", Label: "Three", TotalCount: 3},
-			{ID: "two", Label: "Two", TotalCount: 2},
-			{ID: "nat", Label: "Nation", TotalCount: 3},
-			{ID: "ctry", Label: "Country", TotalCount: 2},
-			{ID: "rgn", Label: "Region", TotalCount: 1},
-			{ID: "one", Label: "One", TotalCount: 1},
-		}
-
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, true, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
-
-		Convey("Sorts selections ascending by TotalCount", func() {
-			expectedSelections := []model.Selection{
-				{Value: "nat", Label: "Nation", TotalCount: 3},
-				{Value: "ctry", Label: "Country", TotalCount: 2},
-				{Value: "rgn", Label: "Region", TotalCount: 1},
-				{Value: "one", Label: "One", TotalCount: 1},
-				{Value: "two", Label: "Two", TotalCount: 2},
-				{Value: "three", Label: "Three", TotalCount: 3},
-			}
-
-			So(changeDimension.Selections, ShouldResemble, expectedSelections)
-		})
-	})
-
 	Convey("Given an unsorted slice of geography areas and lowest_level of geography", t, func() {
 		areas := []population.AreaType{
-			{ID: "rgn", Label: "Region", TotalCount: 11},
-			{ID: "utla", Label: "UTLA", TotalCount: 7},
-			{ID: "ctry", Label: "Country", TotalCount: 33},
-			{ID: "nat", Label: "Nation", TotalCount: 1},
+			{ID: "rgn", Label: "Region", TotalCount: 11, Hierarchy_Order: 800},
+			{ID: "ctry", Label: "Country", TotalCount: 33, Hierarchy_Order: 900},
+			{ID: "nat", Label: "Nation", TotalCount: 1, Hierarchy_Order: 1000},
+			{ID: "utla", Label: "UTLA", TotalCount: 7, Hierarchy_Order: 700},
 		}
 		lowest_geography := "rgn"
 
@@ -1926,121 +1878,6 @@ func TestCleanDimensionsLabel(t *testing.T) {
 		So(cleanDimensionLabel(""), ShouldEqual, "")
 		So(cleanDimensionLabel("Example 1 category"), ShouldEqual, "Example 1 category")
 		So(cleanDimensionLabel("Example (something in brackets) (1 Category)"), ShouldEqual, "Example (something in brackets)")
-	})
-}
-
-func TestSortCategoriesByID(t *testing.T) {
-
-	Convey("Population categories are sorted", t, func() {
-		getIDList := func(items []population.Category) []string {
-			results := []string{}
-			for _, item := range items {
-				results = append(results, item.ID)
-			}
-			return results
-		}
-
-		Convey("given non-numeric options", func() {
-			nonNumeric := []population.Category{
-				{
-					ID:    "dim_2",
-					Label: "option 2",
-				},
-				{
-					ID:    "dim_1",
-					Label: "option 1",
-				},
-			}
-			Convey("when they are sorted", func() {
-				sorted := sortCategoriesByID(nonNumeric)
-
-				Convey("then options are sorted alphabetically", func() {
-					actual := getIDList(sorted)
-					expected := []string{"dim_1", "dim_2"}
-					So(actual, ShouldResemble, expected)
-				})
-			})
-		})
-
-		Convey("given simple numeric options", func() {
-			numeric := []population.Category{
-				{
-					ID:    "10",
-					Label: "option 10",
-				}, {
-					ID:    "2",
-					Label: "option 2",
-				}, {
-					ID:    "1",
-					Label: "option 1",
-				},
-			}
-			Convey("when they are sorted", func() {
-				sorted := sortCategoriesByID(numeric)
-
-				Convey("then options are sorted numerically", func() {
-					actual := getIDList(sorted)
-					expected := []string{"1", "2", "10"}
-					So(actual, ShouldResemble, expected)
-				})
-			})
-		})
-
-		Convey("given numeric options with negatives", func() {
-			numericWithNegatives := []population.Category{
-				{
-					ID:    "10",
-					Label: "option 10",
-				}, {
-					ID:    "2",
-					Label: "option 2",
-				}, {
-					ID:    "-1",
-					Label: "option -1",
-				},
-				{
-					ID:    "1",
-					Label: "option 1",
-				}, {
-					ID:    "-10",
-					Label: "option -10",
-				},
-			}
-
-			Convey("when they are sorted", func() {
-				sorted := sortCategoriesByID(numericWithNegatives)
-
-				Convey("then options are sorted numerically with negatives at the end", func() {
-					actual := getIDList(sorted)
-					expected := []string{"1", "2", "10", "-1", "-10"}
-					So(actual, ShouldResemble, expected)
-				})
-			})
-		})
-
-		Convey("given mixed numeric and non-numeric options", func() {
-			alphanumeric := []population.Category{
-				{
-					ID:    "10",
-					Label: "option 10",
-				}, {
-					ID:    "2nd Option",
-					Label: "option 2",
-				}, {
-					ID:    "1",
-					Label: "option 1",
-				},
-			}
-			Convey("when they are sorted", func() {
-				sorted := sortCategoriesByID(alphanumeric)
-
-				Convey("then options are sorted alphanumerically", func() {
-					actual := getIDList(sorted)
-					expected := []string{"1", "10", "2nd Option"}
-					So(actual, ShouldResemble, expected)
-				})
-			})
-		})
 	})
 }
 

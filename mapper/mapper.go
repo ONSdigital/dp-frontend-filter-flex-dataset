@@ -186,23 +186,8 @@ func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage c
 		p.ErrorId = "area-type-error"
 	}
 
-	var selections []model.Selection
-	for _, area := range areaType {
-		selections = append(selections, model.Selection{
-			Value:       area.ID,
-			Label:       area.Label,
-			Description: area.Description,
-			TotalCount:  area.TotalCount,
-		})
-	}
+	selections := mapAreaTypesToSelection(sortAreaTypes(areaType))
 
-	sort.Slice(selections, func(i, j int) bool {
-		if enableCustomSort {
-			return getAreaTypeIsLessThan(selections[i], selections[j])
-		} else {
-			return selections[i].TotalCount < selections[j].TotalCount
-		}
-	})
 	if lowest_geography != "" {
 		var filtered_selections []model.Selection
 		var lowest_found = false
@@ -225,33 +210,6 @@ func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage c
 	p.ReleaseDate = releaseDate
 
 	return p
-}
-
-func getAreaTypeIsLessThan(left, right model.Selection) bool {
-	order := map[string]int{
-		"nat":  100,
-		"ctry": 200,
-		"rgn":  300,
-		"utla": 400,
-		"ltla": 500,
-		"wd":   600,
-		"msoa": 700,
-		"lsoa": 800,
-		"oa":   900,
-	}
-	leftVal, leftOk := order[left.Value]
-	rightVal, rightOk := order[right.Value]
-
-	if leftOk && rightOk {
-		return leftVal < rightVal
-	}
-	if leftOk {
-		return true
-	}
-	if rightOk {
-		return false
-	}
-	return left.TotalCount < right.TotalCount
 }
 
 // CreateGetCoverage maps data to the coverage model
@@ -571,35 +529,15 @@ func mapCats(cats, queryStrValues []string, lang, path, catID string) model.Sele
 	}
 }
 
-// sorts population categories by ID - numerically if possible, with negatives listed last
-func sortCategoriesByID(items []population.Category) []population.Category {
-	sorted := []population.Category{}
-	sorted = append(sorted, items...)
-
-	doNumericSort := func(items []population.Category) bool {
-		for _, item := range items {
-			_, err := strconv.Atoi(item.ID)
-			if err != nil {
-				return false
-			}
-		}
-		return true
-	}
-
-	if doNumericSort(items) {
-		sort.Slice(sorted, func(i, j int) bool {
-			left, _ := strconv.Atoi(sorted[i].ID)
-			right, _ := strconv.Atoi(sorted[j].ID)
-			if left*right < 0 {
-				return right < 0
-			} else {
-				return left*left < right*right
-			}
-		})
-	} else {
-		sort.Slice(sorted, func(i, j int) bool {
-			return sorted[i].ID < sorted[j].ID
+func mapAreaTypesToSelection(areaTypes []population.AreaType) []model.Selection {
+	var selections []model.Selection
+	for _, area := range areaTypes {
+		selections = append(selections, model.Selection{
+			Value:       area.ID,
+			Label:       area.Label,
+			Description: area.Description,
+			TotalCount:  area.TotalCount,
 		})
 	}
-	return sorted
+	return selections
 }
