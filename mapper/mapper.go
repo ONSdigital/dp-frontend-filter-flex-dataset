@@ -155,7 +155,7 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
 	p := model.Selector{
 		Page: basePage,
 	}
