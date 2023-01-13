@@ -42,3 +42,10 @@ type SearchField struct {
 	Language string `json:"language"`
 	Label    string `json:"label"`
 }
+
+// Panel contains the data required to populate a panel UI component
+type Panel struct {
+	CssClasses []string `json:"css_classes"`
+	Body       string   `json:"body"`
+	Language   string   `json:"language"`
+}

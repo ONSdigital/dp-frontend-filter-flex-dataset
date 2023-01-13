@@ -166,8 +166,13 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
 		},
 	}
-	p.HasOptions = hasOpts
 	p.LeadText = helper.Localise("SelectAreaTypeLeadText", lang, 1)
+	if hasOpts {
+		p.Panel = mapPanel(coreModel.Localisation{
+			LocaleKey: "ChangeAreaTypeWarning",
+			Plural:    1,
+		}, lang, []string{"ons-u-mb-l"})
+	}
 
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
@@ -365,6 +370,10 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 		},
 	}
 	mapCommonProps(req, &p.Page, "change_variables", "Add or remove variables", lang, serviceMsg, eb)
+	p.Panel = mapPanel(coreModel.Localisation{
+		LocaleKey: "DimensionsChangeWarning",
+		Plural:    1,
+	}, lang, []string{"ons-u-mb-s"})
 	p.FormAction = formAction
 
 	selections := []model.SelectableElement{}
@@ -424,7 +433,7 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[
 	return results
 }
 
-// cleanDimensionlabel is a helper function that parses dimension labels from cantabular into display text
+// cleanDimensionLabel is a helper function that parses dimension labels from cantabular into display text
 func cleanDimensionLabel(label string) string {
 	matcher := regexp.MustCompile(`(\(\d+ ((C|c)ategories|(C|c)ategory)\))`)
 	result := matcher.ReplaceAllString(label, "")
@@ -540,4 +549,13 @@ func mapAreaTypesToSelection(areaTypes []population.AreaType) []model.Selection 
 		})
 	}
 	return selections
+}
+
+// mapPanel is a helper function that returns a mapped panel
+func mapPanel(locale coreModel.Localisation, language string, utilityCssClasses []string) model.Panel {
+	return model.Panel{
+		Body:       helper.Localise(locale.LocaleKey, language, locale.Plural),
+		Language:   language,
+		CssClasses: utilityCssClasses,
+	}
 }

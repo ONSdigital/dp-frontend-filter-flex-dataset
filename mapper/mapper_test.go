@@ -657,8 +657,10 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		req := httptest.NewRequest("", "/", nil)
 		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, true, "", zebedee.EmergencyBanner{})
 
-		Convey("it returns a warning that saved options will be removed", func() {
-			So(changeDimension.HasOptions, ShouldBeTrue)
+		Convey("it maps a warning that saved options will be removed", func() {
+			So(changeDimension.Panel.Body, ShouldEqual, "Saved options warning")
+			So(changeDimension.Panel.CssClasses, ShouldResemble, []string{"ons-u-mb-l"})
+			So(changeDimension.Panel.Language, ShouldEqual, "en")
 		})
 	})
 
@@ -1819,6 +1821,12 @@ func TestGetChangeDimensions(t *testing.T) {
 
 			Convey("Then it maps the service message", func() {
 				So(p.ServiceMessage, ShouldEqual, sm)
+			})
+
+			Convey("Then it maps the information panel", func() {
+				So(p.Panel.Body, ShouldEqual, "Dimensions change warning")
+				So(p.Panel.CssClasses, ShouldResemble, []string{"ons-u-mb-s"})
+				So(p.Panel.Language, ShouldEqual, lang)
 			})
 		})
 

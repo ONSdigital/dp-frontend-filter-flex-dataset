@@ -27,6 +27,10 @@ var cyLocale = []string{
 	"[Category]",
 	"one = \"category (cy)\"",
 	"other = \"categories (cy)\"",
+	"[ChangeAreaTypeWarning]",
+	"one = \"Saved options warning (cy)\"",
+	"[DimensionsChangeWarning]",
+	"one = \"Dimensions change warning (cy)\"",
 }
 
 var enLocale = []string{
@@ -54,6 +58,10 @@ var enLocale = []string{
 	"[Category]",
 	"one = \"category\"",
 	"other = \"categories\"",
+	"[ChangeAreaTypeWarning]",
+	"one = \"Saved options warning\"",
+	"[DimensionsChangeWarning]",
+	"one = \"Dimensions change warning\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes
