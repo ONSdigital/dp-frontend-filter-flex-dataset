@@ -149,7 +149,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 		return
 	}
 
-	selector := mapper.CreateAreaTypeSelector(req, cfg.EnableCustomSort, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts, serviceMsg, eb)
+	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts, serviceMsg, eb)
 	rc.BuildPage(w, selector, "selector")
 }
 

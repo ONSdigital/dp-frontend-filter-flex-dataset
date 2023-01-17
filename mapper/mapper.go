@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,8 +20,6 @@ import (
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	"github.com/ONSdigital/log.go/v2/log"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 // Constants...
@@ -61,7 +60,7 @@ func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, 
 
 	for _, dim := range filterDims {
 		pageDim := model.Dimension{}
-		pageDim.Name = dim.Label
+		pageDim.Name = cleanDimensionLabel(dim.Label)
 		pageDim.IsAreaType = *dim.IsAreaType
 		pageDim.OptionsCount = dim.OptionsCount
 		pageDim.ID = dim.ID
@@ -115,7 +114,7 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 	p := model.Selector{
 		Page: basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-selector", cases.Title(language.English).String(dimLabel), lang, serviceMsg, eb)
+	mapCommonProps(req, &p.Page, "filter-flex-selector", cleanDimensionLabel(dimLabel), lang, serviceMsg, eb)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
 			Title: helper.Localise("Back", lang, 1),
@@ -128,7 +127,7 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 	var selections []model.Selection
 	for _, cat := range cats.Items {
 		cats := []string{}
-		for _, c := range cat.Categories {
+		for _, c := range sortCategoriesByID(cat.Categories) {
 			cats = append(cats, c.Label)
 		}
 		selections = append(selections, mapCats(cats, req.URL.Query()["showAll"], lang, req.URL.Path, cat.ID))
@@ -156,7 +155,7 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
+func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
 	p := model.Selector{
 		Page: basePage,
 	}
@@ -187,23 +186,8 @@ func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage c
 		p.ErrorId = "area-type-error"
 	}
 
-	var selections []model.Selection
-	for _, area := range areaType {
-		selections = append(selections, model.Selection{
-			Value:       area.ID,
-			Label:       area.Label,
-			Description: area.Description,
-			TotalCount:  area.TotalCount,
-		})
-	}
+	selections := mapAreaTypesToSelection(sortAreaTypes(areaType))
 
-	sort.Slice(selections, func(i, j int) bool {
-		if enableCustomSort {
-			return getAreaTypeIsLessThan(selections[i], selections[j])
-		} else {
-			return selections[i].TotalCount < selections[j].TotalCount
-		}
-	})
 	if lowest_geography != "" {
 		var filtered_selections []model.Selection
 		var lowest_found = false
@@ -226,33 +210,6 @@ func CreateAreaTypeSelector(req *http.Request, enableCustomSort bool, basePage c
 	p.ReleaseDate = releaseDate
 
 	return p
-}
-
-func getAreaTypeIsLessThan(left, right model.Selection) bool {
-	order := map[string]int{
-		"nat":  100,
-		"ctry": 200,
-		"rgn":  300,
-		"utla": 400,
-		"ltla": 500,
-		"wd":   600,
-		"msoa": 700,
-		"lsoa": 800,
-		"oa":   900,
-	}
-	leftVal, leftOk := order[left.Value]
-	rightVal, rightOk := order[right.Value]
-
-	if leftOk && rightOk {
-		return leftVal < rightVal
-	}
-	if leftOk {
-		return true
-	}
-	if rightOk {
-		return false
-	}
-	return left.TotalCount < right.TotalCount
 }
 
 // CreateGetCoverage maps data to the coverage model
@@ -414,7 +371,7 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 	for _, dim := range dims {
 		if !*dim.IsAreaType {
 			selections = append(selections, model.SelectableElement{
-				Text:  dim.Label,
+				Text:  cleanDimensionLabel(dim.Label),
 				Value: dim.ID,
 				Name:  "delete-option",
 			})
@@ -446,7 +403,7 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[
 	for _, pDim := range pDims.Dimensions {
 		var sel model.SelectableElement
 		sel.Name = "add-dimension"
-		sel.Text = pDim.Label
+		sel.Text = cleanDimensionLabel(pDim.Label)
 		sel.InnerText = pDim.Description
 		sel.Value = pDim.ID
 		pDimId := helpers.TrimCategoryValue(pDim.ID)
@@ -465,6 +422,13 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[
 		return results[i].Text < results[j].Text
 	})
 	return results
+}
+
+// cleanDimensionlabel is a helper function that parses dimension labels from cantabular into display text
+func cleanDimensionLabel(label string) string {
+	matcher := regexp.MustCompile(`(\(\d+ ((C|c)ategories|(C|c)ategory)\))`)
+	result := matcher.ReplaceAllString(label, "")
+	return strings.TrimSpace(result)
 }
 
 // getAddOptionStr is a helper function to determine which add option string should be returned
@@ -563,4 +527,17 @@ func mapCats(cats, queryStrValues []string, lang, path, catID string) model.Sele
 		IsTruncated:     isTruncated,
 		TruncateLink:    generateTruncatePath((path), catID, q),
 	}
+}
+
+func mapAreaTypesToSelection(areaTypes []population.AreaType) []model.Selection {
+	var selections []model.Selection
+	for _, area := range areaTypes {
+		selections = append(selections, model.Selection{
+			Value:       area.ID,
+			Label:       area.Label,
+			Description: area.Description,
+			TotalCount:  area.TotalCount,
+		})
+	}
+	return selections
 }
