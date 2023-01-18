@@ -95,7 +95,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 		p.ErrorId = "area-type-error"
 	}
 
-	selections := mapAreaTypesToSelection(sortAreaTypes(areaType))
+	selections := mapAreaTypesToSelection(filterOutWards(sortAreaTypes(areaType)))
 
 	if lowest_geography != "" {
 		var filtered_selections []model.Selection

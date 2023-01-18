@@ -52,3 +52,13 @@ func sortAreaTypes(areaTypes []population.AreaType) []population.AreaType {
 	})
 	return sorted
 }
+
+func filterOutWards(areaTypes []population.AreaType) []population.AreaType {
+	filtered := []population.AreaType{}
+	for _, areaType := range areaTypes {
+		if areaType.ID != "wd" {
+			filtered = append(filtered, areaType)
+		}
+	}
+	return filtered
+}
