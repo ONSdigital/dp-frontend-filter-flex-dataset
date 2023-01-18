@@ -13,9 +13,9 @@ import (
 )
 
 // Submit filter outputs handler
-func Submit(fc FilterClient) http.HandlerFunc {
+func (f *FilterFlex) Submit() http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		submit(w, req, accessToken, collectionID, fc)
+		submit(w, req, accessToken, collectionID, f.FilterClient)
 	})
 }
 

@@ -84,9 +84,9 @@ func TestOverviewHandler(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg))
-
+				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 				router.ServeHTTP(w, req)
 
 				So(w.Code, ShouldEqual, http.StatusOK)
@@ -124,8 +124,9 @@ func TestOverviewHandler(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg))
+				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 
 				router.ServeHTTP(w, req)
 
@@ -157,8 +158,9 @@ func TestOverviewHandler(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg))
+				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 
 				router.ServeHTTP(w, req)
 
@@ -221,7 +223,8 @@ func TestOverviewHandler(t *testing.T) {
 					w := httptest.NewRecorder()
 					req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-					FilterFlexOverview(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc, cfg).
+					ff := NewFilterFlex(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc, cfg)
+					ff.FilterFlexOverview().
 						ServeHTTP(w, req)
 
 					Convey("Then the status code should be 500", func() {
@@ -309,7 +312,8 @@ func TestOverviewHandler(t *testing.T) {
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg).
+						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
+						ff.FilterFlexOverview().
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -392,7 +396,8 @@ func TestOverviewHandler(t *testing.T) {
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg).
+						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
+						ff.FilterFlexOverview().
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -481,7 +486,8 @@ func TestOverviewHandler(t *testing.T) {
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg).
+						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
+						ff.FilterFlexOverview().
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -575,7 +581,8 @@ func TestOverviewHandler(t *testing.T) {
 						w := httptest.NewRecorder()
 						req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-						FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg).
+						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
+						ff.FilterFlexOverview().
 							ServeHTTP(w, req)
 
 						Convey("Then the status code should be 200", func() {
@@ -609,9 +616,9 @@ func TestOverviewHandler(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
+				ff := NewFilterFlex(mockRend, mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl), mockZc, cfg)
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, NewMockDatasetClient(mockCtrl), NewMockPopulationClient(mockCtrl), mockZc, cfg))
-
+				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 				router.ServeHTTP(w, req)
 
 				So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -643,8 +650,9 @@ func TestOverviewHandler(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg))
+				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 
 				router.ServeHTTP(w, req)
 
@@ -692,9 +700,9 @@ func TestOverviewHandler(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg))
-
+				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 				router.ServeHTTP(w, req)
 
 				So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -732,9 +740,9 @@ func TestOverviewHandler(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg))
-
+				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 				router.ServeHTTP(w, req)
 
 				So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -785,9 +793,9 @@ func TestOverviewHandler(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
-				router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg))
-
+				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 				router.ServeHTTP(w, req)
 
 				So(w.Code, ShouldEqual, http.StatusInternalServerError)

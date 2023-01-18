@@ -13,7 +13,6 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
-	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/pagination"
@@ -23,13 +22,13 @@ import (
 )
 
 // GetCoverage handler
-func GetCoverage(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, cfg config.Config) http.HandlerFunc {
+func (f *FilterFlex) GetCoverage() http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		getCoverage(w, req, cfg, rc, fc, pc, dc, zc, lang, accessToken, collectionID)
+		getCoverage(w, req, f, lang, accessToken, collectionID)
 	})
 }
 
-func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, lang, accessToken, collectionID string) {
+func getCoverage(w http.ResponseWriter, req *http.Request, f *FilterFlex, lang, accessToken, collectionID string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
@@ -61,11 +60,11 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 
 	go func() {
 		defer wg.Done()
-		eb, serviceMsg, zErr = getZebContent(ctx, zc, accessToken, collectionID, lang)
+		eb, serviceMsg, zErr = getZebContent(ctx, f.ZebedeeClient, accessToken, collectionID, lang)
 	}()
 	go func() {
 		defer wg.Done()
-		filterJob, fErr = fc.GetFilter(ctx, filter.GetFilterInput{
+		filterJob, fErr = f.FilterClient.GetFilter(ctx, filter.GetFilterInput{
 			FilterID: filterID,
 			AuthHeaders: filter.AuthHeaders{
 				UserAuthToken: accessToken,
@@ -75,7 +74,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	}()
 	go func() {
 		defer wg.Done()
-		filterDims, _, dErr = fc.GetDimensions(ctx, accessToken, "", collectionID, filterID, &filter.QueryParams{Limit: 500})
+		filterDims, _, dErr = f.FilterClient.GetDimensions(ctx, accessToken, "", collectionID, filterID, &filter.QueryParams{Limit: 500})
 	}()
 	wg.Wait()
 
@@ -94,7 +93,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	for _, dim := range filterDims.Items {
 		// Needed to determine whether dimension is_area_type
 		// Only one dimension will be is_area_type=true
-		filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dim.Name)
+		filterDimension, _, err := f.FilterClient.GetDimension(ctx, accessToken, "", collectionID, filterID, dim.Name)
 		if err != nil {
 			log.Error(ctx, "failed to get dimension", err, log.Data{"dimension_name": dim.Name})
 			setStatusCode(req, w, err)
@@ -117,7 +116,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	wg.Add(6)
 	go func() {
 		defer wg.Done()
-		parents, pErr = pc.GetAreaTypeParents(ctx, population.GetAreaTypeParentsInput{
+		parents, pErr = f.PopulationClient.GetAreaTypeParents(ctx, population.GetAreaTypeParentsInput{
 			AuthTokens: population.AuthTokens{
 				UserAuthToken: accessToken,
 			},
@@ -130,26 +129,26 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	}()
 	go func() {
 		defer wg.Done()
-		datasetDetails, dsErr = dc.Get(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID)
+		datasetDetails, dsErr = f.DatasetClient.Get(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID)
 	}()
 	go func() {
 		defer wg.Done()
-		releaseDate, rdErr = getReleaseDate(ctx, dc, accessToken, collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, strconv.Itoa(filterJob.Dataset.Version))
+		releaseDate, rdErr = getReleaseDate(ctx, f.DatasetClient, accessToken, collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, strconv.Itoa(filterJob.Dataset.Version))
 	}()
 	go func() {
 		defer wg.Done()
-		opts, _, oErr = fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimension, &filter.QueryParams{})
+		opts, _, oErr = f.FilterClient.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimension, &filter.QueryParams{})
 	}()
 	go func() {
 		defer wg.Done()
 		if isNameSearch && q != "" {
-			areas, nsErr = getAreas(ctx, cfg, pc, accessToken, filterJob.PopulationType, geogID, q, currentPg)
+			areas, nsErr = getAreas(ctx, f.DefaultMaximumSearchResults, f.PopulationClient, accessToken, filterJob.PopulationType, geogID, q, currentPg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		if isParentSearch && pq != "" {
-			areas, psErr = getAreas(ctx, cfg, pc, accessToken, filterJob.PopulationType, p, pq, currentPg)
+			areas, psErr = getAreas(ctx, f.DefaultMaximumSearchResults, f.PopulationClient, accessToken, filterJob.PopulationType, p, pq, currentPg)
 		}
 	}()
 	wg.Wait()
@@ -216,7 +215,7 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 	for _, opt := range opts.Items {
 		var option model.SelectableElement
 
-		area, err := pc.GetArea(ctx, population.GetAreaInput{
+		area, err := f.PopulationClient.GetArea(ctx, population.GetAreaInput{
 			AuthTokens: population.AuthTokens{
 				UserAuthToken: accessToken,
 			},
@@ -239,20 +238,20 @@ func getCoverage(w http.ResponseWriter, req *http.Request, cfg config.Config, rc
 		options = append(options, option)
 	}
 
-	basePage := rc.NewBasePageModel()
+	basePage := f.Render.NewBasePageModel()
 	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, parent, c, dimension, geogID, releaseDate, serviceMsg, eb, datasetDetails, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
-	rc.BuildPage(w, m, "coverage")
+	f.Render.BuildPage(w, m, "coverage")
 }
 
 // getAreas is a helper function that returns the GetAreasResponse or an error
-func getAreas(ctx context.Context, cfg config.Config, pc PopulationClient, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
+func getAreas(ctx context.Context, defaultMaximumSearchResults int, pc PopulationClient, accessToken, popType, areaTypeID, query string, pageNo int) (population.GetAreasResponse, error) {
 	areas, err := pc.GetAreas(ctx, population.GetAreasInput{
 		AuthTokens: population.AuthTokens{
 			UserAuthToken: accessToken,
 		},
 		PaginationParams: population.PaginationParams{
-			Limit:  cfg.DefaultMaximumSearchResults,
-			Offset: pagination.GetOffset(cfg.DefaultMaximumSearchResults, pageNo),
+			Limit:  defaultMaximumSearchResults,
+			Offset: pagination.GetOffset(defaultMaximumSearchResults, pageNo),
 		},
 		PopulationType: popType,
 		AreaTypeID:     areaTypeID,

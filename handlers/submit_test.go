@@ -17,6 +17,7 @@ import (
 func TestSubmitHandler(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	ctx := gomock.Any()
+	cfg := initialiseMockConfig()
 
 	Convey("test submit handler", t, func() {
 		Convey("test Submit handler, starts a filter-outputs job and redirects on success", func() {
@@ -33,7 +34,14 @@ func TestSubmitHandler(t *testing.T) {
 			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockFilter, nil)
 			mockFc.EXPECT().SubmitFilter(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterResp, "", nil)
 
-			w := testResponse(http.StatusFound, "/filters/12345/submit", mockFc)
+			ff := NewFilterFlex(
+				NewMockRenderClient(mockCtrl),
+				mockFc,
+				NewMockDatasetClient(mockCtrl),
+				NewMockPopulationClient(mockCtrl),
+				NewMockZebedeeClient(mockCtrl),
+				cfg)
+			w := testResponse(http.StatusFound, "/filters/12345/submit", ff)
 
 			location := w.Header().Get("Location")
 			So(location, ShouldNotBeEmpty)
@@ -41,9 +49,18 @@ func TestSubmitHandler(t *testing.T) {
 		})
 
 		Convey("test Submit handler returns 500 if unable to get job state", func() {
-			mockClient := NewMockFilterClient(mockCtrl)
-			mockClient.EXPECT().GetFilter(ctx, gomock.Any()).Return(nil, errors.New("failed to get job state"))
-			testResponse(http.StatusInternalServerError, "/filters/12345/submit", mockClient)
+			mockFc := NewMockFilterClient(mockCtrl)
+			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(nil, errors.New("failed to get job state"))
+
+			ff := NewFilterFlex(
+				NewMockRenderClient(mockCtrl),
+				mockFc,
+				NewMockDatasetClient(mockCtrl),
+				NewMockPopulationClient(mockCtrl),
+				NewMockZebedeeClient(mockCtrl),
+				cfg)
+
+			testResponse(http.StatusInternalServerError, "/filters/12345/submit", ff)
 		})
 
 		Convey("test Submit handler returns 500 if unable to update flex blueprint", func() {
@@ -57,19 +74,27 @@ func TestSubmitHandler(t *testing.T) {
 			}
 			mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(mockFilter, nil)
 			mockFc.EXPECT().SubmitFilter(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, "", errors.New("failed to submit filter blueprint"))
-			testResponse(http.StatusInternalServerError, "/filters/12345/submit", mockFc)
+
+			ff := NewFilterFlex(
+				NewMockRenderClient(mockCtrl),
+				mockFc,
+				NewMockDatasetClient(mockCtrl),
+				NewMockPopulationClient(mockCtrl),
+				NewMockZebedeeClient(mockCtrl),
+				cfg)
+			testResponse(http.StatusInternalServerError, "/filters/12345/submit", ff)
 		})
 	})
 }
 
-func testResponse(code int, url string, fc FilterClient) *httptest.ResponseRecorder {
+func testResponse(code int, url string, ff *FilterFlex) *httptest.ResponseRecorder {
 	req := httptest.NewRequest("POST", url, nil)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	w := httptest.NewRecorder()
 
 	router := mux.NewRouter()
-	router.HandleFunc("/filters/{filterID}/submit", Submit(fc))
+	router.HandleFunc("/filters/{filterID}/submit", ff.Submit())
 	router.ServeHTTP(w, req)
 
 	So(w.Code, ShouldEqual, code)

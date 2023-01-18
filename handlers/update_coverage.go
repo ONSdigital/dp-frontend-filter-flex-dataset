@@ -15,9 +15,9 @@ import (
 )
 
 // UpdateCoverage Handler
-func UpdateCoverage(fc FilterClient) http.HandlerFunc {
+func (f *FilterFlex) UpdateCoverage() http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		updateCoverage(w, req, fc, accessToken, collectionID)
+		updateCoverage(w, req, f.FilterClient, accessToken, collectionID)
 	})
 }
 
