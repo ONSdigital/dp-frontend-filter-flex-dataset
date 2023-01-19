@@ -2,14 +2,12 @@ package mapper
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
-	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -17,18 +15,21 @@ import (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func CreateFilterFlexOverview(req *http.Request, basePage coreModel.Page, lang, path string, queryStrValues []string, filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions, isMultivariate bool, eb zebedee.EmergencyBanner, serviceMsg string) model.Overview {
+func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions, isMultivariate bool) model.Overview {
+	queryStrValues := m.req.URL.Query()["showAll"]
+	path := m.req.URL.Path
+
 	p := model.Overview{
-		Page: basePage,
+		Page: m.basePage,
 	}
-	mapCommonProps(req, &p.Page, reviewPageType, "Review changes", lang, serviceMsg, eb)
+	mapCommonProps(m.req, &p.Page, reviewPageType, "Review changes", m.lang, m.serviceMsg, m.eb)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 	p.IsMultivariate = isMultivariate
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
-			Title: helper.Localise("Back", lang, 1),
+			Title: helper.Localise("Back", m.lang, 1),
 			URI: fmt.Sprintf("/datasets/%s/editions/%s/versions/%s",
 				dataset.DatasetID,
 				dataset.Edition,

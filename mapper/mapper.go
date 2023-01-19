@@ -17,6 +17,28 @@ import (
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 )
 
+// Mapper represents the core mappings required for all pages
+type Mapper struct {
+	req        *http.Request
+	basePage   coreModel.Page
+	eb         zebedee.EmergencyBanner
+	lang       string
+	serviceMsg string
+	fid        string
+}
+
+// NewMapper creates a new instance of Mapper
+func NewMapper(request *http.Request, basePage coreModel.Page, emergencyBanner zebedee.EmergencyBanner, language, serviceMsg, filterId string) *Mapper {
+	return &Mapper{
+		req:        request,
+		basePage:   basePage,
+		eb:         emergencyBanner,
+		lang:       language,
+		serviceMsg: serviceMsg,
+		fid:        filterId,
+	}
+}
+
 // Constants...
 const (
 	queryStrKey           = "showAll"

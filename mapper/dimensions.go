@@ -2,31 +2,29 @@ package mapper
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
-	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 )
 
 // CreateGetChangeDimensions maps data to the ChangeDimensions model
-func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang, fid, q, formAction, serviceMsg string, eb zebedee.EmergencyBanner, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse) model.ChangeDimensions {
+func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse) model.ChangeDimensions {
 	p := model.ChangeDimensions{
-		Page: basePage,
+		Page: m.basePage,
 	}
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
-			Title: helper.Localise("Back", lang, 1),
-			URI:   fmt.Sprintf("/filters/%s/dimensions", fid),
+			Title: helper.Localise("Back", m.lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", m.fid),
 		},
 	}
-	mapCommonProps(req, &p.Page, "change_variables", "Add or remove variables", lang, serviceMsg, eb)
+	mapCommonProps(m.req, &p.Page, "change_variables", "Add or remove variables", m.lang, m.serviceMsg, m.eb)
 	p.Panel = mapPanel(coreModel.Localisation{
 		LocaleKey: "DimensionsChangeWarning",
 		Plural:    1,
-	}, lang, []string{"ons-u-mb-s"})
+	}, m.lang, []string{"ons-u-mb-s"})
 	p.FormAction = formAction
 
 	selections := []model.SelectableElement{}
@@ -44,9 +42,9 @@ func CreateGetChangeDimensions(req *http.Request, basePage coreModel.Page, lang,
 	p.Search = model.SearchField{
 		Name:     "q",
 		ID:       "dimensions-search",
-		Language: lang,
+		Language: m.lang,
 		Value:    q,
-		Label:    helper.Localise("DimensionsSearchLabel", lang, 1),
+		Label:    helper.Localise("DimensionsSearchLabel", m.lang, 1),
 	}
 
 	browseResults := mapDimensionsResponse(pDims, &selections)

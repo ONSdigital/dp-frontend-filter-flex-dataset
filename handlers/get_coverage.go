@@ -43,7 +43,6 @@ func getCoverage(w http.ResponseWriter, req *http.Request, f *FilterFlex, lang, 
 	}
 	isNameSearch := strings.Contains(req.URL.RawQuery, "q=")
 	isParentSearch := strings.Contains(req.URL.RawQuery, "p=")
-	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
 	var filterJob *filter.GetFilterResponse
 	var filterDims filter.Dimensions
 	var parents population.GetAreaTypeParentsResponse
@@ -239,8 +238,9 @@ func getCoverage(w http.ResponseWriter, req *http.Request, f *FilterFlex, lang, 
 	}
 
 	basePage := f.Render.NewBasePageModel()
-	m := mapper.CreateGetCoverage(req, basePage, lang, filterID, geogLabel, q, pq, p, parent, c, dimension, geogID, releaseDate, serviceMsg, eb, datasetDetails, areas, options, parents, hasFilterByParent, isValidationError, currentPg)
-	f.Render.BuildPage(w, m, "coverage")
+	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
+	coverage := m.CreateGetCoverage(geogLabel, q, pq, p, parent, c, dimension, geogID, releaseDate, datasetDetails, areas, options, parents, hasFilterByParent, currentPg)
+	f.Render.BuildPage(w, coverage, "coverage")
 }
 
 // getAreas is a helper function that returns the GetAreasResponse or an error

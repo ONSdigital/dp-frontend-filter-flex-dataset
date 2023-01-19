@@ -274,10 +274,9 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	}
 
 	basePage := f.Render.NewBasePageModel()
-	showAll := req.URL.Query()["showAll"]
-	path := req.URL.Path
-	m := mapper.CreateFilterFlexOverview(req, basePage, lang, path, showAll, *filterJob, fDims, datasetDims, hasNoAreaOptions, isMultivariate, eb, serviceMsg)
-	f.Render.BuildPage(w, m, "overview")
+	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, datasetDims, hasNoAreaOptions, isMultivariate)
+	f.Render.BuildPage(w, overview, "overview")
 }
 
 // sorts options by code - numerically if possible, with negatives listed last

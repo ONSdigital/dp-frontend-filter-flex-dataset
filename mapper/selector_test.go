@@ -7,7 +7,6 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
-	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -22,6 +21,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 	lang := "en"
 	eb := getTestEmergencyBanner()
 	sm := getTestServiceMessage()
+	m := NewMapper(req, mdl, eb, lang, sm, "12345")
 	Convey("Given a request to the CreateCategorisationsSelector", t, func() {
 		Convey("When valid parameters are provided", func() {
 			cats := population.GetCategorisationsResponse{
@@ -79,35 +79,35 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 					},
 				},
 			}
-			m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", sm, eb, cats, false)
+			selector := m.CreateCategorisationsSelector("Dimension", "dim1234", cats)
 
 			Convey("Then it maps the page metadata", func() {
-				So(m.BetaBannerEnabled, ShouldBeTrue)
-				So(m.Type, ShouldEqual, "filter-flex-selector")
-				So(m.Metadata.Title, ShouldEqual, "Dimension")
-				So(m.Language, ShouldEqual, lang)
-				So(m.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
-				So(m.Breadcrumb[0].Title, ShouldEqual, "Back")
+				So(selector.BetaBannerEnabled, ShouldBeTrue)
+				So(selector.Type, ShouldEqual, "filter-flex-selector")
+				So(selector.Metadata.Title, ShouldEqual, "Dimension")
+				So(selector.Language, ShouldEqual, lang)
+				So(selector.Breadcrumb[0].URI, ShouldEqual, "/filters/12345/dimensions")
+				So(selector.Breadcrumb[0].Title, ShouldEqual, "Back")
 			})
 
 			Convey("Then it sets the lead text", func() {
-				So(m.LeadText, ShouldEqual, "Select categories")
+				So(selector.LeadText, ShouldEqual, "Select categories")
 			})
 
 			Convey("Then it sets SearchNoIndexEnabled to false", func() {
-				So(m.SearchNoIndexEnabled, ShouldBeTrue)
+				So(selector.SearchNoIndexEnabled, ShouldBeTrue)
 			})
 
 			Convey("Then it sets InitialSelection to dim1234", func() {
-				So(m.InitialSelection, ShouldEqual, "dim1234")
+				So(selector.InitialSelection, ShouldEqual, "dim1234")
 			})
 
 			Convey("Then it maps the service message", func() {
-				So(m.ServiceMessage, ShouldEqual, sm)
+				So(selector.ServiceMessage, ShouldEqual, sm)
 			})
 
 			Convey("Then it maps the emergency banner", func() {
-				So(m.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
+				So(selector.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
 			})
 
 			Convey("Then it maps the categories", func() {
@@ -149,23 +149,24 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 						CategoriesCount: 4,
 					},
 				}
-				So(m.Selections, ShouldResemble, mockedCats)
+				So(selector.Selections, ShouldResemble, mockedCats)
 			})
 		})
 		Convey("When a form validation error occurs", func() {
-			m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", sm, eb, population.GetCategorisationsResponse{}, true)
+			m.req = httptest.NewRequest("", "/?error=true", nil)
+			selector := m.CreateCategorisationsSelector("Dimension", "dim1234", population.GetCategorisationsResponse{})
 			Convey("Then it sets the error title", func() {
-				So(m.Error.Title, ShouldEqual, "Dimension")
+				So(selector.Error.Title, ShouldEqual, "Dimension")
 			})
 
 			Convey("Then it populates the error items struct", func() {
-				So(m.Error.ErrorItems, ShouldHaveLength, 1)
-				So(m.Error.ErrorItems[0].Description.LocaleKey, ShouldEqual, "SelectCategoriesError")
-				So(m.Error.ErrorItems[0].URL, ShouldEqual, "#categories-error")
+				So(selector.Error.ErrorItems, ShouldHaveLength, 1)
+				So(selector.Error.ErrorItems[0].Description.LocaleKey, ShouldEqual, "SelectCategoriesError")
+				So(selector.Error.ErrorItems[0].URL, ShouldEqual, "#categories-error")
 			})
 
 			Convey("Then it sets the ErrorId", func() {
-				So(m.ErrorId, ShouldEqual, "categories-error")
+				So(selector.ErrorId, ShouldEqual, "categories-error")
 			})
 		})
 
@@ -228,7 +229,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 				},
 			}
 			Convey("Then categories are truncated as expected", func() {
-				m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", "", zebedee.EmergencyBanner{}, cats, false)
+				selector := m.CreateCategorisationsSelector("Dimension", "dim1234", cats)
 				truncCat := []model.Selection{
 					{
 						Value: cats.Items[0].ID,
@@ -249,12 +250,12 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 						TruncateLink:    "/?showAll=cat_12a#cat_12a",
 					},
 				}
-				So(m.Selections, ShouldResemble, truncCat)
+				So(selector.Selections, ShouldResemble, truncCat)
 			})
 
 			Convey("Then a showAll request shows all categories as expected", func() {
-				req := httptest.NewRequest("", "/?showAll=cat_12a", nil)
-				m := CreateCategorisationsSelector(req, mdl, "Dimension", lang, "12345", "dim1234", "", zebedee.EmergencyBanner{}, cats, false)
+				m.req = httptest.NewRequest("", "/?showAll=cat_12a", nil)
+				selector := m.CreateCategorisationsSelector("Dimension", "dim1234", cats)
 				allCats := []model.Selection{
 					{
 						Value: cats.Items[0].ID,
@@ -278,7 +279,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 						TruncateLink:    "/#cat_12a",
 					},
 				}
-				So(m.Selections, ShouldResemble, allCats)
+				So(selector.Selections, ShouldResemble, allCats)
 			})
 		})
 	})
@@ -288,14 +289,15 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	eb := getTestEmergencyBanner()
 	sm := getTestServiceMessage()
+	req := httptest.NewRequest("", "/", nil)
+	m := NewMapper(req, coreModel.Page{}, eb, "en", sm, "12345")
 	Convey("Given a slice of geography areas", t, func() {
 		areas := []population.AreaType{
 			{ID: "one", Label: "One", Description: "One description", TotalCount: 1},
 			{ID: "two", Label: "Two", Description: "Two description", TotalCount: 2},
 		}
 
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
+		changeDimension := m.CreateAreaTypeSelector(areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false)
 
 		expectedSelections := []model.Selection{
 			{Value: "one", Label: "One", Description: "One description", TotalCount: 1},
@@ -315,8 +317,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 			{ID: "utla", Label: "UTLA", TotalCount: 4},
 		}
 
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
+		changeDimension := m.CreateAreaTypeSelector(areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false)
 
 		expectedSelections := []model.Selection{
 			{Value: "nat", Label: "Nation", TotalCount: 1},
@@ -338,8 +339,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 			{ID: "utla", Label: "UTLA", TotalCount: 7, Hierarchy_Order: 700},
 		}
 
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
+		changeDimension := m.CreateAreaTypeSelector(areas, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false)
 
 		Convey("Sorts selections ascending by standard order", func() {
 			expectedSelections := []model.Selection{
@@ -362,8 +362,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 		}
 		lowest_geography := "rgn"
 
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", areas, filter.Dimension{}, lowest_geography, "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
+		changeDimension := m.CreateAreaTypeSelector(areas, filter.Dimension{}, lowest_geography, "", dataset.DatasetDetails{}, false)
 
 		Convey("Returns the sorted selections stopping at the lowest_level", func() {
 			expectedSelections := []model.Selection{
@@ -377,14 +376,12 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	})
 
 	Convey("Given a valid page", t, func() {
-		const lang = "en"
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, lang, "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, false, sm, eb)
+		changeDimension := m.CreateAreaTypeSelector(nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false)
 
 		Convey("it sets page metadata", func() {
 			So(changeDimension.BetaBannerEnabled, ShouldBeTrue)
 			So(changeDimension.Type, ShouldEqual, "area_type_options")
-			So(changeDimension.Language, ShouldEqual, lang)
+			So(changeDimension.Language, ShouldEqual, "en")
 		})
 
 		Convey("it sets the title to Area type", func() {
@@ -410,8 +407,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given the current filter dimension", t, func() {
 		const selectionName = "test"
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{ID: selectionName}, "", "", dataset.DatasetDetails{}, false, false, "", zebedee.EmergencyBanner{})
+		changeDimension := m.CreateAreaTypeSelector(nil, filter.Dimension{ID: selectionName}, "", "", dataset.DatasetDetails{}, false)
 
 		Convey("it returns the value as an initial selection", func() {
 			So(changeDimension.InitialSelection, ShouldEqual, selectionName)
@@ -419,8 +415,8 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	})
 
 	Convey("Given a validation error", t, func() {
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, true, false, "", zebedee.EmergencyBanner{})
+		m.req = httptest.NewRequest("", "/?error=true", nil)
+		changeDimension := m.CreateAreaTypeSelector(nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false)
 
 		Convey("it returns a populated error", func() {
 			So(changeDimension.Error.Title, ShouldNotBeEmpty)
@@ -428,8 +424,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	})
 
 	Convey("Given saved options", t, func() {
-		req := httptest.NewRequest("", "/", nil)
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false, true, "", zebedee.EmergencyBanner{})
+		changeDimension := m.CreateAreaTypeSelector(nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, true)
 
 		Convey("it maps a warning that saved options will be removed", func() {
 			So(changeDimension.Panel.Body, ShouldEqual, "Saved options warning")
@@ -439,10 +434,9 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	})
 
 	Convey("Given analytics metadata", t, func() {
-		req := httptest.NewRequest("", "/", nil)
 		releaseDate := "2022/11/29"
 		dataset := dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"}
-		changeDimension := CreateAreaTypeSelector(req, coreModel.Page{}, "en", "12345", nil, filter.Dimension{}, "", releaseDate, dataset, false, true, "", zebedee.EmergencyBanner{})
+		changeDimension := m.CreateAreaTypeSelector(nil, filter.Dimension{}, "", releaseDate, dataset, true)
 
 		Convey("it sets DatasetID, DatasetTitle and ReleaseData", func() {
 			So(changeDimension.DatasetId, ShouldEqual, dataset.ID)
