@@ -2,12 +2,11 @@ package mapper
 
 import (
 	"fmt"
-	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
-	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/pagination"
@@ -17,20 +16,21 @@ import (
 )
 
 // CreateGetCoverage maps data to the coverage model
-func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterID, geogName, nameQ, parentQ, parentArea, setParent, coverage, dim, geogID, releaseDate, serviceMsg string, eb zebedee.EmergencyBanner, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent, hasValidationErr bool, currentPage int) model.Coverage {
+func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setParent, coverage, dim, geogID, releaseDate string, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent bool, currentPage int) model.Coverage {
+	hasValidationErr, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
 	p := model.Coverage{
-		Page: basePage,
+		Page: m.basePage,
 	}
-	mapCommonProps(req, &p.Page, coveragePageType, coverageTitle, lang, serviceMsg, eb)
+	mapCommonProps(m.req, &p.Page, coveragePageType, coverageTitle, m.lang, m.serviceMsg, m.eb)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
-			Title: helper.Localise("Back", lang, 1),
-			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
+			Title: helper.Localise("Back", m.lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", m.fid),
 		},
 	}
-	geography := helpers.Pluralise(req, geogName, lang, areaTypePrefix, pluralInt)
+	geography := helpers.Pluralise(m.req, geogName, m.lang, areaTypePrefix, pluralInt)
 	if geography == "" {
-		log.Info(req.Context(), "pluralisation lookup failed, reverting to initial input", log.Data{
+		log.Info(m.req.Context(), "pluralisation lookup failed, reverting to initial input", log.Data{
 			"initial_input": geogName,
 		})
 		geography = geogName
@@ -45,15 +45,15 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 		Name:     nameSearchFieldName,
 		ID:       nameSearch,
 		Value:    nameQ,
-		Language: lang,
-		Label:    helper.Localise("CoverageSearchLabel", lang, 1),
+		Language: m.lang,
+		Label:    helper.Localise("CoverageSearchLabel", m.lang, 1),
 	}
 	p.ParentSearch = model.SearchField{
 		Name:     parentSearchFieldName,
 		ID:       parentSearch,
 		Value:    parentQ,
-		Language: lang,
-		Label:    helper.Localise("CoverageSearchLabel", lang, 1),
+		Language: m.lang,
+		Label:    helper.Localise("CoverageSearchLabel", m.lang, 1),
 	}
 
 	p.DatasetId = dataset.ID
@@ -63,7 +63,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 	if len(parents.AreaTypes) > 1 && parentArea == "" {
 		p.ParentSelect = []model.SelectableElement{
 			{
-				Text:       helper.Localise("CoverageSelectDefault", lang, 1),
+				Text:       helper.Localise("CoverageSelectDefault", m.lang, 1),
 				IsSelected: true,
 				IsDisabled: true,
 			},
@@ -106,20 +106,20 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 			CurrentPage:       currentPage,
 			TotalPages:        totalPages,
 			Limit:             areas.Limit,
-			FirstAndLastPages: pagination.GetFirstAndLastPages(req, totalPages),
-			PagesToDisplay:    pagination.GetPagesToDisplay(currentPage, totalPages, req),
+			FirstAndLastPages: pagination.GetFirstAndLastPages(m.req, totalPages),
+			PagesToDisplay:    pagination.GetPagesToDisplay(currentPage, totalPages, m.req),
 		}
 	}
 
 	if len(opts) > 0 && hasFilterByParent {
 		p.CoverageType = parentSearch
 		p.ParentSearchOutput.Selections = opts
-		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", lang, len(opts))
+		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", m.lang, len(opts))
 		p.OptionType = parentSearch
 	} else if len(opts) > 0 {
 		p.CoverageType = nameSearch
 		p.NameSearchOutput.Selections = opts
-		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", lang, len(opts))
+		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", m.lang, len(opts))
 		p.OptionType = nameSearch
 	}
 
@@ -148,7 +148,7 @@ func CreateGetCoverage(req *http.Request, basePage coreModel.Page, lang, filterI
 					URL: "#coverage-error",
 				},
 			},
-			Language: lang,
+			Language: m.lang,
 		}
 	}
 

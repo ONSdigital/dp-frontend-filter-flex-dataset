@@ -6,7 +6,6 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
-	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -21,13 +20,10 @@ func TestGetCoverage(t *testing.T) {
 		req := httptest.NewRequest("", "/", nil)
 		eb := getTestEmergencyBanner()
 		sm := getTestServiceMessage()
+		m := NewMapper(req, coreModel.Page{}, eb, lang, sm, "12345")
 
 		Convey("When the parameters are valid", func() {
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Country",
 				"",
 				"",
@@ -37,13 +33,10 @@ func TestGetCoverage(t *testing.T) {
 				"dim",
 				"geogID",
 				"2022/11/29",
-				sm,
-				eb,
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("it sets page metadata", func() {
@@ -102,11 +95,7 @@ func TestGetCoverage(t *testing.T) {
 					},
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"geography",
 				"",
 				"",
@@ -116,13 +105,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
-				false,
 				false,
 				1)
 			Convey("Then it maps to the ParentSelect property", func() {
@@ -137,11 +123,7 @@ func TestGetCoverage(t *testing.T) {
 		})
 
 		Convey("When parent types returns an empty list", func() {
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"geography",
 				"",
 				"",
@@ -151,13 +133,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets the IsSelectParent property", func() {
@@ -174,11 +153,7 @@ func TestGetCoverage(t *testing.T) {
 					},
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"geography",
 				"",
 				"",
@@ -188,13 +163,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
-				false,
 				false,
 				1)
 			Convey("Then it sets the IsSelected property", func() {
@@ -218,11 +190,7 @@ func TestGetCoverage(t *testing.T) {
 					},
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"geography",
 				"",
 				"",
@@ -232,13 +200,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				parents,
-				false,
 				false,
 				1)
 			Convey("Then it maps the ParentSelect default option", func() {
@@ -262,11 +227,7 @@ func TestGetCoverage(t *testing.T) {
 		})
 
 		Convey("When an unknown geography parameter is given", func() {
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"",
 				"",
@@ -276,13 +237,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets the geography to unknown geography", func() {
@@ -300,11 +258,7 @@ func TestGetCoverage(t *testing.T) {
 				},
 			}
 
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"search",
 				"",
@@ -314,13 +268,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets HasNoResults property", func() {
@@ -344,7 +295,6 @@ func TestGetCoverage(t *testing.T) {
 		})
 
 		Convey("When a valid name search is performed with paginated results", func() {
-
 			mockedSearchResults := population.GetAreasResponse{
 				Areas: []population.Area{
 					{
@@ -362,11 +312,7 @@ func TestGetCoverage(t *testing.T) {
 				},
 			}
 
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"search",
 				"",
@@ -376,13 +322,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				2)
 			Convey("Then it sets HasNoResults property", func() {
@@ -433,11 +376,7 @@ func TestGetCoverage(t *testing.T) {
 				},
 			}
 
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"",
 				"search",
@@ -447,13 +386,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets HasNoResults property", func() {
@@ -481,11 +417,7 @@ func TestGetCoverage(t *testing.T) {
 		})
 
 		Convey("When an invalid name search is performed", func() {
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"search",
 				"",
@@ -495,13 +427,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets HasNoResults property correctly", func() {
@@ -531,11 +460,8 @@ func TestGetCoverage(t *testing.T) {
 				},
 				Language: lang,
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			m.req = httptest.NewRequest("", "/?error=true", nil)
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"",
 				"search",
@@ -545,14 +471,11 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				false,
-				true,
 				1)
 			Convey("Then it sets HasNoResults property correctly", func() {
 				So(coverage.ParentSearchOutput.HasNoResults, ShouldBeFalse)
@@ -572,11 +495,7 @@ func TestGetCoverage(t *testing.T) {
 		})
 
 		Convey("When a 'no results' parent search is performed", func() {
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"",
 				"search",
@@ -586,13 +505,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets HasNoResults property correctly", func() {
@@ -616,11 +532,7 @@ func TestGetCoverage(t *testing.T) {
 					Name:  "delete-option",
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"search",
 				"",
@@ -630,13 +542,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
@@ -651,11 +560,7 @@ func TestGetCoverage(t *testing.T) {
 					Value: "0",
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"",
 				"",
 				"",
@@ -665,14 +570,11 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				population.GetAreasResponse{},
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				true,
-				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Selections, ShouldResemble, mockedOpt)
@@ -694,11 +596,7 @@ func TestGetCoverage(t *testing.T) {
 					Value: "0",
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"search",
 				"",
@@ -708,13 +606,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
@@ -742,11 +637,7 @@ func TestGetCoverage(t *testing.T) {
 					Name:  "delete-option",
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"",
 				"",
 				"",
@@ -756,14 +647,11 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				true,
-				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Selections, ShouldResemble, mockedOpt)
@@ -793,11 +681,7 @@ func TestGetCoverage(t *testing.T) {
 					Value: "0",
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"search",
 				"",
@@ -807,13 +691,10 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
-				false,
 				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
@@ -862,11 +743,7 @@ func TestGetCoverage(t *testing.T) {
 					Value: "0",
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"",
 				"",
@@ -876,14 +753,11 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				mockedOpt,
 				population.GetAreaTypeParentsResponse{},
 				true,
-				false,
 				1)
 			Convey("Then it sets Options property correctly", func() {
 				So(coverage.ParentSearchOutput.Selections, ShouldResemble, mockedOpt)
@@ -929,11 +803,7 @@ func TestGetCoverage(t *testing.T) {
 					TotalCount: 101,
 				},
 			}
-			coverage := CreateGetCoverage(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"",
 				"",
@@ -943,14 +813,11 @@ func TestGetCoverage(t *testing.T) {
 				"",
 				"",
 				"",
-				"",
-				zebedee.EmergencyBanner{},
 				dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"},
 				mockedSearchResults,
 				[]model.SelectableElement{},
 				population.GetAreaTypeParentsResponse{},
 				true,
-				false,
 				2)
 
 			Convey("Then it sets HasNoResults property", func() {

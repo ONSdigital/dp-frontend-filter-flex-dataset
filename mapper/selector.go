@@ -2,30 +2,29 @@ package mapper
 
 import (
 	"fmt"
-	"net/http"
+	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
-	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 )
 
 // CreateCategorisationsSelector maps data to the Selector model
-func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, dimLabel, lang, filterID, dimId, serviceMsg string, eb zebedee.EmergencyBanner, cats population.GetCategorisationsResponse, isValidationError bool) model.Selector {
+func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId string, cats population.GetCategorisationsResponse) model.Selector {
 	p := model.Selector{
-		Page: basePage,
+		Page: m.basePage,
 	}
-	mapCommonProps(req, &p.Page, "filter-flex-selector", cleanDimensionLabel(dimLabel), lang, serviceMsg, eb)
+	mapCommonProps(m.req, &p.Page, "filter-flex-selector", cleanDimensionLabel(dimLabel), m.lang, m.serviceMsg, m.eb)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
-			Title: helper.Localise("Back", lang, 1),
-			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
+			Title: helper.Localise("Back", m.lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", m.fid),
 		},
 	}
-	p.LeadText = helper.Localise("SelectCategoriesLeadText", lang, 1)
+	p.LeadText = helper.Localise("SelectCategoriesLeadText", m.lang, 1)
 	p.InitialSelection = dimId
 
 	var selections []model.Selection
@@ -34,10 +33,11 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 		for _, c := range sortCategoriesByID(cat.Categories) {
 			cats = append(cats, c.Label)
 		}
-		selections = append(selections, mapCats(cats, req.URL.Query()["showAll"], lang, req.URL.Path, cat.ID))
+		selections = append(selections, mapCats(cats, m.req.URL.Query()["showAll"], m.lang, m.req.URL.Path, cat.ID))
 	}
 	p.Selections = selections
 
+	isValidationError, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
 			Title: p.Page.Metadata.Title,
@@ -50,7 +50,7 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 					URL: "#categories-error",
 				},
 			},
-			Language: lang,
+			Language: m.lang,
 		}
 		p.ErrorId = "categories-error"
 	}
@@ -59,25 +59,26 @@ func CreateCategorisationsSelector(req *http.Request, basePage coreModel.Page, d
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, filterID string, areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, isValidationError, hasOpts bool, serviceMsg string, eb zebedee.EmergencyBanner) model.Selector {
+func (m *Mapper) CreateAreaTypeSelector(areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, hasOpts bool) model.Selector {
 	p := model.Selector{
-		Page: basePage,
+		Page: m.basePage,
 	}
-	mapCommonProps(req, &p.Page, areaPageType, areaTypeTitle, lang, serviceMsg, eb)
+	mapCommonProps(m.req, &p.Page, areaPageType, areaTypeTitle, m.lang, m.serviceMsg, m.eb)
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{
-			Title: helper.Localise("Back", lang, 1),
-			URI:   fmt.Sprintf("/filters/%s/dimensions", filterID),
+			Title: helper.Localise("Back", m.lang, 1),
+			URI:   fmt.Sprintf("/filters/%s/dimensions", m.fid),
 		},
 	}
-	p.LeadText = helper.Localise("SelectAreaTypeLeadText", lang, 1)
+	p.LeadText = helper.Localise("SelectAreaTypeLeadText", m.lang, 1)
 	if hasOpts {
 		p.Panel = mapPanel(coreModel.Localisation{
 			LocaleKey: "ChangeAreaTypeWarning",
 			Plural:    1,
-		}, lang, []string{"ons-u-mb-l"})
+		}, m.lang, []string{"ons-u-mb-l"})
 	}
 
+	isValidationError, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
 	if isValidationError {
 		p.Page.Error = coreModel.Error{
 			Title: p.Page.Metadata.Title,
@@ -90,7 +91,7 @@ func CreateAreaTypeSelector(req *http.Request, basePage coreModel.Page, lang, fi
 					URL: "#area-type-error",
 				},
 			},
-			Language: lang,
+			Language: m.lang,
 		}
 		p.ErrorId = "area-type-error"
 	}

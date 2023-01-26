@@ -172,6 +172,7 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 	}
 
 	basePage := f.Render.NewBasePageModel()
-	m := mapper.CreateGetChangeDimensions(req, basePage, lang, fid, q, form, serviceMsg, eb, dims, pDims, pResults)
-	f.Render.BuildPage(w, m, "dimensions")
+	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, fid)
+	dimensions := m.CreateGetChangeDimensions(q, form, dims, pDims, pResults)
+	f.Render.BuildPage(w, dimensions, "dimensions")
 }

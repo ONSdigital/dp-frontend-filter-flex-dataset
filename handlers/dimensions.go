@@ -25,7 +25,6 @@ func dimensionSelector(w http.ResponseWriter, req *http.Request, f *FilterFlex, 
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
 	dimensionName := vars["name"]
-	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
 
 	logData := log.Data{
 		"filter_id": filterID,
@@ -88,7 +87,8 @@ func dimensionSelector(w http.ResponseWriter, req *http.Request, f *FilterFlex, 
 			return
 		}
 
-		selector := mapper.CreateCategorisationsSelector(req, basePage, filterDimension.Label, lang, filterID, dimensionName, serviceMsg, eb, cats, isValidationError)
+		m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
+		selector := m.CreateCategorisationsSelector(filterDimension.Label, dimensionName, cats)
 		f.Render.BuildPage(w, selector, "selector")
 		return
 	}
@@ -148,7 +148,8 @@ func dimensionSelector(w http.ResponseWriter, req *http.Request, f *FilterFlex, 
 		return
 	}
 
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts, serviceMsg, eb)
+	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
+	selector := m.CreateAreaTypeSelector(areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, hasOpts)
 	f.Render.BuildPage(w, selector, "selector")
 }
 

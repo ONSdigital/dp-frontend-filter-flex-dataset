@@ -6,7 +6,6 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
-	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
@@ -22,6 +21,7 @@ func TestGetChangeDimensions(t *testing.T) {
 		req := httptest.NewRequest("", "/", nil)
 		eb := getTestEmergencyBanner()
 		sm := getTestServiceMessage()
+		m := NewMapper(req, coreModel.Page{}, eb, lang, sm, "12345")
 
 		Convey("When the parameters are valid", func() {
 			mockFds := []model.FilterDimension{
@@ -75,15 +75,9 @@ func TestGetChangeDimensions(t *testing.T) {
 					},
 				},
 			}
-			p := CreateGetChangeDimensions(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			p := m.CreateGetChangeDimensions(
 				"dim-a",
 				"",
-				sm,
-				eb,
 				mockFds,
 				mockPds,
 				mockPdsR,
@@ -189,15 +183,9 @@ func TestGetChangeDimensions(t *testing.T) {
 		})
 
 		Convey("when a valid search with no results is performed", func() {
-			p := CreateGetChangeDimensions(
-				req,
-				coreModel.Page{},
-				lang,
-				"12345",
+			p := m.CreateGetChangeDimensions(
 				"dim-a",
 				"search",
-				"",
-				zebedee.EmergencyBanner{},
 				[]model.FilterDimension{},
 				population.GetDimensionsResponse{},
 				population.GetDimensionsResponse{},
