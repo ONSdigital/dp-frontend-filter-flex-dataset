@@ -56,7 +56,7 @@ const (
 )
 
 // mapDimensionsResponse returns a sorted array of selectable elements
-func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[]model.SelectableElement) []model.SelectableElement {
+func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[]model.SelectableElement, lang string) []model.SelectableElement {
 	results := []model.SelectableElement{}
 	for _, pDim := range pDims.Dimensions {
 		var sel model.SelectableElement
@@ -64,6 +64,11 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[
 		sel.Text = cleanDimensionLabel(pDim.Label)
 		sel.InnerText = pDim.Description
 		sel.Value = pDim.ID
+		sel.QualityStatement = model.Panel{
+			CssClasses: []string{"ons-u-mt-s", "ons-u-mb-xs"},
+			Body:       pDim.QualityStatementText,
+			Language:   lang,
+		}
 		pDimId := helpers.TrimCategoryValue(pDim.ID)
 		for _, dim := range *selections {
 			dimV := helpers.TrimCategoryValue(dim.Value)

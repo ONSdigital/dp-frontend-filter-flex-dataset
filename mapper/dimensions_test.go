@@ -50,9 +50,10 @@ func TestGetChangeDimensions(t *testing.T) {
 						Description: "description one",
 					},
 					{
-						ID:          "dim-a",
-						Label:       "dim a (1 category)",
-						Description: "description a",
+						ID:                   "dim-a",
+						Label:                "dim a (1 category)",
+						Description:          "description a",
+						QualityStatementText: "a statement about quality",
 					},
 					{
 						ID:          "dim-b",
@@ -74,6 +75,11 @@ func TestGetChangeDimensions(t *testing.T) {
 						Description: "description a",
 					},
 				},
+			}
+			mockEmptyQs := model.Panel{
+				CssClasses: []string{"ons-u-mt-s", "ons-u-mb-xs"},
+				Body:       "",
+				Language:   lang,
 			}
 			p := m.CreateGetChangeDimensions(
 				"dim-a",
@@ -110,27 +116,35 @@ func TestGetChangeDimensions(t *testing.T) {
 						Name:       "add-dimension",
 						IsSelected: false,
 						InnerText:  "description a",
+						QualityStatement: model.Panel{
+							CssClasses: []string{"ons-u-mt-s", "ons-u-mb-xs"},
+							Body:       "a statement about quality",
+							Language:   m.lang,
+						},
 					},
 					{
-						Text:       "dim b",
-						Value:      "dim-b",
-						Name:       "add-dimension",
-						IsSelected: false,
-						InnerText:  "description b",
+						Text:             "dim b",
+						Value:            "dim-b",
+						Name:             "add-dimension",
+						IsSelected:       false,
+						InnerText:        "description b",
+						QualityStatement: mockEmptyQs,
 					},
 					{
-						Text:       "dim c",
-						Value:      "dim-c",
-						Name:       "add-dimension",
-						IsSelected: false,
-						InnerText:  "description c",
+						Text:             "dim c",
+						Value:            "dim-c",
+						Name:             "add-dimension",
+						IsSelected:       false,
+						InnerText:        "description c",
+						QualityStatement: mockEmptyQs,
 					},
 					{
-						Text:       "dim one",
-						Value:      "dim-1",
-						Name:       "delete-option",
-						IsSelected: true,
-						InnerText:  "description one",
+						Text:             "dim one",
+						Value:            "dim-1",
+						Name:             "delete-option",
+						IsSelected:       true,
+						InnerText:        "description one",
+						QualityStatement: mockEmptyQs,
 					},
 				}
 				So(p.Output.Results, ShouldResemble, mockPds)
@@ -140,11 +154,12 @@ func TestGetChangeDimensions(t *testing.T) {
 			Convey("Then it maps available dimensions search results", func() {
 				mockPds := []model.SelectableElement{
 					{
-						Text:       "dim a",
-						Value:      "dim-a",
-						Name:       "add-dimension",
-						IsSelected: false,
-						InnerText:  "description a",
+						Text:             "dim a",
+						Value:            "dim-a",
+						Name:             "add-dimension",
+						IsSelected:       false,
+						InnerText:        "description a",
+						QualityStatement: mockEmptyQs,
 					},
 				}
 				So(p.SearchOutput.Results, ShouldResemble, mockPds)
@@ -155,11 +170,12 @@ func TestGetChangeDimensions(t *testing.T) {
 			Convey("Then it sets HasNoResults", func() {
 				mockPds := []model.SelectableElement{
 					{
-						Text:       "dim a",
-						Value:      "dim-a",
-						Name:       "add-dimension",
-						IsSelected: false,
-						InnerText:  "description a",
+						Text:             "dim a",
+						Value:            "dim-a",
+						Name:             "add-dimension",
+						IsSelected:       false,
+						InnerText:        "description a",
+						QualityStatement: mockEmptyQs,
 					},
 				}
 				So(p.SearchOutput.Results, ShouldResemble, mockPds)
