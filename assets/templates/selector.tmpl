@@ -32,8 +32,16 @@
                                             <div class="ons-radios__item ons-radios__item--no-border ons-u-mb-s">
                                                 <div class="ons-radio ons-radio--no-border">
                                                     <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }} checked {{ end }}>
-                                                    <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">
+                                                    <label class="ons-radio__label ons-badge" for="{{ .Value }}" id="{{ .Value }}-label">
                                                         {{ .Label }}
+                                                        {{ if .IsSuggested }}
+                                                            <span class="ons-badge__item">
+                                                                {{- localise "Suggested" $.Language 1 -}}
+                                                                <span class="ons-u-vh">
+                                                                    {{- localise "SuggestedA11yHelpText" $.Language 1 -}}
+                                                                </span>
+                                                            </span>
+                                                        {{ end }}
                                                         {{ if gt .TotalCount 0 }}
                                                             ({{ thousandsSeparator .TotalCount }})
                                                         {{ end }}

@@ -26,4 +26,5 @@ type Selection struct {
 	TotalCount      int
 	IsTruncated     bool
 	TruncateLink    string
+	IsSuggested     bool
 }
