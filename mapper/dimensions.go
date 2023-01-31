@@ -47,8 +47,8 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 		Label:    helper.Localise("DimensionsSearchLabel", m.lang, 1),
 	}
 
-	browseResults := mapDimensionsResponse(pDims, &selections)
-	searchResults := mapDimensionsResponse(results, &selections)
+	browseResults := mapDimensionsResponse(pDims, &selections, m.lang)
+	searchResults := mapDimensionsResponse(results, &selections, m.lang)
 
 	p.Output.Results = browseResults
 	p.SearchOutput.Results = searchResults

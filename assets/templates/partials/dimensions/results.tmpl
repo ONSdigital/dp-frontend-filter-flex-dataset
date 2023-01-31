@@ -5,10 +5,13 @@
                 <details class="ons-collapsible ons-js-collapsible">
                     <summary class="ons-collapsible__heading ons-js-collapsible-heading">
                         <h2 class="ons-collapsible__title">{{- .Text -}}</h2>
-                    {{ template "icons/collapsible" }}
+                        {{ template "icons/collapsible" }}
                     </summary>
                     <div class="ons-collapsible__content ons-js-collapsible-content">
                         <p class="ons-u-m-no">{{- .InnerText -}}</p>
+                        {{ if .QualityStatement.Body }}
+                            {{ template "partials/common/panel" .QualityStatement }}
+                        {{ end }}
                     </div>
                 </details>
             {{ else }}
