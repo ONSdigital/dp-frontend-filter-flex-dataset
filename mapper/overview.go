@@ -5,9 +5,10 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 
-	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -15,7 +16,7 @@ import (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, datasetDims dataset.VersionDimensions, hasNoAreaOptions, isMultivariate bool) model.Overview {
+func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, hasNoAreaOptions, isMultivariate bool) model.Overview {
 	queryStrValues := m.req.URL.Query()["showAll"]
 	path := m.req.URL.Path
 
@@ -83,7 +84,52 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	temp := append(coverage, p.Dimensions[1:]...)
 	p.Dimensions = append(p.Dimensions[:1], temp...)
 
-	// TODO: Temporarily removing mapping as new endpoints are required to return reliable dataset information
+	p.Collapsible = coreModel.Collapsible{
+		Title: coreModel.Localisation{
+			LocaleKey: "VariableExplanation",
+			Plural:    4,
+		},
+		CollapsibleItems: mapCollapsible(dimDescriptions, p.Dimensions),
+	}
 
 	return p
+}
+
+func mapCollapsible(dimDescriptions population.GetDimensionsResponse, dims []model.Dimension) []coreModel.CollapsibleItem {
+	var collapsibleContentItems []coreModel.CollapsibleItem
+	var areaItem coreModel.CollapsibleItem
+
+	for _, dim := range dims {
+		for _, dimDescription := range dimDescriptions.Dimensions {
+			if dim.ID == dimDescription.ID && !dim.IsAreaType {
+				collapsibleContentItems = append(collapsibleContentItems, coreModel.CollapsibleItem{
+					Subheading: cleanDimensionLabel(dimDescription.Label),
+					Content:    strings.Split(dimDescription.Description, "\n"),
+				})
+			} else if dim.ID == dimDescription.ID && dim.IsAreaType {
+				areaItem.Subheading = cleanDimensionLabel(dimDescription.Label)
+				areaItem.Content = strings.Split(dimDescription.Description, "\n")
+			}
+		}
+	}
+
+	collapsibleContentItems = append([]coreModel.CollapsibleItem{
+		{
+			Subheading: areaTypeTitle,
+			SafeHTML: coreModel.Localisation{
+				LocaleKey: "VariableInfoAreaType",
+				Plural:    1,
+			},
+		},
+		areaItem,
+		{
+			Subheading: coverageTitle,
+			SafeHTML: coreModel.Localisation{
+				LocaleKey: "VariableInfoCoverage",
+				Plural:    1,
+			},
+		},
+	}, collapsibleContentItems...)
+
+	return collapsibleContentItems
 }

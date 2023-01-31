@@ -522,6 +522,21 @@ func (mr *MockPopulationClientMockRecorder) GetDimensions(ctx, input interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimensions", reflect.TypeOf((*MockPopulationClient)(nil).GetDimensions), ctx, input)
 }
 
+// GetDimensionsDescription mocks base method.
+func (m *MockPopulationClient) GetDimensionsDescription(ctx context.Context, input population.GetDimensionsDescriptionInput) (population.GetDimensionsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDimensionsDescription", ctx, input)
+	ret0, _ := ret[0].(population.GetDimensionsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDimensionsDescription indicates an expected call of GetDimensionsDescription.
+func (mr *MockPopulationClientMockRecorder) GetDimensionsDescription(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimensionsDescription", reflect.TypeOf((*MockPopulationClient)(nil).GetDimensionsDescription), ctx, input)
+}
+
 // GetParentAreaCount mocks base method.
 func (m *MockPopulationClient) GetParentAreaCount(ctx context.Context, input population.GetParentAreaCountInput) (int, error) {
 	m.ctrl.T.Helper()
