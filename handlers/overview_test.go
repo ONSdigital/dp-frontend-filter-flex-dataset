@@ -39,9 +39,6 @@ func TestOverviewHandler(t *testing.T) {
 
 	Convey("test filter flex overview", t, func() {
 		Convey("test filter flex overview page is successful", func() {
-			mockDatasetDims := dataset.VersionDimensions{
-				Items: []dataset.VersionDimension{},
-			}
 			dims := filter.Dimensions{
 				Items: []filter.Dimension{
 					{
@@ -71,7 +68,6 @@ func TestOverviewHandler(t *testing.T) {
 				mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(&filter.GetFilterResponse{}, nil)
 				mockFc.EXPECT().GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterDims, "", nil)
 				mockFc.EXPECT().GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterDims.Items[0], "", nil)
-				mockDc.EXPECT().GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockDatasetDims, nil)
 				mockDc.EXPECT().GetOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), "", "", "0", dims.Items[0].Name,
 					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
 				mockDc.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dataset.DatasetDetails{}, nil)
@@ -81,10 +77,16 @@ func TestOverviewHandler(t *testing.T) {
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
 
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensionsDescription(ctx, gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
-				ff := NewFilterFlex(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
 				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 				router.ServeHTTP(w, req)
@@ -111,7 +113,6 @@ func TestOverviewHandler(t *testing.T) {
 				mockFc.EXPECT().GetFilter(ctx, gomock.Any()).Return(&filter.GetFilterResponse{}, nil)
 				mockFc.EXPECT().GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterDims, "", nil)
 				mockFc.EXPECT().GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockFilterDims.Items[0], "", nil)
-				mockDc.EXPECT().GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockDatasetDims, nil)
 				mockDc.EXPECT().GetOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), "", "", "0", dims.Items[0].Name,
 					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
 				mockDc.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dataset.DatasetDetails{}, nil)
@@ -121,10 +122,16 @@ func TestOverviewHandler(t *testing.T) {
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, errors.New("Internal error"))
 
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensionsDescription(ctx, gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
-				ff := NewFilterFlex(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
 				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 
@@ -148,17 +155,22 @@ func TestOverviewHandler(t *testing.T) {
 				mockDc.EXPECT().GetOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), "", "", "0", dims.Items[0].Name,
 					&dataset.QueryParams{Offset: 0, Limit: 1000}).Return(mockOpts[0], nil)
 				mockDc.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(dataset.DatasetDetails{}, nil)
-				mockDc.EXPECT().GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockDatasetDims, nil)
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.
 					EXPECT().
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
 
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensionsDescription(ctx, gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
-				ff := NewFilterFlex(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
 				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 
@@ -202,13 +214,12 @@ func TestOverviewHandler(t *testing.T) {
 						EXPECT().
 						GetAreas(ctx, gomock.Any()).
 						Return(population.GetAreasResponse{}, errors.New("internal error"))
+					mockPc.
+						EXPECT().
+						GetDimensionsDescription(ctx, gomock.Any()).
+						Return(population.GetDimensionsResponse{}, nil)
 
 					mockDc := NewMockDatasetClient(mockCtrl)
-					mockDc.
-						EXPECT().
-						GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(mockDatasetDims, nil).
-						AnyTimes()
 					mockDc.
 						EXPECT().
 						Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -280,6 +291,10 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetAreas(ctx, gomock.Eq(expGetAreasInput)).
 							Return(population.GetAreasResponse{}, nil)
+						mockPc.
+							EXPECT().
+							GetDimensionsDescription(ctx, gomock.Any()).
+							Return(population.GetDimensionsResponse{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -293,11 +308,6 @@ func TestOverviewHandler(t *testing.T) {
 							AnyTimes()
 
 						mockDc := NewMockDatasetClient(mockCtrl)
-						mockDc.
-							EXPECT().
-							GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-							Return(mockDatasetDims, nil).
-							AnyTimes()
 						mockDc.
 							EXPECT().
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -365,6 +375,10 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetAreas(ctx, gomock.Any()).
 							Return(areas, nil)
+						mockPc.
+							EXPECT().
+							GetDimensionsDescription(ctx, gomock.Any()).
+							Return(population.GetDimensionsResponse{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -377,11 +391,6 @@ func TestOverviewHandler(t *testing.T) {
 							BuildPage(gomock.Any(), gomock.Any(), "overview")
 
 						mockDc := NewMockDatasetClient(mockCtrl)
-						mockDc.
-							EXPECT().
-							GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-							Return(mockDatasetDims, nil).
-							AnyTimes()
 						mockDc.
 							EXPECT().
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -455,6 +464,10 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetArea(ctx, gomock.Any()).
 							Return(area, nil)
+						mockPc.
+							EXPECT().
+							GetDimensionsDescription(ctx, gomock.Any()).
+							Return(population.GetDimensionsResponse{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -467,11 +480,6 @@ func TestOverviewHandler(t *testing.T) {
 							BuildPage(gomock.Any(), gomock.Any(), "overview")
 
 						mockDc := NewMockDatasetClient(mockCtrl)
-						mockDc.
-							EXPECT().
-							GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-							Return(mockDatasetDims, nil).
-							AnyTimes()
 						mockDc.
 							EXPECT().
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -546,6 +554,11 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetArea(ctx, gomock.Any()).
 							Return(area, nil)
+						mockPc.
+							EXPECT().
+							GetDimensionsDescription(ctx, gomock.Any()).
+							Return(population.GetDimensionsResponse{}, nil)
+
 						// TODO: pc.GetParentAreaCount is causing production issues
 						// mockPc.
 						// 	EXPECT().
@@ -563,10 +576,6 @@ func TestOverviewHandler(t *testing.T) {
 							BuildPage(gomock.Any(), gomock.Any(), "overview")
 
 						mockDc := NewMockDatasetClient(mockCtrl)
-						mockDc.
-							EXPECT().
-							GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-							Return(mockDatasetDims, nil)
 						mockDc.
 							EXPECT().
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -659,7 +668,7 @@ func TestOverviewHandler(t *testing.T) {
 				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
 
-			Convey("test FilterFlexOverview returns 500 if client GetVersionDimensions returns an error", func() {
+			Convey("test FilterFlexOverview returns 500 if client GetDimensionsDescription returns an error", func() {
 				mockFc := NewMockFilterClient(mockCtrl)
 				mockDc := NewMockDatasetClient(mockCtrl)
 				mockPc := NewMockPopulationClient(mockCtrl)
@@ -683,11 +692,6 @@ func TestOverviewHandler(t *testing.T) {
 					Return(mockFilterDims, "", nil)
 				mockDc.
 					EXPECT().
-					GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(dataset.VersionDimensions{}, errors.New("sorry")).
-					AnyTimes()
-				mockDc.
-					EXPECT().
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.DatasetDetails{}, nil)
 
@@ -696,6 +700,11 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
+
+				mockPc.
+					EXPECT().
+					GetDimensionsDescription(ctx, gomock.Any()).
+					Return(population.GetDimensionsResponse{}, errors.New("Internal error"))
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -722,10 +731,6 @@ func TestOverviewHandler(t *testing.T) {
 					GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimensions{}, "", errors.New("sorry"))
 
-				mockDc.
-					EXPECT().
-					GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(dataset.VersionDimensions{}, nil)
 				mockDc.
 					EXPECT().
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -777,12 +782,13 @@ func TestOverviewHandler(t *testing.T) {
 
 				mockDc.
 					EXPECT().
-					GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(dataset.VersionDimensions{}, nil)
-				mockDc.
-					EXPECT().
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(dataset.DatasetDetails{}, nil)
+
+				mockPc.
+					EXPECT().
+					GetDimensionsDescription(ctx, gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.

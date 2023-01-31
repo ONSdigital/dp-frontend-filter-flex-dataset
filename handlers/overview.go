@@ -31,12 +31,13 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	filterID := vars["filterID"]
 
 	var filterDims filter.Dimensions
-	var datasetDims dataset.VersionDimensions
+	var dimDescriptions population.GetDimensionsResponse
 	var filterJob *filter.GetFilterResponse
 	var eb zebedee.EmergencyBanner
 	var fErr, dErr, fdsErr, imErr, zErr error
 	var isMultivariate bool
 	var serviceMsg string
+	var dimIds []string
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -73,16 +74,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			}
 		}
 
-		datasetDims, dErr = f.DatasetClient.GetVersionDimensions(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, fmt.Sprint(filterJob.Dataset.Version))
-		if dErr != nil {
-			log.Error(ctx, "failed to get versions dimensions", dErr, log.Data{
-				"dataset": filterJob.Dataset.DatasetID,
-				"edition": filterJob.Dataset.Edition,
-				"version": fmt.Sprint(filterJob.Dataset.Version),
-			})
-			setStatusCode(req, w, dErr)
-			return
-		}
 	}()
 
 	go func() {
@@ -92,6 +83,10 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			log.Error(ctx, "failed to get dimensions", fdsErr, log.Data{"filter_id": filterID})
 			setStatusCode(req, w, fdsErr)
 			return
+		}
+
+		for _, dim := range filterDims.Items {
+			dimIds = append(dimIds, dim.ID)
 		}
 	}()
 
@@ -118,11 +113,33 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		setStatusCode(req, w, imErr)
 		return
 	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		dimDescriptions, dErr = f.PopulationClient.GetDimensionsDescription(ctx, population.GetDimensionsDescriptionInput{
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+			PopulationType: filterJob.PopulationType,
+			DimensionIDs:   dimIds,
+		})
+		if dErr != nil {
+			log.Error(ctx, "failed to get dimension descriptions", dErr, log.Data{
+				"population_type": filterJob.PopulationType,
+				"dimension_ids":   dimIds,
+			})
+			setStatusCode(req, w, dErr)
+			return
+		}
+	}()
+
+	wg.Wait()
+
 	if dErr != nil {
-		log.Error(ctx, "failed to get versions dimensions", dErr, log.Data{
-			"dataset": filterJob.Dataset.DatasetID,
-			"edition": filterJob.Dataset.Edition,
-			"version": fmt.Sprint(filterJob.Dataset.Version),
+		log.Error(ctx, "failed to get dimension descriptions", dErr, log.Data{
+			"population_type": filterJob.PopulationType,
+			"dimension_ids":   dimIds,
 		})
 		setStatusCode(req, w, dErr)
 		return
@@ -275,7 +292,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 	basePage := f.Render.NewBasePageModel()
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	overview := m.CreateFilterFlexOverview(*filterJob, fDims, datasetDims, hasNoAreaOptions, isMultivariate)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, hasNoAreaOptions, isMultivariate)
 	f.Render.BuildPage(w, overview, "overview")
 }
 
