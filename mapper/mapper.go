@@ -163,7 +163,7 @@ func generateTruncatePath(path, dimID string, q url.Values) string {
 }
 
 // mapCats is a helper function that returns either truncated or untruncated mapped categories
-func mapCats(cats, queryStrValues []string, lang, path, catID string) model.Selection {
+func mapCats(cats, queryStrValues []string, lang, path, catID, defaultCat string) model.Selection {
 	q := url.Values{}
 	catsLength := len(cats)
 	midFloor, midCeiling := getTruncationMidRange(catsLength)
@@ -189,6 +189,7 @@ func mapCats(cats, queryStrValues []string, lang, path, catID string) model.Sele
 		CategoriesCount: catsLength,
 		IsTruncated:     isTruncated,
 		TruncateLink:    generateTruncatePath((path), catID, q),
+		IsSuggested:     strings.EqualFold(catID, defaultCat),
 	}
 }
 

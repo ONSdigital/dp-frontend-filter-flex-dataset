@@ -88,7 +88,7 @@ func dimensionSelector(w http.ResponseWriter, req *http.Request, f *FilterFlex, 
 		}
 
 		m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-		selector := m.CreateCategorisationsSelector(filterDimension.Label, dimensionName, cats)
+		selector := m.CreateCategorisationsSelector(filterDimension.Label, dimensionName, filterDimension.DefaultCategorisation, cats)
 		f.Render.BuildPage(w, selector, "selector")
 		return
 	}

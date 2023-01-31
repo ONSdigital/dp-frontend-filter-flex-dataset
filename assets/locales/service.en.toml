@@ -241,3 +241,11 @@ one = "Select a category"
 description = "category"
 one = "category"
 other = "categories"
+
+[Suggested]
+description = "suggested"
+one = "suggested"
+
+[SuggestedA11yHelpText]
+description = "categorisation"
+one = "categorisation"
