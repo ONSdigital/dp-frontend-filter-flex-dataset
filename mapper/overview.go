@@ -44,7 +44,8 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 		pageDim.OptionsCount = dim.OptionsCount
 		pageDim.ID = dim.ID
 		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
-		pageDim.IsChangeCategories = isMultivariate
+		pageDim.IsChangeCategories = isMultivariate && dim.CategorisationCount > 1
+
 		q := url.Values{}
 		midFloor, midCeiling := getTruncationMidRange(dim.OptionsCount)
 

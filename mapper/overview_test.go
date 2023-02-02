@@ -38,7 +38,8 @@ func TestOverview(t *testing.T) {
 				IsAreaType: helpers.ToBoolPtr(false),
 				Options:    []string{"Opt 1", "Opt 2"},
 			},
-			OptionsCount: 2,
+			OptionsCount:        2,
+			CategorisationCount: 1,
 		},
 		{
 			Dimension: filter.Dimension{
@@ -66,7 +67,8 @@ func TestOverview(t *testing.T) {
 					"Opt 20",
 				},
 			},
-			OptionsCount: 20,
+			OptionsCount:        20,
+			CategorisationCount: 2,
 		},
 		{
 			Dimension: filter.Dimension{
@@ -86,7 +88,8 @@ func TestOverview(t *testing.T) {
 					"Opt 12",
 				},
 			},
-			OptionsCount: 12,
+			OptionsCount:        12,
+			CategorisationCount: 2,
 		},
 		{
 			Dimension: filter.Dimension{
@@ -105,7 +108,8 @@ func TestOverview(t *testing.T) {
 					"area 10",
 				},
 			},
-			OptionsCount: 10,
+			OptionsCount:        10,
+			CategorisationCount: 2,
 		},
 	}
 	dimDescriptions := population.GetDimensionsResponse{
@@ -290,6 +294,26 @@ func TestOverview(t *testing.T) {
 			})
 			Convey("Then the 'how to improve your results' collapsible is empty", func() {
 				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 0)
+			})
+		})
+	})
+
+	Convey("test IsChangeVisible parameter", t, func() {
+		Convey("when isMultivariate is false", func() {
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, true, false)
+			Convey("then IsChangeCategories is false for all", func() {
+				So(overview.Dimensions[2].IsChangeCategories, ShouldBeFalse)
+				So(overview.Dimensions[3].IsChangeCategories, ShouldBeFalse)
+				So(overview.Dimensions[4].IsChangeCategories, ShouldBeFalse)
+			})
+		})
+
+		Convey("when isMultivariate is true", func() {
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, true, true)
+			Convey("then IsChangeCategories is false if categorisation is only one available", func() {
+				So(overview.Dimensions[2].IsChangeCategories, ShouldBeFalse)
+				So(overview.Dimensions[3].IsChangeCategories, ShouldBeTrue)
+				So(overview.Dimensions[4].IsChangeCategories, ShouldBeTrue)
 			})
 		})
 	})
