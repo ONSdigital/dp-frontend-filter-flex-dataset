@@ -52,6 +52,7 @@ func TestOverviewHandler(t *testing.T) {
 			Convey("options on filter job no additional call to get options", func() {
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockDc := NewMockDatasetClient(mockCtrl)
+				mockPc := NewMockPopulationClient(mockCtrl)
 
 				mockFc := NewMockFilterClient(mockCtrl)
 				mockFilterDims := filter.Dimensions{
@@ -74,8 +75,12 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
+				mockPc.EXPECT().GetCategorisations(ctx, gomock.Any()).Return(population.GetCategorisationsResponse{
+					PaginationResponse: population.PaginationResponse{
+						TotalCount: 2,
+					},
+				}, nil).AnyTimes()
 
-				mockPc := NewMockPopulationClient(mockCtrl)
 				mockPc.
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
@@ -102,6 +107,7 @@ func TestOverviewHandler(t *testing.T) {
 			Convey("when the zebedee.GetHomepageContent api method responds with an error", func() {
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockDc := NewMockDatasetClient(mockCtrl)
+				mockPc := NewMockPopulationClient(mockCtrl)
 
 				mockFc := NewMockFilterClient(mockCtrl)
 				mockFilterDims := filter.Dimensions{
@@ -124,8 +130,12 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, errors.New("Internal error"))
+				mockPc.EXPECT().GetCategorisations(ctx, gomock.Any()).Return(population.GetCategorisationsResponse{
+					PaginationResponse: population.PaginationResponse{
+						TotalCount: 2,
+					},
+				}, nil).AnyTimes()
 
-				mockPc := NewMockPopulationClient(mockCtrl)
 				mockPc.
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
@@ -154,6 +164,7 @@ func TestOverviewHandler(t *testing.T) {
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockDc := NewMockDatasetClient(mockCtrl)
 				mockFc := NewMockFilterClient(mockCtrl)
+				mockPc := NewMockPopulationClient(mockCtrl)
 
 				mockRend.EXPECT().NewBasePageModel().Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain))
 				mockRend.EXPECT().BuildPage(gomock.Any(), gomock.Any(), "overview")
@@ -166,8 +177,12 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
+				mockPc.EXPECT().GetCategorisations(ctx, gomock.Any()).Return(population.GetCategorisationsResponse{
+					PaginationResponse: population.PaginationResponse{
+						TotalCount: 2,
+					},
+				}, nil).AnyTimes()
 
-				mockPc := NewMockPopulationClient(mockCtrl)
 				mockPc.
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
@@ -235,6 +250,13 @@ func TestOverviewHandler(t *testing.T) {
 						Return(population.GetDimensionCategoriesResponse{
 							PaginationResponse: population.PaginationResponse{TotalCount: 1},
 							Categories:         mockDimensionCategories,
+						}, nil).AnyTimes()
+					mockPc.EXPECT().
+						GetCategorisations(ctx, gomock.Any()).
+						Return(population.GetCategorisationsResponse{
+							PaginationResponse: population.PaginationResponse{
+								TotalCount: 2,
+							},
 						}, nil).AnyTimes()
 
 					mockDc := NewMockDatasetClient(mockCtrl)
@@ -319,6 +341,17 @@ func TestOverviewHandler(t *testing.T) {
 							Return(population.GetDimensionCategoriesResponse{
 								PaginationResponse: population.PaginationResponse{TotalCount: 1},
 								Categories:         mockDimensionCategories,
+							}, nil)
+						mockPc.
+							EXPECT().
+							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+							Return(&population.GetBlockedAreaCountResult{}, nil)
+						mockPc.EXPECT().
+							GetCategorisations(ctx, gomock.Any()).
+							Return(population.GetCategorisationsResponse{
+								PaginationResponse: population.PaginationResponse{
+									TotalCount: 2,
+								},
 							}, nil).AnyTimes()
 
 						mockRend := NewMockRenderClient(mockCtrl)
@@ -400,6 +433,7 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetAreas(ctx, gomock.Any()).
 							Return(areas, nil)
+
 						mockPc.
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
@@ -409,7 +443,17 @@ func TestOverviewHandler(t *testing.T) {
 							GetDimensionCategories(ctx, gomock.Any()).
 							Return(population.GetDimensionCategoriesResponse{
 								PaginationResponse: population.PaginationResponse{TotalCount: 1},
-								Categories:         mockDimensionCategories,
+								Categories:         mockDimensionCategories}, nil)
+						mockPc.
+							EXPECT().
+							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+							Return(&population.GetBlockedAreaCountResult{}, nil)
+						mockPc.EXPECT().
+							GetCategorisations(ctx, gomock.Any()).
+							Return(population.GetCategorisationsResponse{
+								PaginationResponse: population.PaginationResponse{
+									TotalCount: 2,
+								},
 							}, nil).AnyTimes()
 
 						mockRend := NewMockRenderClient(mockCtrl)
@@ -496,6 +540,7 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetArea(ctx, gomock.Any()).
 							Return(area, nil)
+
 						mockPc.
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
@@ -506,6 +551,17 @@ func TestOverviewHandler(t *testing.T) {
 							Return(population.GetDimensionCategoriesResponse{
 								PaginationResponse: population.PaginationResponse{TotalCount: 1},
 								Categories:         mockDimensionCategories,
+							}, nil).AnyTimes()
+						mockPc.
+							EXPECT().
+							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+							Return(&population.GetBlockedAreaCountResult{}, nil)
+						mockPc.EXPECT().
+							GetCategorisations(ctx, gomock.Any()).
+							Return(population.GetCategorisationsResponse{
+								PaginationResponse: population.PaginationResponse{
+									TotalCount: 2,
+								},
 							}, nil).AnyTimes()
 
 						mockRend := NewMockRenderClient(mockCtrl)
@@ -593,6 +649,7 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetArea(ctx, gomock.Any()).
 							Return(area, nil)
+
 						mockPc.
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
@@ -607,6 +664,14 @@ func TestOverviewHandler(t *testing.T) {
 							Return(population.GetDimensionCategoriesResponse{
 								PaginationResponse: population.PaginationResponse{TotalCount: 1},
 								Categories:         mockDimensionCategories,
+							}, nil).AnyTimes()
+
+						mockPc.EXPECT().
+							GetCategorisations(ctx, gomock.Any()).
+							Return(population.GetCategorisationsResponse{
+								PaginationResponse: population.PaginationResponse{
+									TotalCount: 2,
+								},
 							}, nil).AnyTimes()
 
 						// TODO: pc.GetParentAreaCount is causing production issues
@@ -681,6 +746,13 @@ func TestOverviewHandler(t *testing.T) {
 					Return(population.GetDimensionCategoriesResponse{
 						PaginationResponse: population.PaginationResponse{TotalCount: 1},
 						Categories:         mockDimensionCategories,
+					}, nil).AnyTimes()
+				mockPc.EXPECT().
+					GetCategorisations(ctx, gomock.Any()).
+					Return(population.GetCategorisationsResponse{
+						PaginationResponse: population.PaginationResponse{
+							TotalCount: 2,
+						},
 					}, nil).AnyTimes()
 
 				w := httptest.NewRecorder()
@@ -781,6 +853,13 @@ func TestOverviewHandler(t *testing.T) {
 					Return(population.GetDimensionCategoriesResponse{
 						PaginationResponse: population.PaginationResponse{TotalCount: 1},
 						Categories:         mockDimensionCategories,
+					}, nil).AnyTimes()
+				mockPc.EXPECT().
+					GetCategorisations(ctx, gomock.Any()).
+					Return(population.GetCategorisationsResponse{
+						PaginationResponse: population.PaginationResponse{
+							TotalCount: 2,
+						},
 					}, nil).AnyTimes()
 
 				w := httptest.NewRecorder()
@@ -921,6 +1000,13 @@ func TestOverviewHandler(t *testing.T) {
 						PaginationResponse: population.PaginationResponse{TotalCount: 1},
 						Categories:         mockDimensionCategories,
 					}, nil).AnyTimes()
+				mockPc.EXPECT().
+					GetCategorisations(ctx, gomock.Any()).
+					Return(population.GetCategorisationsResponse{
+						PaginationResponse: population.PaginationResponse{
+							TotalCount: 2,
+						},
+					}, nil).AnyTimes()
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -982,6 +1068,14 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
+
+				mockPc.EXPECT().
+					GetCategorisations(ctx, gomock.Any()).
+					Return(population.GetCategorisationsResponse{
+						PaginationResponse: population.PaginationResponse{
+							TotalCount: 2,
+						},
+					}, nil).AnyTimes()
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)

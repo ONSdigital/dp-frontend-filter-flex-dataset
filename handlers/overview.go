@@ -181,6 +181,20 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		return options, len(options), nil
 	}
 
+	getDimensionCategorisations := func(populationType string, dimension string) (int, error) {
+		cats, err := f.PopulationClient.GetCategorisations(ctx, population.GetCategorisationsInput{
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+			PaginationParams: population.PaginationParams{
+				Limit: 1000,
+			},
+			PopulationType: populationType,
+			Dimension:      dimension,
+		})
+		return cats.PaginationResponse.TotalCount, err
+	}
+
 	var hasNoAreaOptions bool
 	getAreaOptions := func(dim filter.Dimension) ([]string, int, error) {
 		q := filter.QueryParams{Offset: 0, Limit: 500}
@@ -307,10 +321,14 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			setStatusCode(req, w, err)
 			return
 		}
+
+		categorisationCount, err := getDimensionCategorisations(filterJob.PopulationType, filterDimension.Name)
+
 		filterDims.Items[i].Options = options
 		fDims = append(fDims, model.FilterDimension{
-			Dimension:    filterDims.Items[i],
-			OptionsCount: count,
+			Dimension:           filterDims.Items[i],
+			OptionsCount:        count,
+			CategorisationCount: categorisationCount,
 		})
 	}
 
