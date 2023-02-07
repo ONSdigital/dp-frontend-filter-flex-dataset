@@ -31,6 +31,12 @@ var cyLocale = []string{
 	"one = \"Saved options warning (cy)\"",
 	"[DimensionsChangeWarning]",
 	"one = \"Dimensions change warning (cy)\"",
+	"[ImproveResultsTitle]",
+	"other = \"Improve results title (cy)\"",
+	"[ImproveResultsSubHeading]",
+	"one = \"Improve results subheading (cy)\"",
+	"[ImproveResultsList]",
+	"one = \"Improve your results (cy)\"",
 }
 
 var enLocale = []string{
@@ -62,6 +68,12 @@ var enLocale = []string{
 	"one = \"Saved options warning\"",
 	"[DimensionsChangeWarning]",
 	"one = \"Dimensions change warning\"",
+	"[ImproveResultsTitle]",
+	"other = \"Improve results title\"",
+	"[ImproveResultsSubHeading]",
+	"one = \"Improve results sub heading\"",
+	"[ImproveResultsList]",
+	"one = \"Improve your results\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes
