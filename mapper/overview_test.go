@@ -172,8 +172,6 @@ func TestOverview(t *testing.T) {
 
 		So(overview.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
 		So(overview.ServiceMessage, ShouldEqual, sm)
-
-		// TODO: Removing test coverage until endpoint is created
 	})
 
 	Convey("test truncation maps as expected", t, func() {
