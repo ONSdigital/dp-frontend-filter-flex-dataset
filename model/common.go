@@ -26,12 +26,13 @@ Name is the name attribute.
 IsSelected is a boolean representing whether the element is selected.
 IsDisabled is a boolean representing whether the element is disabled */
 type SelectableElement struct {
-	Text       string `json:"text"`
-	InnerText  string `json:"inner_text"`
-	Value      string `json:"value"`
-	Name       string `json:"name"`
-	IsSelected bool   `json:"is_selected"`
-	IsDisabled bool   `json:"is_disabled"`
+	Text             string `json:"text"`
+	InnerText        string `json:"inner_text"`
+	Value            string `json:"value"`
+	Name             string `json:"name"`
+	QualityStatement Panel  `json:"quality_statement"`
+	IsSelected       bool   `json:"is_selected"`
+	IsDisabled       bool   `json:"is_disabled"`
 }
 
 // SearchField represents the data required to populate the search input partial
@@ -41,4 +42,11 @@ type SearchField struct {
 	ID       string `json:"id"`
 	Language string `json:"language"`
 	Label    string `json:"label"`
+}
+
+// Panel contains the data required to populate a panel UI component
+type Panel struct {
+	CssClasses []string `json:"css_classes"`
+	Body       string   `json:"body"`
+	Language   string   `json:"language"`
 }

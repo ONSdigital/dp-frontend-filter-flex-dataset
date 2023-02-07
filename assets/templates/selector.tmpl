@@ -8,13 +8,8 @@
         <h1 class="ons-u-fs-xxxl ons-u-mt-s">{{ .Page.Metadata.Title }}</h1>
         <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
-                {{ if .HasOptions }}
-                    <div class="ons-panel ons-panel--info ons-panel--no-title ons-u-mb-l">
-                        <span class="ons-panel__assistive-text ons-u-vh">{{- localise "ImportantInformation" .Language 1 -}}:</span>
-                        <div class="ons-panel__body">
-                            <p>{{- localise "ChangeAreaTypeWarning" .Language 1 -}}</p>
-                        </div>
-                    </div>
+                {{ if .Panel.Body }}
+                    {{ template "partials/common/panel" .Panel }}
                 {{ end }}
                 {{ if .Page.Error.Title }}
                     {{ $errItem := index .Page.Error.ErrorItems 0 }}
@@ -37,8 +32,16 @@
                                             <div class="ons-radios__item ons-radios__item--no-border ons-u-mb-s">
                                                 <div class="ons-radio ons-radio--no-border">
                                                     <input type="radio" id="{{ .Value }}" class="ons-radio__input ons-js-radio" value="{{ .Value }}" name="dimension" {{ if eq $.InitialSelection .Value }} checked {{ end }}>
-                                                    <label class="ons-radio__label" for="{{ .Value }}" id="{{ .Value }}-label">
+                                                    <label class="ons-radio__label ons-badge" for="{{ .Value }}" id="{{ .Value }}-label">
                                                         {{ .Label }}
+                                                        {{ if .IsSuggested }}
+                                                            <span class="ons-badge__item">
+                                                                {{- localise "Suggested" $.Language 1 -}}
+                                                                <span class="ons-u-vh">
+                                                                    {{- localise "SuggestedA11yHelpText" $.Language 1 -}}
+                                                                </span>
+                                                            </span>
+                                                        {{ end }}
                                                         {{ if gt .TotalCount 0 }}
                                                             ({{ thousandsSeparator .TotalCount }})
                                                         {{ end }}

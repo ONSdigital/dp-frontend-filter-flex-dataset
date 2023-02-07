@@ -11,10 +11,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// ChangeDimension Handler
-func PostChangeDimensions(fc FilterClient) http.HandlerFunc {
+// PostChangeDimensions Handler
+func (f *FilterFlex) PostChangeDimensions() http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		postChangeDimensions(w, req, fc, accessToken, collectionID)
+		postChangeDimensions(w, req, f.FilterClient, accessToken, collectionID)
 	})
 }
 

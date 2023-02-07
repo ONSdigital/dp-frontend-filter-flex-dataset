@@ -19,24 +19,33 @@ import (
 
 func TestChangeDimensionHandler(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
+	cfg := initialiseMockConfig()
 
 	Convey("Change dimension", t, func() {
 		stubFormData := url.Values{}
 		stubFormData.Add("dimension", "country")
 		stubFormData.Add("is_area_type", "true")
 
+		filterClient := NewMockFilterClient(mockCtrl)
+		ff := NewFilterFlex(
+			NewMockRenderClient(mockCtrl),
+			filterClient,
+			NewMockDatasetClient(mockCtrl),
+			NewMockPopulationClient(mockCtrl),
+			NewMockZebedeeClient(mockCtrl),
+			cfg)
+
 		Convey("Given a valid dimension", func() {
 			Convey("When the user is redirected to the dimensions review screen", func() {
 				const filterID = "1234"
 
-				filterClient := NewMockFilterClient(mockCtrl)
 				filterClient.
 					EXPECT().
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimension{}, "", nil).
 					AnyTimes()
 
-				w := runChangeDimension(filterID, "city", stubFormData, ChangeDimension(filterClient))
+				w := runChangeDimension(filterID, "city", stubFormData, ff.ChangeDimension())
 
 				Convey("Then the location header should match the review screen", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions", filterID))
@@ -58,7 +67,6 @@ func TestChangeDimensionHandler(t *testing.T) {
 					IsAreaType: helpers.ToBoolPtr(true),
 				}
 
-				filterClient := NewMockFilterClient(mockCtrl)
 				filterClient.
 					EXPECT().
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), filterID, dimensionName, gomock.Any(), gomock.Eq(expDimension)).
@@ -68,17 +76,16 @@ func TestChangeDimensionHandler(t *testing.T) {
 				formData.Add("dimension", newDimension)
 				formData.Add("is_area_type", "true")
 
-				runChangeDimension(filterID, dimensionName, formData, ChangeDimension(filterClient))
+				runChangeDimension(filterID, dimensionName, formData, ff.ChangeDimension())
 			})
 
 			Convey("When the filter API client responds with an error", func() {
-				filterClient := NewMockFilterClient(mockCtrl)
 				filterClient.
 					EXPECT().
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimension{}, "", errors.New("internal error"))
 
-				w := runChangeDimension("test", "test", stubFormData, ChangeDimension(filterClient))
+				w := runChangeDimension("test", "test", stubFormData, ff.ChangeDimension())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -91,11 +98,19 @@ func TestChangeDimensionHandler(t *testing.T) {
 		})
 
 		Convey("Given an invalid request", func() {
+			ff := NewFilterFlex(
+				NewMockRenderClient(mockCtrl),
+				NewMockFilterClient(mockCtrl),
+				NewMockDatasetClient(mockCtrl),
+				NewMockPopulationClient(mockCtrl),
+				NewMockZebedeeClient(mockCtrl),
+				cfg)
+
 			Convey("When the area type has not been provided", func() {
 				formData := url.Values{}
 				formData.Add("is_area_type", "true")
 
-				w := runChangeDimension("test", "test", formData, ChangeDimension(NewMockFilterClient(mockCtrl)))
+				w := runChangeDimension("test", "test", formData, ff.ChangeDimension())
 
 				Convey("Then the client should be redirected with the error query param", func() {
 					location := w.Header().Get("Location")
@@ -121,7 +136,7 @@ func TestChangeDimensionHandler(t *testing.T) {
 
 				for name, formData := range tests {
 					Convey(name, func() {
-						w := runChangeDimension("test", "test", formData, ChangeDimension(NewMockFilterClient(mockCtrl)))
+						w := runChangeDimension("test", "test", formData, ff.ChangeDimension())
 
 						Convey("Then the client should not be redirected", func() {
 							So(w.Header().Get("Location"), ShouldBeEmpty)

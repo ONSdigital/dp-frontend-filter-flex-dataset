@@ -72,9 +72,10 @@ func TestDimensionsHandler(t *testing.T) {
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
 
+				ff := NewFilterFlex(mockRend, mockFilter, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
 				w := runDimensionsSelector(
 					"number+of+siblings",
-					DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg),
+					ff.DimensionSelector(),
 				)
 
 				Convey("Then status code should be 400", func() {
@@ -128,9 +129,10 @@ func TestDimensionsHandler(t *testing.T) {
 					GetCategorisations(gomock.Any(), gomock.Any()).
 					Return(population.GetCategorisationsResponse{}, nil)
 
+				ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
 				w := runDimensionsSelector(
 					"number+of+siblings",
-					DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg),
+					ff.DimensionSelector(),
 				)
 
 				Convey("Then status code should be 200", func() {
@@ -165,9 +167,10 @@ func TestDimensionsHandler(t *testing.T) {
 				GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(zebedee.HomepageContent{}, nil)
 
+			ff := NewFilterFlex(NewMockRenderClient(mockCtrl), mockFilter, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
 			w := runDimensionsSelector(
 				"city",
-				DimensionsSelector(NewMockRenderClient(mockCtrl), mockFilter, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg),
+				ff.DimensionSelector(),
 			)
 
 			Convey("Then the status code should be 404", func() {
@@ -282,7 +285,8 @@ func TestDimensionsHandler(t *testing.T) {
 						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(zebedee.HomepageContent{}, nil)
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
+					ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
+					w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -384,7 +388,8 @@ func TestDimensionsHandler(t *testing.T) {
 						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(zebedee.HomepageContent{}, nil)
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
+					ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
+					w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -445,7 +450,8 @@ func TestDimensionsHandler(t *testing.T) {
 						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(zebedee.HomepageContent{}, nil)
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
+					ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
+					w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -504,7 +510,8 @@ func TestDimensionsHandler(t *testing.T) {
 						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(zebedee.HomepageContent{}, nil)
 
-					w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
+					ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
+					w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 					Convey("And the status code should be 200", func() {
 						So(w.Code, ShouldEqual, http.StatusOK)
@@ -569,7 +576,8 @@ func TestDimensionsHandler(t *testing.T) {
 						GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(zebedee.HomepageContent{}, nil)
 
-					selector := DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg)
+					ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
+					selector := ff.DimensionSelector()
 
 					w := httptest.NewRecorder()
 					router := mux.NewRouter()
@@ -628,7 +636,8 @@ func TestDimensionsHandler(t *testing.T) {
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
+				ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
+				w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -684,7 +693,8 @@ func TestDimensionsHandler(t *testing.T) {
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, errors.New("Internal error"))
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
+				ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
+				w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 				Convey("Then the status code should be 200", func() {
 					So(w.Code, ShouldEqual, http.StatusOK)
@@ -732,7 +742,8 @@ func TestDimensionsHandler(t *testing.T) {
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg))
+				ff := NewFilterFlex(mockRend, mockFilter, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
+				w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -769,7 +780,8 @@ func TestDimensionsHandler(t *testing.T) {
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, NewMockPopulationClient(mockCtrl), mockDc, mockZc, cfg))
+				ff := NewFilterFlex(mockRend, mockFilter, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
+				w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -812,7 +824,8 @@ func TestDimensionsHandler(t *testing.T) {
 					GetCategorisations(gomock.Any(), gomock.Any()).
 					Return(population.GetCategorisationsResponse{}, errors.New("Internal error"))
 
-				w := runDimensionsSelector(dimensionName, DimensionsSelector(mockRend, mockFilter, mockPc, mockDc, mockZc, cfg))
+				ff := NewFilterFlex(mockRend, mockFilter, mockDc, mockPc, mockZc, cfg)
+				w := runDimensionsSelector(dimensionName, ff.DimensionSelector())
 
 				Convey("Then the status code should be 500", func() {
 					So(w.Code, ShouldEqual, http.StatusInternalServerError)

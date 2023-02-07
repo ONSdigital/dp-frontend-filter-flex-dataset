@@ -18,19 +18,19 @@ import (
 )
 
 // GetChangeDimensions Handler
-func GetChangeDimensions(rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, zc ZebedeeClient) http.HandlerFunc {
+func (f *FilterFlex) GetChangeDimensions() http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		getChangeDimensions(w, req, rc, fc, dc, pc, zc, accessToken, collectionID, lang)
+		getChangeDimensions(w, req, f, accessToken, collectionID, lang)
 	})
 }
 
-func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClient, fc FilterClient, dc DatasetClient, pc PopulationClient, zc ZebedeeClient, accessToken, collectionID, lang string) {
+func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	fid := vars["filterID"]
 	q := req.URL.Query().Get("q")
 	isSearch := strings.Contains(req.URL.RawQuery, "q=")
-	f := req.URL.Query().Get("f")
+	form := req.URL.Query().Get("f")
 	var fErr, imErr, pErr, prErr, zErr error
 	var pDims, pResults population.GetDimensionsResponse
 	var dims []model.FilterDimension
@@ -39,7 +39,7 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 	var isMultivariate bool
 
 	// get filter dimensions
-	fDims, _, err := fc.GetDimensions(ctx, accessToken, "", collectionID, fid, &filter.QueryParams{Limit: 500})
+	fDims, _, err := f.FilterClient.GetDimensions(ctx, accessToken, "", collectionID, fid, &filter.QueryParams{Limit: 500})
 	if err != nil {
 		log.Error(ctx, "failed to get dimensions", err, log.Data{"filter_id": fid})
 		setStatusCode(req, w, err)
@@ -51,13 +51,13 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 
 	go func() {
 		defer wg.Done()
-		eb, serviceMsg, zErr = getZebContent(ctx, zc, accessToken, collectionID, lang)
+		eb, serviceMsg, zErr = getZebContent(ctx, f.ZebedeeClient, accessToken, collectionID, lang)
 	}()
 
 	go func() {
 		defer wg.Done()
 		var fj *filter.GetFilterResponse
-		fj, fErr = fc.GetFilter(ctx, filter.GetFilterInput{
+		fj, fErr = f.FilterClient.GetFilter(ctx, filter.GetFilterInput{
 			FilterID: fid,
 			AuthHeaders: filter.AuthHeaders{
 				UserAuthToken: accessToken,
@@ -67,14 +67,14 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 		popType = fj.PopulationType
 
 		// check dataset is multivariate
-		isMultivariate, imErr = isMultivariateDataset(ctx, dc, accessToken, collectionID, fj.Dataset.DatasetID)
+		isMultivariate, imErr = isMultivariateDataset(ctx, f.DatasetClient, accessToken, collectionID, fj.Dataset.DatasetID)
 		if !isMultivariate && imErr == nil {
 			http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions", fid), http.StatusMovedPermanently)
 			return
 		}
 
 		// get available population dimensions
-		pDims, pErr = pc.GetDimensions(ctx, population.GetDimensionsInput{
+		pDims, pErr = f.PopulationClient.GetDimensions(ctx, population.GetDimensionsInput{
 			AuthTokens: population.AuthTokens{
 				UserAuthToken: accessToken,
 			},
@@ -85,7 +85,7 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 		})
 
 		if isSearch && q != "" {
-			pResults, prErr = pc.GetDimensions(ctx, population.GetDimensionsInput{
+			pResults, prErr = f.PopulationClient.GetDimensions(ctx, population.GetDimensionsInput{
 				AuthTokens: population.AuthTokens{
 					UserAuthToken: accessToken,
 				},
@@ -103,7 +103,7 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 		defer wg.Done()
 		for i, dim := range fDims.Items {
 			// Needed to determine whether dimension is_area_type
-			fDim, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, fid, dim.Name)
+			fDim, _, err := f.FilterClient.GetDimension(ctx, accessToken, "", collectionID, fid, dim.Name)
 			if err != nil {
 				log.Error(ctx, "failed to get dimension", err, log.Data{
 					"dimension_name": dim.Name,
@@ -171,7 +171,8 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, rc RenderClie
 		return
 	}
 
-	basePage := rc.NewBasePageModel()
-	m := mapper.CreateGetChangeDimensions(req, basePage, lang, fid, q, f, serviceMsg, eb, dims, pDims, pResults)
-	rc.BuildPage(w, m, "dimensions")
+	basePage := f.Render.NewBasePageModel()
+	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, fid)
+	dimensions := m.CreateGetChangeDimensions(q, form, dims, pDims, pResults)
+	f.Render.BuildPage(w, dimensions, "dimensions")
 }

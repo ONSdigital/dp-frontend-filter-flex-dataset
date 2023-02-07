@@ -4,12 +4,7 @@
         <h1 class="ons-u-fs-xxxl ons-u-mt-s ons-u-fw-b">{{ .Page.Metadata.Title }}</h1>
         <div class="ons-grid__col ons-col-7@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
-                <div class="ons-panel ons-panel--info ons-panel--no-title ons-u-mb-s">
-                    <span class="ons-panel__assistive-text ons-u-vh">{{- localise "ImportantInformation" .Language 1 -}}:</span>
-                    <div class="ons-panel__body">
-                        <p>{{- localise "DimensionsChangeWarning" .Language 1 -}}</p>
-                    </div>
-                </div>
+                {{ template "partials/common/panel" .Panel }}
                 {{ if .Output.Selections }}
                     <form method="post">
                         <input type="hidden" name="dimensions" value="selections">

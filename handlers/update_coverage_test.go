@@ -18,6 +18,7 @@ import (
 
 func TestUpdateCoverageHandler(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
+	cfg := initialiseMockConfig()
 
 	Convey("Update coverage", t, func() {
 		Convey("Given a valid add option request", func() {
@@ -40,7 +41,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimension{}, "", nil)
 
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
@@ -58,7 +66,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.DimensionOptions{}, "", errors.New("internal error"))
 
-				w := runUpdateCoverage("test", "test", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage("test", "test", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -80,7 +95,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimension{}, "", errors.New("internal error"))
 
-				w := runUpdateCoverage("test", "test", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage("test", "test", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -122,7 +144,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimension{}, "", nil)
 
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
@@ -140,7 +169,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.DimensionOptions{}, "", errors.New("internal error"))
 
-				w := runUpdateCoverage("test", "test", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage("test", "test", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -162,7 +198,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimension{}, "", errors.New("internal error"))
 
-				w := runUpdateCoverage("test", "test", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage("test", "test", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -209,7 +252,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					DeleteDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", nil)
 
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
@@ -243,7 +293,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					DeleteDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", errors.New("internal error"))
 
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -291,7 +348,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					DeleteDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", nil)
 
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
@@ -325,7 +389,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					DeleteDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", errors.New("internal error"))
 
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -353,7 +424,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					RemoveDimensionValue(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", nil)
 
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
@@ -371,7 +449,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					RemoveDimensionValue(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", errors.New("internal error"))
 
-				w := runUpdateCoverage("test", "test", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage("test", "test", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -398,7 +483,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					DeleteDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", nil)
 
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the review screen", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions", filterID))
@@ -416,7 +508,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					DeleteDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", errors.New("internal error"))
 
-				w := runUpdateCoverage("test", "test", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					filterClient,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage("test", "test", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -439,8 +538,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			Convey("When the user is redirected to the get coverage screen", func() {
 				const filterID = "1234"
 
-				filterClient := NewMockFilterClient(mockCtrl)
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					NewMockFilterClient(mockCtrl),
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen with query persisted", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=name-search&q=area", filterID))
@@ -464,8 +569,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			Convey("When the user is redirected to the get coverage screen", func() {
 				const filterID = "1234"
 
-				filterClient := NewMockFilterClient(mockCtrl)
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					NewMockFilterClient(mockCtrl),
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen with query persisted", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=parent-search&p=country&pq=area", filterID))
@@ -489,8 +600,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			Convey("When the user is redirected to the get coverage screen", func() {
 				const filterID = "1234"
 
-				filterClient := NewMockFilterClient(mockCtrl)
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					NewMockFilterClient(mockCtrl),
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen with error parameter", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=parent-search&error=true", filterID))
@@ -511,8 +628,14 @@ func TestUpdateCoverageHandler(t *testing.T) {
 			Convey("When the user makes the request", func() {
 				const filterID = "1234"
 
-				filterClient := NewMockFilterClient(mockCtrl)
-				w := runUpdateCoverage(filterID, "geography", stubFormData, UpdateCoverage(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					NewMockFilterClient(mockCtrl),
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the review screen", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions", filterID))
@@ -532,10 +655,17 @@ func TestUpdateCoverageHandler(t *testing.T) {
 					"Missing dimension": {"coverage": []string{"default"}, "geog-id": []string{"city"}},
 					"Missing geog-id":   {"coverage": []string{"default"}},
 				}
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					NewMockFilterClient(mockCtrl),
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
 
 				for name, formData := range tests {
 					Convey(name, func() {
-						w := runUpdateCoverage("test", "test", formData, UpdateCoverage(NewMockFilterClient(mockCtrl)))
+						w := runUpdateCoverage("test", "test", formData, ff.UpdateCoverage())
 
 						Convey("Then the client should not be redirected", func() {
 							So(w.Header().Get("Location"), ShouldBeEmpty)

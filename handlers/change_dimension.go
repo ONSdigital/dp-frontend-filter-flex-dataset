@@ -14,9 +14,9 @@ import (
 )
 
 // ChangeDimension Handler
-func ChangeDimension(fc FilterClient) http.HandlerFunc {
+func (f *FilterFlex) ChangeDimension() http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		changeDimension(w, req, fc, accessToken, collectionID)
+		changeDimension(w, req, f.FilterClient, accessToken, collectionID)
 	})
 }
 

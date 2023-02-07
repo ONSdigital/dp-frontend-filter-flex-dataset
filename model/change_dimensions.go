@@ -9,4 +9,5 @@ type ChangeDimensions struct {
 	SearchOutput SearchOutput `json:"search_output"`
 	Search       SearchField  `json:"search"`
 	FormAction   string       `json:"form_action"`
+	Panel        Panel        `json:"panel"`
 }

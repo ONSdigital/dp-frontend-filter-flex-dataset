@@ -7,55 +7,53 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
-	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
 )
 
-// DimensionsSelector Handler
-func DimensionsSelector(rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, cfg config.Config) http.HandlerFunc {
+// DimensionSelector Handler
+func (f *FilterFlex) DimensionSelector() http.HandlerFunc {
 	return handlers.ControllerHandler(func(w http.ResponseWriter, req *http.Request, lang, collectionID, accessToken string) {
-		dimensionsSelector(w, req, cfg, rc, fc, pc, dc, zc, collectionID, accessToken, lang)
+		dimensionSelector(w, req, f, collectionID, accessToken, lang)
 	})
 }
 
-func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Config, rc RenderClient, fc FilterClient, pc PopulationClient, dc DatasetClient, zc ZebedeeClient, collectionID, accessToken, lang string) {
+func dimensionSelector(w http.ResponseWriter, req *http.Request, f *FilterFlex, collectionID, accessToken, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
 	dimensionName := vars["name"]
-	isValidationError, _ := strconv.ParseBool(req.URL.Query().Get("error"))
 
 	logData := log.Data{
 		"filter_id": filterID,
 	}
 
-	eb, serviceMsg, err := getZebContent(ctx, zc, accessToken, collectionID, lang)
+	eb, serviceMsg, err := getZebContent(ctx, f.ZebedeeClient, accessToken, collectionID, lang)
 	// log zebedee error but don't set a server error
 	if err != nil {
 		log.Error(ctx, "unable to get homepage content", err, log.Data{"homepage_content": err})
 	}
 
-	currentFilter, _, err := fc.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
+	currentFilter, _, err := f.FilterClient.GetJobState(ctx, accessToken, "", "", collectionID, filterID)
 	if err != nil {
 		log.Error(ctx, "failed to get job state", err, logData)
 		setStatusCode(req, w, err)
 		return
 	}
 
-	filterDimension, _, err := fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dimensionName)
+	filterDimension, _, err := f.FilterClient.GetDimension(ctx, accessToken, "", collectionID, filterID, dimensionName)
 	if err != nil {
 		log.Error(ctx, "failed to find dimension in filter", err, logData)
 		setStatusCode(req, w, err)
 		return
 	}
 
-	basePage := rc.NewBasePageModel()
+	basePage := f.Render.NewBasePageModel()
 
 	if !isAreaType(filterDimension) {
-		isMultivariate, err := isMultivariateDataset(ctx, dc, accessToken, collectionID, currentFilter.Dataset.DatasetID)
+		isMultivariate, err := isMultivariateDataset(ctx, f.DatasetClient, accessToken, collectionID, currentFilter.Dataset.DatasetID)
 		if err != nil {
 			log.Error(ctx, "failed to determine if filter is multivariate", err, log.Data{
 				"filter_id":  filterID,
@@ -64,12 +62,12 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 			setStatusCode(req, w, err)
 			return
 		}
-		if !isMultivariate || !cfg.EnableMultivariate {
+		if !isMultivariate || !f.EnableMultivariate {
 			err = &clientErr{errors.New("invalid request")}
 			setStatusCode(req, w, err)
 			return
 		}
-		cats, err := pc.GetCategorisations(ctx, population.GetCategorisationsInput{
+		cats, err := f.PopulationClient.GetCategorisations(ctx, population.GetCategorisationsInput{
 			AuthTokens: population.AuthTokens{
 				UserAuthToken: accessToken,
 			},
@@ -89,13 +87,14 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 			return
 		}
 
-		selector := mapper.CreateCategorisationsSelector(req, basePage, filterDimension.Label, lang, filterID, dimensionName, serviceMsg, eb, cats, isValidationError)
-		rc.BuildPage(w, selector, "selector")
+		m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
+		selector := m.CreateCategorisationsSelector(filterDimension.Label, dimensionName, filterDimension.DefaultCategorisation, cats)
+		f.Render.BuildPage(w, selector, "selector")
 		return
 	}
 
 	// The total_count is the only field required
-	opts, _, err := fc.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimensionName, &filter.QueryParams{Limit: 0})
+	opts, _, err := f.FilterClient.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dimensionName, &filter.QueryParams{Limit: 0})
 	if err != nil {
 		log.Error(ctx, "failed to get options for dimension", err, logData)
 		setStatusCode(req, w, err)
@@ -104,7 +103,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 
 	hasOpts := opts.TotalCount > 0
 
-	areaTypes, err := pc.GetAreaTypes(ctx, population.GetAreaTypesInput{
+	areaTypes, err := f.PopulationClient.GetAreaTypes(ctx, population.GetAreaTypesInput{
 		AuthTokens: population.AuthTokens{
 			UserAuthToken: accessToken,
 		},
@@ -119,7 +118,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 		return
 	}
 
-	details, err := dc.GetVersion(ctx, accessToken, "", "", collectionID, currentFilter.Dataset.DatasetID, currentFilter.Dataset.Edition, strconv.Itoa(currentFilter.Dataset.Version))
+	details, err := f.DatasetClient.GetVersion(ctx, accessToken, "", "", collectionID, currentFilter.Dataset.DatasetID, currentFilter.Dataset.Edition, strconv.Itoa(currentFilter.Dataset.Version))
 	if err != nil {
 		log.Error(ctx, "failed to get dataset version", err, log.Data{
 			"dataset": currentFilter.Dataset.DatasetID,
@@ -130,7 +129,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 		return
 	}
 
-	dataset, err := dc.Get(ctx, accessToken, "", collectionID, currentFilter.Dataset.DatasetID)
+	dataset, err := f.DatasetClient.Get(ctx, accessToken, "", collectionID, currentFilter.Dataset.DatasetID)
 	if err != nil {
 		log.Error(ctx, "failed to get dataset", err, log.Data{
 			"dataset": currentFilter.Dataset.DatasetID,
@@ -139,7 +138,7 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 		return
 	}
 
-	releaseDate, err := getReleaseDate(ctx, dc, accessToken, collectionID, currentFilter.Dataset.DatasetID, currentFilter.Dataset.Edition, strconv.Itoa(currentFilter.Dataset.Version))
+	releaseDate, err := getReleaseDate(ctx, f.DatasetClient, accessToken, collectionID, currentFilter.Dataset.DatasetID, currentFilter.Dataset.Edition, strconv.Itoa(currentFilter.Dataset.Version))
 	if err != nil {
 		log.Error(ctx, "failed to get release date", err, log.Data{
 			"dataset": currentFilter.Dataset.DatasetID,
@@ -149,8 +148,9 @@ func dimensionsSelector(w http.ResponseWriter, req *http.Request, cfg config.Con
 		return
 	}
 
-	selector := mapper.CreateAreaTypeSelector(req, basePage, lang, filterID, areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, isValidationError, hasOpts, serviceMsg, eb)
-	rc.BuildPage(w, selector, "selector")
+	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
+	selector := m.CreateAreaTypeSelector(areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, hasOpts)
+	f.Render.BuildPage(w, selector, "selector")
 }
 
 // isAreaType determines if the current dimension is an area type

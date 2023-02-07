@@ -17,6 +17,7 @@ import (
 
 func TestPostChangeDimensionsHandler(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
+	cfg := initialiseMockConfig()
 
 	Convey("Post change dimensions", t, func() {
 		Convey("Given a valid search request", func() {
@@ -28,8 +29,14 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 			Convey("When the user is redirected to the get change dimensions screen", func() {
 				const filterID = "1234"
 
-				filterClient := NewMockFilterClient(mockCtrl)
-				w := runPostChangeDimensions(filterID, stubFormData, PostChangeDimensions(filterClient))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					NewMockFilterClient(mockCtrl),
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runPostChangeDimensions(filterID, stubFormData, ff.PostChangeDimensions())
 
 				Convey("Then the location header should match the get change dimensions screen with query persisted", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=search&q=dimension", filterID))
@@ -55,7 +62,14 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 					AddFlexDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", nil)
 
-				w := runPostChangeDimensions(fid, stubFormData, PostChangeDimensions(mockFc))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					mockFc,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runPostChangeDimensions(fid, stubFormData, ff.PostChangeDimensions())
 
 				Convey("Then the location header should match the get change dimensions screen with form action persisted", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=browse", fid))
@@ -81,7 +95,14 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 					AddFlexDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", errors.New("Internal error"))
 
-				w := runPostChangeDimensions(fid, stubFormData, PostChangeDimensions(mockFc))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					mockFc,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runPostChangeDimensions(fid, stubFormData, ff.PostChangeDimensions())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -107,7 +128,14 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 					RemoveDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", nil)
 
-				w := runPostChangeDimensions(fid, stubFormData, PostChangeDimensions(mockFc))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					mockFc,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runPostChangeDimensions(fid, stubFormData, ff.PostChangeDimensions())
 
 				Convey("Then the location header should match the get change dimensions screen with form action persisted", func() {
 					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=browse", fid))
@@ -133,7 +161,14 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 					RemoveDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return("", errors.New("Internal error"))
 
-				w := runPostChangeDimensions(fid, stubFormData, PostChangeDimensions(mockFc))
+				ff := NewFilterFlex(
+					NewMockRenderClient(mockCtrl),
+					mockFc,
+					NewMockDatasetClient(mockCtrl),
+					NewMockPopulationClient(mockCtrl),
+					NewMockZebedeeClient(mockCtrl),
+					cfg)
+				w := runPostChangeDimensions(fid, stubFormData, ff.PostChangeDimensions())
 
 				Convey("Then the client should not be redirected", func() {
 					So(w.Header().Get("Location"), ShouldBeEmpty)
@@ -149,7 +184,14 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 			Convey("When the request is missing the hidden required form value", func() {
 				stubFormData := url.Values{}
 				Convey("Missing dimensions", func() {
-					w := runUpdateCoverage("test", "test", stubFormData, PostChangeDimensions(NewMockFilterClient(mockCtrl)))
+					ff := NewFilterFlex(
+						NewMockRenderClient(mockCtrl),
+						NewMockFilterClient(mockCtrl),
+						NewMockDatasetClient(mockCtrl),
+						NewMockPopulationClient(mockCtrl),
+						NewMockZebedeeClient(mockCtrl),
+						cfg)
+					w := runPostChangeDimensions("test", stubFormData, ff.PostChangeDimensions())
 
 					Convey("Then the client should not be redirected", func() {
 						So(w.Header().Get("Location"), ShouldBeEmpty)
