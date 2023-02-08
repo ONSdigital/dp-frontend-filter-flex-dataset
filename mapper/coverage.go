@@ -119,7 +119,7 @@ func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setPare
 	} else if len(opts) > 0 {
 		p.CoverageType = nameSearch
 		p.NameSearchOutput.Selections = opts
-		p.ParentSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", m.lang, len(opts))
+		p.NameSearchOutput.SelectionsTitle = helper.Localise("AreasAddedTitle", m.lang, len(opts))
 		p.OptionType = nameSearch
 	}
 

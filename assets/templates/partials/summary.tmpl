@@ -83,8 +83,8 @@
                     </div>
                 {{ end }}
             </div>
-            {{ if .Collapsible.CollapsibleItems }}
-                {{ template "partials/collapsible" . }}
+            {{ if .DimensionDescriptions.CollapsibleItems }}
+                {{ template "partials/collapsible" .DimensionDescriptions }}
             {{ end }}
         </div>
     </div>

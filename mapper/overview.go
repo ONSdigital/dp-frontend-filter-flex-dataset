@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -84,52 +83,30 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	temp := append(coverage, p.Dimensions[1:]...)
 	p.Dimensions = append(p.Dimensions[:1], temp...)
 
-	p.Collapsible = coreModel.Collapsible{
+	p.DimensionDescriptions = coreModel.Collapsible{
 		Title: coreModel.Localisation{
 			LocaleKey: "VariableExplanation",
 			Plural:    4,
 		},
-		CollapsibleItems: mapCollapsible(dimDescriptions, p.Dimensions),
+		CollapsibleItems: mapDescriptionsCollapsible(dimDescriptions, p.Dimensions),
+	}
+
+	areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
+
+	p.ImproveResults = coreModel.Collapsible{
+		Title: coreModel.Localisation{
+			LocaleKey: "ImproveResultsTitle",
+			Plural:    4,
+		},
+		CollapsibleItems: []coreModel.CollapsibleItem{
+			{
+				Subheading: helper.Localise("ImproveResultsSubHeading", m.lang, 1),
+				SafeHTML: coreModel.Localisation{
+					Text: helper.Localise("ImproveResultsList", m.lang, 1, areaTypeUri, dimNames),
+				},
+			},
+		},
 	}
 
 	return p
-}
-
-func mapCollapsible(dimDescriptions population.GetDimensionsResponse, dims []model.Dimension) []coreModel.CollapsibleItem {
-	var collapsibleContentItems []coreModel.CollapsibleItem
-	var areaItem coreModel.CollapsibleItem
-
-	for _, dim := range dims {
-		for _, dimDescription := range dimDescriptions.Dimensions {
-			if dim.ID == dimDescription.ID && !dim.IsAreaType {
-				collapsibleContentItems = append(collapsibleContentItems, coreModel.CollapsibleItem{
-					Subheading: cleanDimensionLabel(dimDescription.Label),
-					Content:    strings.Split(dimDescription.Description, "\n"),
-				})
-			} else if dim.ID == dimDescription.ID && dim.IsAreaType {
-				areaItem.Subheading = cleanDimensionLabel(dimDescription.Label)
-				areaItem.Content = strings.Split(dimDescription.Description, "\n")
-			}
-		}
-	}
-
-	collapsibleContentItems = append([]coreModel.CollapsibleItem{
-		{
-			Subheading: areaTypeTitle,
-			SafeHTML: coreModel.Localisation{
-				LocaleKey: "VariableInfoAreaType",
-				Plural:    1,
-			},
-		},
-		areaItem,
-		{
-			Subheading: coverageTitle,
-			SafeHTML: coreModel.Localisation{
-				LocaleKey: "VariableInfoCoverage",
-				Plural:    1,
-			},
-		},
-	}, collapsibleContentItems...)
-
-	return collapsibleContentItems
 }
