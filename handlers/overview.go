@@ -36,8 +36,8 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var eb zebedee.EmergencyBanner
 	var fErr, dErr, fdsErr, imErr, zErr error
 	var isMultivariate bool
-	var serviceMsg string
-	var dimIds []string
+	var serviceMsg, areaTypeID, parent string
+	var dimIds, areaOpts []string
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -73,7 +73,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 				return
 			}
 		}
-
 	}()
 
 	go func() {
@@ -226,6 +225,8 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		}
 		wg.Wait()
 
+		areaOpts = optsIDs
+
 		// TODO: pc.GetParentAreaCount is causing issues in production
 		// if dim.FilterByParent != "" {
 		// 	count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
@@ -255,6 +256,8 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 	getOptions := func(dim filter.Dimension) ([]string, int, error) {
 		if dim.IsAreaType != nil && *dim.IsAreaType {
+			areaTypeID = dim.ID
+			parent = dim.FilterByParent
 			return getAreaOptions(dim)
 		}
 
@@ -290,9 +293,44 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		})
 	}
 
+	sort.Slice(dimIds, func(i, j int) bool {
+		return dimIds[i] == areaTypeID || dimIds[i] == parent
+	})
+
+	if parent != "" {
+		areaTypeID = parent
+	}
+
+	// set default coverage
+	if len(areaOpts) == 0 {
+		areaOpts = []string{"K04000001"}
+		areaTypeID = "nat"
+	}
+	sdc, err := f.PopulationClient.GetBlockedAreaCount(ctx, population.GetBlockedAreaCountInput{
+		AuthTokens: population.AuthTokens{
+			UserAuthToken: accessToken,
+		},
+		PopulationType: filterJob.PopulationType,
+		Variables:      dimIds,
+		Filter: population.Filter{
+			Codes:    areaOpts,
+			Variable: areaTypeID,
+		},
+	})
+	if err != nil {
+		log.Error(ctx, "failed to get blocked area count", err, log.Data{
+			"population_type": filterJob.PopulationType,
+			"variables":       dimIds,
+			"area_codes":      areaOpts,
+			"area_type_id":    areaTypeID,
+		})
+		setStatusCode(req, w, err)
+		return
+	}
+
 	basePage := f.Render.NewBasePageModel()
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, hasNoAreaOptions, isMultivariate)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, *sdc, hasNoAreaOptions, isMultivariate)
 	f.Render.BuildPage(w, overview, "overview")
 }
 

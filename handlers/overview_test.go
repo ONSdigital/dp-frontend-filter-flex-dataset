@@ -82,6 +82,10 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+					Return(&population.GetBlockedAreaCountResult{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -127,6 +131,10 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+					Return(&population.GetBlockedAreaCountResult{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -166,6 +174,10 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+					Return(&population.GetBlockedAreaCountResult{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -295,6 +307,10 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
+						mockPc.
+							EXPECT().
+							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+							Return(&population.GetBlockedAreaCountResult{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -379,6 +395,10 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
+						mockPc.
+							EXPECT().
+							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+							Return(&population.GetBlockedAreaCountResult{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -468,6 +488,10 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
+						mockPc.
+							EXPECT().
+							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+							Return(&population.GetBlockedAreaCountResult{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -558,6 +582,10 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
+						mockPc.
+							EXPECT().
+							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+							Return(&population.GetBlockedAreaCountResult{}, nil)
 
 						// TODO: pc.GetParentAreaCount is causing production issues
 						// mockPc.
@@ -715,6 +743,92 @@ func TestOverviewHandler(t *testing.T) {
 				router.ServeHTTP(w, req)
 
 				So(w.Code, ShouldEqual, http.StatusInternalServerError)
+			})
+
+			Convey("test FilterFlexOverview returns 500 if client GetBlockedAreaCount returns an error", func() {
+				filterDim := filter.Dimension{
+					Name:           "geography",
+					ID:             "city",
+					Label:          "City",
+					IsAreaType:     helpers.ToBoolPtr(true),
+					FilterByParent: "england",
+				}
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetFilter(ctx, gomock.Any()).
+					Return(&filter.GetFilterResponse{}, nil).
+					AnyTimes()
+				mockFc.
+					EXPECT().
+					GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimensions{Items: []filter.Dimension{filterDim}}, "", nil).
+					AnyTimes()
+				mockFc.
+					EXPECT().
+					GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filterDim, "", nil).
+					AnyTimes()
+				mockFc.
+					EXPECT().
+					GetDimensionOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{
+						Items: []filter.DimensionOption{
+							{
+								Option: "0",
+							},
+						},
+						Count:      1,
+						TotalCount: 1,
+					}, "", nil)
+
+				area := population.GetAreaResponse{
+					Area: population.Area{
+						ID:       "0",
+						Label:    "London",
+						AreaType: "city",
+					},
+				}
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetArea(ctx, gomock.Any()).
+					Return(area, nil)
+				mockPc.
+					EXPECT().
+					GetDimensionsDescription(ctx, gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+					Return(&population.GetBlockedAreaCountResult{}, errors.New("Sorry"))
+
+				mockRend := NewMockRenderClient(mockCtrl)
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(dataset.DatasetDetails{}, nil)
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				w := httptest.NewRecorder()
+				req := httptest.NewRequest(http.MethodGet, "/test", nil)
+
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
+				ff.FilterFlexOverview().
+					ServeHTTP(w, req)
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
 			})
 
 			Convey("test FilterFlexOverview returns 500 if client GetDimensions returns an error", func() {

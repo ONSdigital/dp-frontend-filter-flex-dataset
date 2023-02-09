@@ -37,6 +37,11 @@ var cyLocale = []string{
 	"one = \"Improve results subheading (cy)\"",
 	"[ImproveResultsList]",
 	"one = \"Improve your results (cy)\"",
+	"[SDCAreasAvailable]",
+	"one = \"15 of 25 areas are available (cy)\"",
+	"[SDCRestrictedAreas]",
+	"one = \"Protecting personal data will prevent 1 area from being published (cy)\"",
+	"other = \"Protecting personal data will prevent 10 areas from being published (cy)\"",
 }
 
 var enLocale = []string{
@@ -74,6 +79,11 @@ var enLocale = []string{
 	"one = \"Improve results sub heading\"",
 	"[ImproveResultsList]",
 	"one = \"Improve your results\"",
+	"[SDCAreasAvailable]",
+	"one = \"15 of 25 areas are available\"",
+	"[SDCRestrictedAreas]",
+	"one = \"Protecting personal data will prevent 1 area from being published\"",
+	"other = \"Protecting personal data will prevent 10 areas from being published\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes

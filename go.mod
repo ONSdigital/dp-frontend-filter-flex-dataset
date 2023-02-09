@@ -3,7 +3,7 @@ module github.com/ONSdigital/dp-frontend-filter-flex-dataset
 go 1.19
 
 require (
-	github.com/ONSdigital/dp-api-clients-go/v2 v2.221.0
+	github.com/ONSdigital/dp-api-clients-go/v2 v2.224.0
 	github.com/ONSdigital/dp-cookies v0.4.0
 	github.com/ONSdigital/dp-healthcheck v1.5.0
 	github.com/ONSdigital/dp-net/v2 v2.6.0
@@ -20,9 +20,9 @@ require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/ONSdigital/dp-api-clients-go v1.43.0 // indirect
 	github.com/ONSdigital/dp-net v1.5.0 // indirect
-	github.com/aws/aws-sdk-go v1.44.180 // indirect
+	github.com/aws/aws-sdk-go v1.44.190 // indirect
 	github.com/c2h5oh/datasize v0.0.0-20220606134207-859f65c6625b // indirect
-	github.com/fatih/color v1.13.0 // indirect
+	github.com/fatih/color v1.14.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gosimple/slug v1.13.1 // indirect
