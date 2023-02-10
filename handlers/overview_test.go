@@ -986,31 +986,29 @@ func TestOverviewHandler(t *testing.T) {
 		})
 	})
 
-	Convey("Dimension options are sorted", t, func() {
-		getOptionList := func(items []dataset.Option) []string {
+	Convey("Population cateogries are sorted", t, func() {
+		getCategoryList := func(items []population.DimensionCategoryItem) []string {
 			results := []string{}
 			for _, item := range items {
-				results = append(results, item.Option)
+				results = append(results, item.ID)
 			}
 			return results
 		}
 
 		Convey("given non-numeric options", func() {
-			nonNumeric := []dataset.Option{
+			nonNumeric := []population.DimensionCategoryItem{
 				{
-					DimensionID: "dim_2",
-					Option:      "option 2",
+					ID: "option 2",
 				},
 				{
-					DimensionID: "dim_1",
-					Option:      "option 1",
+					ID: "option 1",
 				},
 			}
 			Convey("when they are sorted", func() {
-				sorted := sortOptionsByCode(nonNumeric)
+				sorted := sortCategoriesByID(nonNumeric)
 
-				Convey("then options are sorted alphabetically", func() {
-					actual := getOptionList(sorted)
+				Convey("then categories are sorted alphabetically", func() {
+					actual := getCategoryList(sorted)
 					expected := []string{"option 1", "option 2"}
 					So(actual, ShouldResemble, expected)
 				})
@@ -1018,25 +1016,22 @@ func TestOverviewHandler(t *testing.T) {
 		})
 
 		Convey("given simple numeric options", func() {
-			nonNumeric := []dataset.Option{
+			simpleNumeric := []population.DimensionCategoryItem{
 				{
-					DimensionID: "dim_2",
-					Option:      "2",
+					ID: "2",
 				},
 				{
-					DimensionID: "dim_10",
-					Option:      "10",
+					ID: "10",
 				},
 				{
-					DimensionID: "dim_1",
-					Option:      "1",
+					ID: "1",
 				},
 			}
 			Convey("when they are sorted", func() {
-				sorted := sortOptionsByCode(nonNumeric)
+				sorted := sortCategoriesByID(simpleNumeric)
 
 				Convey("then options are sorted numerically", func() {
-					actual := getOptionList(sorted)
+					actual := getCategoryList(sorted)
 					expected := []string{"1", "2", "10"}
 					So(actual, ShouldResemble, expected)
 				})
@@ -1044,33 +1039,29 @@ func TestOverviewHandler(t *testing.T) {
 		})
 
 		Convey("given numeric options with negatives", func() {
-			nonNumeric := []dataset.Option{
+			numeric := []population.DimensionCategoryItem{
 				{
-					DimensionID: "dim_2",
-					Option:      "2",
+					ID: "2",
 				},
 				{
-					DimensionID: "dim_-1",
-					Option:      "-1",
+					ID: "-1",
 				},
 				{
-					DimensionID: "dim_10",
-					Option:      "10",
+					ID: "10",
 				},
 				{
-					DimensionID: "dim_-10",
-					Option:      "-10",
+					ID: "-10",
 				},
 				{
-					DimensionID: "dim_1",
-					Option:      "1",
+					ID: "1",
 				},
 			}
+
 			Convey("when they are sorted", func() {
-				sorted := sortOptionsByCode(nonNumeric)
+				sorted := sortCategoriesByID(numeric)
 
 				Convey("then options are sorted numerically with negatives at the end", func() {
-					actual := getOptionList(sorted)
+					actual := getCategoryList(sorted)
 					expected := []string{"1", "2", "10", "-1", "-10"}
 					So(actual, ShouldResemble, expected)
 				})
@@ -1078,25 +1069,22 @@ func TestOverviewHandler(t *testing.T) {
 		})
 
 		Convey("given mixed numeric and non-numeric options", func() {
-			nonNumeric := []dataset.Option{
+			mixed := []population.DimensionCategoryItem{
 				{
-					DimensionID: "dim_2",
-					Option:      "2nd Option",
+					ID: "2nd Option",
 				},
 				{
-					DimensionID: "dim_1",
-					Option:      "1",
+					ID: "1",
 				},
 				{
-					DimensionID: "dim_10",
-					Option:      "10",
+					ID: "10",
 				},
 			}
 			Convey("when they are sorted", func() {
-				sorted := sortOptionsByCode(nonNumeric)
+				sorted := sortCategoriesByID(mixed)
 
 				Convey("then options are sorted alphanumerically", func() {
-					actual := getOptionList(sorted)
+					actual := getCategoryList(sorted)
 					expected := []string{"1", "10", "2nd Option"}
 					So(actual, ShouldResemble, expected)
 				})
