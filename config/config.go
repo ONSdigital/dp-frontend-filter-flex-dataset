@@ -35,7 +35,7 @@ func Get() (*Config, error) {
 	if cfg.Debug {
 		cfg.PatternLibraryAssetsPath = "http://localhost:9002/dist/assets"
 	} else {
-		cfg.PatternLibraryAssetsPath = "//cdn.ons.gov.uk/dp-design-system/aead15f"
+		cfg.PatternLibraryAssetsPath = "//cdn.ons.gov.uk/dp-design-system/db32164"
 	}
 
 	return cfg, nil

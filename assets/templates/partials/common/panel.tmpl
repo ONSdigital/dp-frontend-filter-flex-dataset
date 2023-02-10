@@ -1,6 +1,12 @@
-<div class="ons-panel ons-panel--info ons-panel--no-title{{range .CssClasses}} {{.}}{{end}}">
+<div class="ons-panel ons-panel--{{.FuncGetPanelType}} ons-panel--no-title{{range .CssClasses}} {{.}}{{end}}">
     <span class="ons-panel__assistive-text ons-u-vh">{{- localise "ImportantInformation" .Language 1 -}}:</span>
     <div class="ons-panel__body">
-        <p>{{- .Body -}}</p>
+        {{ if .SafeHTML }}
+            {{ range .SafeHTML}}
+                {{- . | safeHTML -}}
+            {{ end }}
+        {{ else }}
+            <p>{{- .Body -}}</p>
+        {{ end }}
     </div>
 </div>

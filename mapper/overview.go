@@ -15,7 +15,7 @@ import (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, hasNoAreaOptions, isMultivariate bool) model.Overview {
+func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, sdc population.GetBlockedAreaCountResult, hasNoAreaOptions, isMultivariate bool) model.Overview {
 	queryStrValues := m.req.URL.Query()["showAll"]
 	path := m.req.URL.Path
 
@@ -91,21 +91,33 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 		CollapsibleItems: mapDescriptionsCollapsible(dimDescriptions, p.Dimensions),
 	}
 
-	areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
+	if isMultivariate && sdc.Blocked > 0 {
+		p.HasSDC = true
+		p.Panel = model.Panel{
+			Type:       model.Pending,
+			CssClasses: []string{"ons-u-mb-s"},
+			Language:   m.lang,
+			SafeHTML: []string{
+				helper.Localise("SDCAreasAvailable", m.lang, 1, strconv.Itoa(sdc.Passed), strconv.Itoa(sdc.Total)),
+				helper.Localise("SDCRestrictedAreas", m.lang, 4, strconv.Itoa(sdc.Blocked)),
+			},
+		}
 
-	p.ImproveResults = coreModel.Collapsible{
-		Title: coreModel.Localisation{
-			LocaleKey: "ImproveResultsTitle",
-			Plural:    4,
-		},
-		CollapsibleItems: []coreModel.CollapsibleItem{
-			{
-				Subheading: helper.Localise("ImproveResultsSubHeading", m.lang, 1),
-				SafeHTML: coreModel.Localisation{
-					Text: helper.Localise("ImproveResultsList", m.lang, 1, areaTypeUri, dimNames),
+		areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
+		p.ImproveResults = coreModel.Collapsible{
+			Title: coreModel.Localisation{
+				LocaleKey: "ImproveResultsTitle",
+				Plural:    4,
+			},
+			CollapsibleItems: []coreModel.CollapsibleItem{
+				{
+					Subheading: helper.Localise("ImproveResultsSubHeading", m.lang, 1),
+					SafeHTML: coreModel.Localisation{
+						Text: helper.Localise("ImproveResultsList", m.lang, 1, areaTypeUri, dimNames),
+					},
 				},
 			},
-		},
+		}
 	}
 
 	return p

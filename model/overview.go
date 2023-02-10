@@ -8,8 +8,10 @@ import (
 type Overview struct {
 	coreModel.Page
 	FilterID              string      `json:"filter_id"`
+	Panel                 Panel       `json:"panel"`
 	Dimensions            []Dimension `json:"dimensions"`
 	IsMultivariate        bool        `json:"is_multivariate"`
+	HasSDC                bool        `json:"has_sdc"`
 	ImproveResults        coreModel.Collapsible
 	DimensionDescriptions coreModel.Collapsible
 }
