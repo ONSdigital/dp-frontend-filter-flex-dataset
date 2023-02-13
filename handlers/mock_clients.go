@@ -521,7 +521,7 @@ func (mr *MockPopulationClientMockRecorder) GetCategorisations(ctx, input interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategorisations", reflect.TypeOf((*MockPopulationClient)(nil).GetCategorisations), ctx, input)
 }
-
+ 
 // GetDimensionCategories mocks base method.
 func (m *MockPopulationClient) GetDimensionCategories(ctx context.Context, input population.GetDimensionCategoryInput) (population.GetDimensionCategoriesResponse, error) {
 	m.ctrl.T.Helper()
