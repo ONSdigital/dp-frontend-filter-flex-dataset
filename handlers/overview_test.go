@@ -80,7 +80,9 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
-				mockPc.EXPECT().GetDimensionCategories(ctx, gomock.Any()).
+				mockPc.
+					EXPECT().
+					GetDimensionCategories(ctx, gomock.Any()).
 					Return(population.GetDimensionCategoriesResponse{
 						PaginationResponse: population.PaginationResponse{TotalCount: 1},
 						Categories:         mockDimensionCategories,
@@ -715,10 +717,19 @@ func TestOverviewHandler(t *testing.T) {
 					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(zebedee.HomepageContent{}, nil)
 
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensionCategories(ctx, gomock.Any()).
+					Return(population.GetDimensionCategoriesResponse{
+						PaginationResponse: population.PaginationResponse{TotalCount: 1},
+						Categories:         mockDimensionCategories,
+					}, nil).AnyTimes()
+
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
-				ff := NewFilterFlex(mockRend, mockFc, mockDc, NewMockPopulationClient(mockCtrl), mockZc, cfg)
+				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
 				router.HandleFunc("/filters/12345/dimensions", ff.FilterFlexOverview())
 
@@ -842,6 +853,13 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
 					Return(&population.GetBlockedAreaCountResult{}, errors.New("Sorry"))
+				mockPc.
+					EXPECT().
+					GetDimensionCategories(ctx, gomock.Any()).
+					Return(population.GetDimensionCategoriesResponse{
+						PaginationResponse: population.PaginationResponse{TotalCount: 1},
+						Categories:         mockDimensionCategories,
+					}, nil).AnyTimes()
 
 				mockRend := NewMockRenderClient(mockCtrl)
 
