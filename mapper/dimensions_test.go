@@ -87,6 +87,7 @@ func TestGetChangeDimensions(t *testing.T) {
 				mockFds,
 				mockPds,
 				mockPdsR,
+				&population.GetBlockedAreaCountResult{},
 			)
 			Convey("Then it maps page metadata", func() {
 				So(p.BetaBannerEnabled, ShouldBeTrue)
@@ -196,6 +197,10 @@ func TestGetChangeDimensions(t *testing.T) {
 				So(p.Panel.CssClasses, ShouldResemble, []string{"ons-u-mb-s"})
 				So(p.Panel.Language, ShouldEqual, lang)
 			})
+
+			Convey("Then the bool HasSDC is set to false", func() {
+				So(p.HasSDC, ShouldBeFalse)
+			})
 		})
 
 		Convey("when a valid search with no results is performed", func() {
@@ -205,9 +210,53 @@ func TestGetChangeDimensions(t *testing.T) {
 				[]model.FilterDimension{},
 				population.GetDimensionsResponse{},
 				population.GetDimensionsResponse{},
+				&population.GetBlockedAreaCountResult{},
 			)
 			Convey("then it sets HasNoResults to true", func() {
 				So(p.SearchOutput.HasNoResults, ShouldBeTrue)
+			})
+		})
+
+		Convey("when areas are blocked", func() {
+			mockSdc := population.GetBlockedAreaCountResult{
+				Passed:  10,
+				Blocked: 20,
+				Total:   0,
+			}
+			p := m.CreateGetChangeDimensions(
+				"dim-a",
+				"",
+				[]model.FilterDimension{},
+				population.GetDimensionsResponse{},
+				population.GetDimensionsResponse{},
+				&mockSdc,
+			)
+			Convey("then it sets HasSDC to true", func() {
+				So(p.HasSDC, ShouldBeTrue)
+			})
+			sdcPanel := model.Panel{
+				Type:       model.Pending,
+				CssClasses: []string{"ons-u-mb-s"},
+				SafeHTML:   []string{"15 of 25 areas are available", "Protecting personal data will prevent 10 areas from being published"},
+				Language:   lang,
+			}
+			Convey("then it sets the SDC panel", func() {
+				So(p.Panel, ShouldResemble, sdcPanel)
+			})
+			improveResults := coreModel.Collapsible{
+				Title: coreModel.Localisation{LocaleKey: "ImproveResultsTitle", Plural: 4},
+				CollapsibleItems: []coreModel.CollapsibleItem{
+					{
+						Subheading: "Improve results sub heading",
+						SafeHTML: coreModel.Localisation{
+							Text: "Improve your results variant",
+						},
+					},
+				},
+				Language: lang,
+			}
+			Convey("then it sets the improve results collapsible", func() {
+				So(p.ImproveResults, ShouldResemble, improveResults)
 			})
 		})
 	})

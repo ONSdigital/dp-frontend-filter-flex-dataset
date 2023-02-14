@@ -262,6 +262,10 @@ one = "Try one or more of the following steps."
 description = "Improve results list {{.areaTypeUri} ((.dimsList}}"
 one = "<ul class=\"ons-list\"><li class=\"ons-list__item\">Select a larger <a href=\"{{.arg0}}\">area type</a>.</li><li class=\"ons-list__item\">Select fewer categories in {{.arg1}}.</li><li class=\"ons-list__item\"><a href=\"dimensions/change\">Remove variables</a> from this dataset.</li></ul>"
 
+[ImproveResultsListVariant]
+description = "Improve results list {{.areaTypeUri} ((.dimsList}} without remove variables link"
+one = "<ul class=\"ons-list\"><li class=\"ons-list__item\">Select a larger <a href=\"{{.arg0}}\">area type</a>.</li><li class=\"ons-list__item\">Select fewer categories in {{.arg1}}.</li><li class=\"ons-list__item\">Remove variables from this dataset.</li></ul>"
+
 [SDCAreasAvailable]
 description = "Areas available {{.passed}} {{.total}}"
 one = "<strong>{{.arg0}} out of {{.arg1}} areas available</strong>"

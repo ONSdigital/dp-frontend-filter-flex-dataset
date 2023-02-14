@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -212,5 +213,18 @@ func mapPanel(locale coreModel.Localisation, language string, utilityCssClasses 
 		Body:       helper.Localise(locale.LocaleKey, language, locale.Plural),
 		Language:   language,
 		CssClasses: utilityCssClasses,
+	}
+}
+
+// mapBlockedAreasPanel is a helper function that returns the blocked areas panel
+func (m *Mapper) mapBlockedAreasPanel(sdc *population.GetBlockedAreaCountResult) model.Panel {
+	return model.Panel{
+		Type:       model.Pending,
+		CssClasses: []string{"ons-u-mb-s"},
+		Language:   m.lang,
+		SafeHTML: []string{
+			helper.Localise("SDCAreasAvailable", m.lang, 1, strconv.Itoa(sdc.Passed), strconv.Itoa(sdc.Total)),
+			helper.Localise("SDCRestrictedAreas", m.lang, 4, strconv.Itoa(sdc.Blocked)),
+		},
 	}
 }

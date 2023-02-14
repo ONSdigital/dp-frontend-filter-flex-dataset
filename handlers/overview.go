@@ -34,7 +34,8 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var dimDescriptions population.GetDimensionsResponse
 	var filterJob *filter.GetFilterResponse
 	var eb zebedee.EmergencyBanner
-	var fErr, dErr, fdsErr, imErr, zErr error
+	var sdc *population.GetBlockedAreaCountResult
+	var fErr, dErr, fdsErr, imErr, zErr, sErr error
 	var isMultivariate bool
 	var serviceMsg, areaTypeID, parent string
 	var dimIds, areaOpts []string
@@ -293,39 +294,20 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		})
 	}
 
-	sort.Slice(dimIds, func(i, j int) bool {
-		return dimIds[i] == areaTypeID || dimIds[i] == parent
-	})
-
-	if parent != "" {
-		areaTypeID = parent
-	}
-
-	// set default coverage
-	if len(areaOpts) == 0 {
-		areaOpts = []string{"K04000001"}
-		areaTypeID = "nat"
-	}
-	sdc, err := f.PopulationClient.GetBlockedAreaCount(ctx, population.GetBlockedAreaCountInput{
-		AuthTokens: population.AuthTokens{
-			UserAuthToken: accessToken,
-		},
-		PopulationType: filterJob.PopulationType,
-		Variables:      dimIds,
-		Filter: population.Filter{
-			Codes:    areaOpts,
-			Variable: areaTypeID,
-		},
-	})
-	if err != nil {
-		log.Error(ctx, "failed to get blocked area count", err, log.Data{
-			"population_type": filterJob.PopulationType,
-			"variables":       dimIds,
-			"area_codes":      areaOpts,
-			"area_type_id":    areaTypeID,
-		})
-		setStatusCode(req, w, err)
-		return
+	if isMultivariate {
+		sdc, sErr = f.getBlockedAreaCount(ctx, accessToken, filterJob.PopulationType, areaTypeID, parent, dimIds, areaOpts)
+		if sErr != nil {
+			log.Error(ctx, "failed to get blocked area count", sErr, log.Data{
+				"population_type": filterJob.PopulationType,
+				"variables":       dimIds,
+				"area_codes":      areaOpts,
+				"area_type_id":    areaTypeID,
+			})
+			setStatusCode(req, w, sErr)
+			return
+		}
+	} else {
+		sdc = &population.GetBlockedAreaCountResult{}
 	}
 
 	basePage := f.Render.NewBasePageModel()

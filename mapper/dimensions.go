@@ -10,7 +10,7 @@ import (
 )
 
 // CreateGetChangeDimensions maps data to the ChangeDimensions model
-func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse) model.ChangeDimensions {
+func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse, sdc *population.GetBlockedAreaCountResult) model.ChangeDimensions {
 	p := model.ChangeDimensions{
 		Page: m.basePage,
 	}
@@ -21,13 +21,10 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 		},
 	}
 	mapCommonProps(m.req, &p.Page, "change_variables", "Add or remove variables", m.lang, m.serviceMsg, m.eb)
-	p.Panel = mapPanel(coreModel.Localisation{
-		LocaleKey: "DimensionsChangeWarning",
-		Plural:    1,
-	}, m.lang, []string{"ons-u-mb-s"})
 	p.FormAction = formAction
 
 	selections := []model.SelectableElement{}
+	pageDims := []model.Dimension{}
 	for _, dim := range dims {
 		if !*dim.IsAreaType {
 			selections = append(selections, model.SelectableElement{
@@ -36,6 +33,12 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 				Name:  "delete-option",
 			})
 		}
+		pageDims = append(pageDims, model.Dimension{
+			IsAreaType: *dim.IsAreaType,
+			ID:         dim.ID,
+			URI:        fmt.Sprintf("/filters/%s/dimensions/%s", m.fid, dim.Name),
+			Name:       cleanDimensionLabel(dim.Label),
+		})
 	}
 	p.Output.Selections = selections
 	p.Output.SelectionsTitle = "Variables added"
@@ -53,6 +56,33 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 	p.Output.Results = browseResults
 	p.SearchOutput.Results = searchResults
 	p.SearchOutput.HasNoResults = len(p.SearchOutput.Results) == 0 && formAction == "search"
+
+	if sdc.Blocked > 0 {
+		p.HasSDC = true
+		p.Panel = m.mapBlockedAreasPanel(sdc)
+
+		areaTypeUri, dimNames := mapImproveResultsCollapsible(pageDims)
+		p.ImproveResults = coreModel.Collapsible{
+			Title: coreModel.Localisation{
+				LocaleKey: "ImproveResultsTitle",
+				Plural:    4,
+			},
+			Language: m.lang,
+			CollapsibleItems: []coreModel.CollapsibleItem{
+				{
+					Subheading: helper.Localise("ImproveResultsSubHeading", m.lang, 1),
+					SafeHTML: coreModel.Localisation{
+						Text: helper.Localise("ImproveResultsListVariant", m.lang, 1, areaTypeUri, dimNames),
+					},
+				},
+			},
+		}
+	} else {
+		p.Panel = mapPanel(coreModel.Localisation{
+			LocaleKey: "DimensionsChangeWarning",
+			Plural:    1,
+		}, m.lang, []string{"ons-u-mb-s"})
+	}
 
 	return p
 }

@@ -5,6 +5,11 @@
         <div class="ons-grid__col ons-col-7@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
                 {{ template "partials/common/panel" .Panel }}
+                {{ if .HasSDC }}
+                    <div class="ons-u-mb-s">
+                        {{ template "partials/collapsible" .ImproveResults }}
+                    </div>
+                {{ end }}
                 {{ if .Output.Selections }}
                     <form method="post">
                         <input type="hidden" name="dimensions" value="selections">

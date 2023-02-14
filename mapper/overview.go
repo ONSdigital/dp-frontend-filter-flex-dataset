@@ -93,15 +93,7 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 
 	if isMultivariate && sdc.Blocked > 0 {
 		p.HasSDC = true
-		p.Panel = model.Panel{
-			Type:       model.Pending,
-			CssClasses: []string{"ons-u-mb-s"},
-			Language:   m.lang,
-			SafeHTML: []string{
-				helper.Localise("SDCAreasAvailable", m.lang, 1, strconv.Itoa(sdc.Passed), strconv.Itoa(sdc.Total)),
-				helper.Localise("SDCRestrictedAreas", m.lang, 4, strconv.Itoa(sdc.Blocked)),
-			},
-		}
+		p.Panel = m.mapBlockedAreasPanel(&sdc)
 
 		areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
 		p.ImproveResults = coreModel.Collapsible{

@@ -82,10 +82,6 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
-				mockPc.
-					EXPECT().
-					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
-					Return(&population.GetBlockedAreaCountResult{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -131,10 +127,6 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
-				mockPc.
-					EXPECT().
-					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
-					Return(&population.GetBlockedAreaCountResult{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -174,11 +166,6 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetDimensionsDescription(ctx, gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
-				mockPc.
-					EXPECT().
-					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
-					Return(&population.GetBlockedAreaCountResult{}, nil)
-
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
 
@@ -307,10 +294,6 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
-						mockPc.
-							EXPECT().
-							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
-							Return(&population.GetBlockedAreaCountResult{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -395,10 +378,6 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
-						mockPc.
-							EXPECT().
-							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
-							Return(&population.GetBlockedAreaCountResult{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -488,10 +467,6 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
-						mockPc.
-							EXPECT().
-							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
-							Return(&population.GetBlockedAreaCountResult{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -527,7 +502,7 @@ func TestOverviewHandler(t *testing.T) {
 						})
 					})
 
-					Convey("Then additional call to GetParentAreaCount when dimension.FilterByParent contains data", func() {
+					Convey("Then additional call to GetBlockedAreaCount for multivariate dataset types", func() {
 						filterDim := filter.Dimension{
 							Name:           "geography",
 							ID:             "city",
@@ -587,12 +562,6 @@ func TestOverviewHandler(t *testing.T) {
 							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
 							Return(&population.GetBlockedAreaCountResult{}, nil)
 
-						// TODO: pc.GetParentAreaCount is causing production issues
-						// mockPc.
-						// 	EXPECT().
-						// 	GetParentAreaCount(ctx, gomock.Any()).
-						// 	Return(0, nil)
-
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
 							EXPECT().
@@ -607,7 +576,9 @@ func TestOverviewHandler(t *testing.T) {
 						mockDc.
 							EXPECT().
 							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-							Return(dataset.DatasetDetails{}, nil)
+							Return(dataset.DatasetDetails{
+								Type: "multivariate",
+							}, nil)
 
 						mockZc := NewMockZebedeeClient(mockCtrl)
 						mockZc.
@@ -811,7 +782,9 @@ func TestOverviewHandler(t *testing.T) {
 				mockDc.
 					EXPECT().
 					Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(dataset.DatasetDetails{}, nil)
+					Return(dataset.DatasetDetails{
+						Type: "multivariate",
+					}, nil)
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.
