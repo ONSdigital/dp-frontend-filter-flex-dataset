@@ -35,7 +35,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var filterJob *filter.GetFilterResponse
 	var eb zebedee.EmergencyBanner
 	var sdc *population.GetBlockedAreaCountResult
-	var fErr, dErr, fdsErr, imErr, zErr, sErr error
+	var fErr, dErr, fdsErr, imErr, zErr, sErr, dcErr error
 	var isMultivariate bool
 	var serviceMsg, areaTypeID, parent string
 	var dimIds, areaOpts []string
