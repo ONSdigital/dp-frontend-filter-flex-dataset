@@ -59,7 +59,7 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 
 	if sdc.Blocked > 0 {
 		p.HasSDC = true
-		p.Panel = m.mapBlockedAreasPanel(sdc)
+		p.Panel = *m.mapBlockedAreasPanel(sdc, model.Pending)
 
 		areaTypeUri, dimNames := mapImproveResultsCollapsible(pageDims)
 		p.ImproveResults = coreModel.Collapsible{

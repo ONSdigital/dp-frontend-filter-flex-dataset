@@ -274,3 +274,7 @@ one = "<strong>{{.arg0}} out of {{.arg1}} areas available</strong>"
 description = "Protecting data will prevent {{.blocked}} areas from being published"
 one = "<a href=\"/peoplepopulationandcommunity/populationandmigration/populationestimates/methodologies/protectingpersonaldataincensus2021results\">Protecting personal data</a> will prevent {{.arg0}} area from being published"
 other = "<br><a href=\"/peoplepopulationandcommunity/populationandmigration/populationestimates/methodologies/protectingpersonaldataincensus2021results\">Protecting personal data</a> will prevent {{.arg0}} areas from being published."
+
+[SDCAllAreasAvailable]
+description = "All {{.total}} areas available"
+one = "<strong>All {{.arg0}} areas available</strong>"

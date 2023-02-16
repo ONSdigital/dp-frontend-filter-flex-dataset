@@ -91,24 +91,30 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 		CollapsibleItems: mapDescriptionsCollapsible(dimDescriptions, p.Dimensions),
 	}
 
-	if isMultivariate && sdc.Blocked > 0 {
-		p.HasSDC = true
-		p.Panel = m.mapBlockedAreasPanel(&sdc)
+	if isMultivariate {
+		switch {
+		case sdc.Blocked > 0: // areas blocked
+			p.HasSDC = true
+			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Pending)
 
-		areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
-		p.ImproveResults = coreModel.Collapsible{
-			Title: coreModel.Localisation{
-				LocaleKey: "ImproveResultsTitle",
-				Plural:    4,
-			},
-			CollapsibleItems: []coreModel.CollapsibleItem{
-				{
-					Subheading: helper.Localise("ImproveResultsSubHeading", m.lang, 1),
-					SafeHTML: coreModel.Localisation{
-						Text: helper.Localise("ImproveResultsList", m.lang, 1, areaTypeUri, dimNames),
+			areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
+			p.ImproveResults = coreModel.Collapsible{
+				Title: coreModel.Localisation{
+					LocaleKey: "ImproveResultsTitle",
+					Plural:    4,
+				},
+				CollapsibleItems: []coreModel.CollapsibleItem{
+					{
+						Subheading: helper.Localise("ImproveResultsSubHeading", m.lang, 1),
+						SafeHTML: coreModel.Localisation{
+							Text: helper.Localise("ImproveResultsList", m.lang, 1, areaTypeUri, dimNames),
+						},
 					},
 				},
-			},
+			}
+		case sdc.Passed == sdc.Total: // all areas passing
+			p.HasSDC = true
+			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Success)
 		}
 	}
 

@@ -6,9 +6,11 @@
             <div class="ons-page__main ons-u-mt-l">
                 {{ if .HasSDC }}
                     {{ template "partials/common/panel" .Panel }}
-                    <div class="ons-u-mb-l">
-                        {{ template "partials/collapsible" .ImproveResults }}
-                    </div>
+                    {{ if .ImproveResults.CollapsibleItems }}
+                        <div class="ons-u-mb-l">
+                            {{ template "partials/collapsible" .ImproveResults }}
+                        </div>
+                    {{ end }}
                 {{ end }}
                 {{ template "partials/summary" . }}
                 {{ if .IsMultivariate }}

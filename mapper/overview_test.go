@@ -131,7 +131,7 @@ func TestOverview(t *testing.T) {
 	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, true)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, false)
 		So(overview.BetaBannerEnabled, ShouldBeTrue)
 		So(overview.Type, ShouldEqual, "review_changes")
 		So(overview.Metadata.Title, ShouldEqual, "Review changes")
@@ -142,7 +142,7 @@ func TestOverview(t *testing.T) {
 			strconv.Itoa(filterJob.Dataset.Version)))
 		So(overview.Language, ShouldEqual, lang)
 		So(overview.SearchNoIndexEnabled, ShouldBeTrue)
-		So(overview.IsMultivariate, ShouldBeTrue)
+		So(overview.IsMultivariate, ShouldBeFalse)
 
 		So(overview.Dimensions[0].Name, ShouldEqual, filterDims[3].Label)
 		So(overview.Dimensions[0].IsAreaType, ShouldBeTrue)
@@ -243,12 +243,15 @@ func TestOverview(t *testing.T) {
 		})
 	})
 
-	Convey("Given blocked areas", t, func() {
-		Convey("When the blocked areas are greater than zero", func() {
+	Convey("Given a filter based on a multivariate dataset", t, func() {
+		Convey("When there are blocked areas greater than zero", func() {
 			sdc.Blocked = 10
 			sdc.Passed = 15
 			sdc.Total = 25
 			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, true)
+			Convey("Then the bool isMultivariate is true", func() {
+				So(overview.IsMultivariate, ShouldBeTrue)
+			})
 			Convey("Then the sdc bool is true", func() {
 				So(overview.HasSDC, ShouldBeTrue)
 			})
@@ -260,6 +263,33 @@ func TestOverview(t *testing.T) {
 					Language:   lang,
 				}
 				So(overview.Panel, ShouldResemble, mockPanel)
+			})
+			Convey("Then the 'how to improve your results collapsible' is populated", func() {
+				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 1)
+			})
+		})
+		Convey("When all areas are available", func() {
+			sdc.Blocked = 0
+			sdc.Passed = 25
+			sdc.Total = 25
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, true)
+			Convey("Then the bool isMultivariate is true", func() {
+				So(overview.IsMultivariate, ShouldBeTrue)
+			})
+			Convey("Then the sdc bool is true", func() {
+				So(overview.HasSDC, ShouldBeTrue)
+			})
+			Convey("Then the sdc panel is displayed", func() {
+				mockPanel := model.Panel{
+					Type:       model.Success,
+					CssClasses: []string{"ons-u-mb-l"},
+					SafeHTML:   []string{"All areas available"},
+					Language:   lang,
+				}
+				So(overview.Panel, ShouldResemble, mockPanel)
+			})
+			Convey("Then the 'how to improve your results' collapsible is empty", func() {
+				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 0)
 			})
 		})
 	})
