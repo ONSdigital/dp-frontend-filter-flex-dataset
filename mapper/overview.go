@@ -112,7 +112,7 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 					},
 				},
 			}
-		case sdc.Passed == sdc.Total: // all areas passing
+		case sdc.Passed == sdc.Total && sdc.Total > 0: // all areas passing
 			p.HasSDC = true
 			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Success)
 		}
