@@ -31,11 +31,14 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 	q := req.URL.Query().Get("q")
 	isSearch := strings.Contains(req.URL.RawQuery, "q=")
 	form := req.URL.Query().Get("f")
-	var fErr, imErr, pErr, prErr, zErr error
+	var fErr, imErr, pErr, prErr, zErr, oErr error
+	var fj *filter.GetFilterResponse
 	var pDims, pResults population.GetDimensionsResponse
 	var dims []model.FilterDimension
 	var eb zebedee.EmergencyBanner
-	var popType, serviceMsg string
+	var opts filter.DimensionOptions
+	var popType, serviceMsg, areaTypeID, parent string
+	var dimIds, areaOpts []string
 	var isMultivariate bool
 
 	// get filter dimensions
@@ -56,7 +59,6 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 
 	go func() {
 		defer wg.Done()
-		var fj *filter.GetFilterResponse
 		fj, fErr = f.FilterClient.GetFilter(ctx, filter.GetFilterInput{
 			FilterID: fid,
 			AuthHeaders: filter.AuthHeaders{
@@ -110,10 +112,26 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 				})
 				dimErrs[i] = err
 			}
+
 			dim.IsAreaType = fDim.IsAreaType
 			dims = append(dims, model.FilterDimension{
 				Dimension: dim,
 			})
+			dimIds = append(dimIds, fDim.ID)
+			if *fDim.IsAreaType {
+				opts, _, oErr = f.FilterClient.GetDimensionOptions(ctx, accessToken, "", collectionID, fid, dim.Name, &filter.QueryParams{Offset: 0, Limit: 500})
+				if oErr != nil {
+					log.Error(ctx, "failed to get dimension options", oErr, log.Data{
+						"filter_id":      fid,
+						"dimension_name": dim.Name,
+					})
+				}
+				for _, opt := range opts.Items {
+					areaOpts = append(areaOpts, opt.Option)
+				}
+				areaTypeID = fDim.ID
+				parent = fDim.FilterByParent
+			}
 		}
 	}()
 	wg.Wait()
@@ -152,6 +170,13 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 		setStatusCode(req, w, prErr)
 		return
 	}
+	if oErr != nil {
+		log.Error(ctx, "failed to get dimension options", oErr, log.Data{
+			"filter_id": fid,
+		})
+		setStatusCode(req, w, prErr)
+		return
+	}
 	var hasErrs bool
 	for _, err := range dimErrs {
 		if err != nil {
@@ -171,8 +196,20 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 		return
 	}
 
+	sdc, err := f.getBlockedAreaCount(ctx, accessToken, fj.PopulationType, areaTypeID, parent, dimIds, areaOpts)
+	if err != nil {
+		log.Error(ctx, "failed to get blocked area count", err, log.Data{
+			"population_type": fj.PopulationType,
+			"variables":       dimIds,
+			"area_codes":      areaOpts,
+			"area_type_id":    areaTypeID,
+		})
+		setStatusCode(req, w, err)
+		return
+	}
+
 	basePage := f.Render.NewBasePageModel()
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, fid)
-	dimensions := m.CreateGetChangeDimensions(q, form, dims, pDims, pResults)
+	dimensions := m.CreateGetChangeDimensions(q, form, dims, pDims, pResults, sdc)
 	f.Render.BuildPage(w, dimensions, "dimensions")
 }

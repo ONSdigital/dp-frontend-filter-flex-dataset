@@ -3,11 +3,13 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"net/http"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 
 	"github.com/ONSdigital/log.go/v2/log"
@@ -74,4 +76,33 @@ func setStatusCode(req *http.Request, w http.ResponseWriter, err error) {
 	}
 	log.Error(req.Context(), "setting-response-status", err)
 	w.WriteHeader(status)
+}
+
+// getBlockedAreaCount is a helper function that does the required sorting and checks before making the api request
+func (f *FilterFlex) getBlockedAreaCount(ctx context.Context, accessToken, populationType, areaTypeID, parent string, dimensionIds, areaOptions []string) (*population.GetBlockedAreaCountResult, error) {
+	sort.Slice(dimensionIds, func(i, j int) bool {
+		return dimensionIds[i] == areaTypeID || dimensionIds[i] == parent
+	})
+
+	if parent != "" {
+		areaTypeID = parent
+	}
+
+	// set default coverage
+	if len(areaOptions) == 0 {
+		areaOptions = []string{"K04000001"}
+		areaTypeID = "nat"
+	}
+	sdc, err := f.PopulationClient.GetBlockedAreaCount(ctx, population.GetBlockedAreaCountInput{
+		AuthTokens: population.AuthTokens{
+			UserAuthToken: accessToken,
+		},
+		PopulationType: populationType,
+		Variables:      dimensionIds,
+		Filter: population.Filter{
+			Codes:    areaOptions,
+			Variable: areaTypeID,
+		},
+	})
+	return sdc, err
 }

@@ -4,10 +4,13 @@
         <h1 class="ons-u-fs-xxxl ons-u-mt-s ons-u-fw-b">{{ .Page.Metadata.Title }}</h1>
         <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
-                {{ if .IsMultivariate }}
-                    <div class="ons-u-mb-l">
-                        {{ template "partials/collapsible" .ImproveResults }}
-                    </div>
+                {{ if .HasSDC }}
+                    {{ template "partials/common/panel" .Panel }}
+                    {{ if .ImproveResults.CollapsibleItems }}
+                        <div class="ons-u-mb-l">
+                            {{ template "partials/collapsible" .ImproveResults }}
+                        </div>
+                    {{ end }}
                 {{ end }}
                 {{ template "partials/summary" . }}
                 {{ if .IsMultivariate }}

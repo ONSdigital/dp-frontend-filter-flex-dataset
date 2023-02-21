@@ -10,6 +10,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-renderer/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
@@ -71,8 +72,12 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					Return(filter.Dimension{
 						Name:       "test dim",
 						ID:         "td1",
-						IsAreaType: new(bool),
+						IsAreaType: helpers.ToBoolPtr(true),
 					}, "", nil)
+				mockFc.
+					EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{}, "", nil)
 
 				mockDc := NewMockDatasetClient(mockCtrl)
 				mockDc.
@@ -85,6 +90,10 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					EXPECT().
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+					Return(&population.GetBlockedAreaCountResult{}, nil)
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.
@@ -140,8 +149,12 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					Return(filter.Dimension{
 						Name:       "test dim",
 						ID:         "td1",
-						IsAreaType: new(bool),
+						IsAreaType: helpers.ToBoolPtr(true),
 					}, "", nil)
+				mockFc.
+					EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{}, "", nil)
 
 				mockDc := NewMockDatasetClient(mockCtrl)
 				mockDc.
@@ -155,6 +168,10 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil).
 					AnyTimes()
+				mockPc.
+					EXPECT().
+					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+					Return(&population.GetBlockedAreaCountResult{}, nil)
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.
@@ -283,6 +300,10 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					EXPECT().
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+					Return(&population.GetBlockedAreaCountResult{}, nil)
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.
@@ -376,13 +397,15 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 						Items: []filter.Dimension{{
 							Name:       "test dim",
 							ID:         "td1",
-							IsAreaType: new(bool),
+							IsAreaType: helpers.ToBoolPtr(false),
 						}},
 					}, "", nil)
 				mockFc.
 					EXPECT().
 					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.Dimension{}, "", errors.New("Internal error"))
+					Return(filter.Dimension{
+						IsAreaType: helpers.ToBoolPtr(false),
+					}, "", errors.New("Internal error"))
 
 				mockDc := NewMockDatasetClient(mockCtrl)
 				mockDc.
@@ -525,6 +548,131 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					EXPECT().
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, errors.New("Internal error"))
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				ff := NewFilterFlex(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc, cfg)
+				router := mux.NewRouter()
+				router.HandleFunc("/filters/12345/dimensions/change", ff.GetChangeDimensions())
+				router.ServeHTTP(w, req)
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When the additional filter.GetDimensionOptions api method call responds with an error", func() {
+				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", nil)
+				md := dataset.DatasetDetails{
+					Type: "multivariate",
+				}
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetFilter(gomock.Any(), gomock.Any()).
+					Return(mf, nil)
+				mockFc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimensions{
+						Items: []filter.Dimension{{
+							Name:       "test dim",
+							ID:         "td1",
+							IsAreaType: helpers.ToBoolPtr(true),
+						}},
+					}, "", nil)
+				mockFc.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{
+						IsAreaType: helpers.ToBoolPtr(true),
+					}, "", nil)
+
+				mockFc.
+					EXPECT().
+					GetDimensionOptions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.DimensionOptions{}, "", errors.New("Internal error"))
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(md, nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+
+				mockZc := NewMockZebedeeClient(mockCtrl)
+				mockZc.
+					EXPECT().
+					GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(zebedee.HomepageContent{}, nil)
+
+				ff := NewFilterFlex(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc, cfg)
+				router := mux.NewRouter()
+				router.HandleFunc("/filters/12345/dimensions/change", ff.GetChangeDimensions())
+				router.ServeHTTP(w, req)
+
+				Convey("Then the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When the additional population.GetBlockedAreaCount api method call responds with an error", func() {
+				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change", nil)
+				md := dataset.DatasetDetails{
+					Type: "multivariate",
+				}
+
+				mockFc := NewMockFilterClient(mockCtrl)
+				mockFc.
+					EXPECT().
+					GetFilter(gomock.Any(), gomock.Any()).
+					Return(mf, nil)
+				mockFc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimensions{
+						Items: []filter.Dimension{{
+							Name:       "test dim",
+							ID:         "td1",
+							IsAreaType: helpers.ToBoolPtr(false),
+						}},
+					}, "", nil)
+				mockFc.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{
+						IsAreaType: helpers.ToBoolPtr(false),
+					}, "", nil)
+
+				mockDc := NewMockDatasetClient(mockCtrl)
+				mockDc.
+					EXPECT().
+					Get(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(md, nil)
+
+				mockPc := NewMockPopulationClient(mockCtrl)
+				mockPc.
+					EXPECT().
+					GetDimensions(gomock.Any(), gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+					Return(&population.GetBlockedAreaCountResult{}, errors.New("Internal error"))
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.

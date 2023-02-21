@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
@@ -32,12 +31,14 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 	var filterDims filter.Dimensions
 	var dimDescriptions population.GetDimensionsResponse
+	var dimCategories population.GetDimensionCategoriesResponse
 	var filterJob *filter.GetFilterResponse
 	var eb zebedee.EmergencyBanner
-	var fErr, dErr, fdsErr, imErr, zErr error
+	var sdc *population.GetBlockedAreaCountResult
+	var fErr, dErr, fdsErr, imErr, zErr, sErr, dcErr error
 	var isMultivariate bool
-	var serviceMsg string
-	var dimIds []string
+	var serviceMsg, areaTypeID, parent string
+	var dimIds, areaOpts []string
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -73,7 +74,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 				return
 			}
 		}
-
 	}()
 
 	go func() {
@@ -114,7 +114,22 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		return
 	}
 
-	wg.Add(1)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		dimCategories, dcErr = f.PopulationClient.GetDimensionCategories(ctx, population.GetDimensionCategoryInput{
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+			PaginationParams: population.PaginationParams{
+				Limit:  1000,
+				Offset: 0,
+			},
+			PopulationType: filterJob.PopulationType,
+			Dimensions:     dimIds,
+		})
+	}()
+
 	go func() {
 		defer wg.Done()
 		dimDescriptions, dErr = f.PopulationClient.GetDimensionsDescription(ctx, population.GetDimensionsDescriptionInput{
@@ -145,20 +160,25 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		return
 	}
 
-	getDimensionOptions := func(dim filter.Dimension) ([]string, int, error) {
-		q := dataset.QueryParams{Offset: 0, Limit: 1000}
+	if dcErr != nil {
+		log.Error(ctx, "failed to get dimension categories", dErr, log.Data{
+			"population_type": filterJob.PopulationType,
+			"dimension_ids":   dimIds,
+		})
+		setStatusCode(req, w, dcErr)
+		return
+	}
+	dimensionCategoriesMap := mapDimensionCategories(dimCategories)
 
-		opts, err := f.DatasetClient.GetOptions(ctx, accessToken, "", collectionID, filterJob.Dataset.DatasetID, filterJob.Dataset.Edition, strconv.Itoa(filterJob.Dataset.Version), dim.Name, &q)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to get options for dimension: %w", err)
-		}
+	getDimensionOptions := func(dim filter.Dimension) ([]string, int, error) {
+		dimensionCategory := dimensionCategoriesMap[dim.ID]
 
 		var options []string
-		for _, opt := range sortOptionsByCode(opts.Items) {
+		for _, opt := range sortCategoriesByID(dimensionCategory.Categories) {
 			options = append(options, opt.Label)
 		}
 
-		return options, opts.TotalCount, nil
+		return options, len(options), nil
 	}
 
 	var hasNoAreaOptions bool
@@ -226,6 +246,8 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		}
 		wg.Wait()
 
+		areaOpts = optsIDs
+
 		// TODO: pc.GetParentAreaCount is causing issues in production
 		// if dim.FilterByParent != "" {
 		// 	count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
@@ -255,6 +277,8 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 	getOptions := func(dim filter.Dimension) ([]string, int, error) {
 		if dim.IsAreaType != nil && *dim.IsAreaType {
+			areaTypeID = dim.ID
+			parent = dim.FilterByParent
 			return getAreaOptions(dim)
 		}
 
@@ -290,20 +314,44 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		})
 	}
 
+	if isMultivariate {
+		sdc, sErr = f.getBlockedAreaCount(ctx, accessToken, filterJob.PopulationType, areaTypeID, parent, dimIds, areaOpts)
+		if sErr != nil {
+			log.Error(ctx, "failed to get blocked area count", sErr, log.Data{
+				"population_type": filterJob.PopulationType,
+				"variables":       dimIds,
+				"area_codes":      areaOpts,
+				"area_type_id":    areaTypeID,
+			})
+			setStatusCode(req, w, sErr)
+			return
+		}
+	} else {
+		sdc = &population.GetBlockedAreaCountResult{}
+	}
+
 	basePage := f.Render.NewBasePageModel()
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, hasNoAreaOptions, isMultivariate)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, *sdc, hasNoAreaOptions, isMultivariate)
 	f.Render.BuildPage(w, overview, "overview")
 }
 
-// sorts options by code - numerically if possible, with negatives listed last
-func sortOptionsByCode(items []dataset.Option) []dataset.Option {
-	sorted := []dataset.Option{}
+func mapDimensionCategories(dimCategories population.GetDimensionCategoriesResponse) map[string]population.DimensionCategory {
+	dimensionCategoryMap := make(map[string]population.DimensionCategory)
+	for _, dimensionCategory := range dimCategories.Categories {
+		dimensionCategoryMap[dimensionCategory.Id] = dimensionCategory
+	}
+	return dimensionCategoryMap
+}
+
+// sorts population.DimensionCategoryItems - numerically if possible, with negatives listed last
+func sortCategoriesByID(items []population.DimensionCategoryItem) []population.DimensionCategoryItem {
+	sorted := []population.DimensionCategoryItem{}
 	sorted = append(sorted, items...)
 
-	doNumericSort := func(items []dataset.Option) bool {
+	doNumericSort := func(items []population.DimensionCategoryItem) bool {
 		for _, item := range items {
-			_, err := strconv.Atoi(item.Option)
+			_, err := strconv.Atoi(item.ID)
 			if err != nil {
 				return false
 			}
@@ -313,8 +361,8 @@ func sortOptionsByCode(items []dataset.Option) []dataset.Option {
 
 	if doNumericSort(items) {
 		sort.Slice(sorted, func(i, j int) bool {
-			left, _ := strconv.Atoi(sorted[i].Option)
-			right, _ := strconv.Atoi(sorted[j].Option)
+			left, _ := strconv.Atoi(sorted[i].ID)
+			right, _ := strconv.Atoi(sorted[j].ID)
 			if left*right < 0 {
 				return right < 0
 			} else {
@@ -323,7 +371,7 @@ func sortOptionsByCode(items []dataset.Option) []dataset.Option {
 		})
 	} else {
 		sort.Slice(sorted, func(i, j int) bool {
-			return sorted[i].Option < sorted[j].Option
+			return sorted[i].ID < sorted[j].ID
 		})
 	}
 	return sorted

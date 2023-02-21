@@ -15,7 +15,7 @@ import (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, hasNoAreaOptions, isMultivariate bool) model.Overview {
+func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, sdc population.GetBlockedAreaCountResult, hasNoAreaOptions, isMultivariate bool) model.Overview {
 	queryStrValues := m.req.URL.Query()["showAll"]
 	path := m.req.URL.Path
 
@@ -91,21 +91,31 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 		CollapsibleItems: mapDescriptionsCollapsible(dimDescriptions, p.Dimensions),
 	}
 
-	areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
+	if isMultivariate {
+		switch {
+		case sdc.Blocked > 0: // areas blocked
+			p.HasSDC = true
+			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Pending)
 
-	p.ImproveResults = coreModel.Collapsible{
-		Title: coreModel.Localisation{
-			LocaleKey: "ImproveResultsTitle",
-			Plural:    4,
-		},
-		CollapsibleItems: []coreModel.CollapsibleItem{
-			{
-				Subheading: helper.Localise("ImproveResultsSubHeading", m.lang, 1),
-				SafeHTML: coreModel.Localisation{
-					Text: helper.Localise("ImproveResultsList", m.lang, 1, areaTypeUri, dimNames),
+			areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
+			p.ImproveResults = coreModel.Collapsible{
+				Title: coreModel.Localisation{
+					LocaleKey: "ImproveResultsTitle",
+					Plural:    4,
 				},
-			},
-		},
+				CollapsibleItems: []coreModel.CollapsibleItem{
+					{
+						Subheading: helper.Localise("ImproveResultsSubHeading", m.lang, 1),
+						SafeHTML: coreModel.Localisation{
+							Text: helper.Localise("ImproveResultsList", m.lang, 1, areaTypeUri, dimNames),
+						},
+					},
+				},
+			}
+		case sdc.Passed == sdc.Total && sdc.Total > 0: // all areas passing
+			p.HasSDC = true
+			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Success)
+		}
 	}
 
 	return p

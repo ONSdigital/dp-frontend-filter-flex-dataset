@@ -124,9 +124,14 @@ func TestOverview(t *testing.T) {
 			},
 		},
 	}
+	sdc := population.GetBlockedAreaCountResult{
+		Passed:  100,
+		Blocked: 0,
+		Total:   100,
+	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, false, true)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, false)
 		So(overview.BetaBannerEnabled, ShouldBeTrue)
 		So(overview.Type, ShouldEqual, "review_changes")
 		So(overview.Metadata.Title, ShouldEqual, "Review changes")
@@ -137,7 +142,7 @@ func TestOverview(t *testing.T) {
 			strconv.Itoa(filterJob.Dataset.Version)))
 		So(overview.Language, ShouldEqual, lang)
 		So(overview.SearchNoIndexEnabled, ShouldBeTrue)
-		So(overview.IsMultivariate, ShouldBeTrue)
+		So(overview.IsMultivariate, ShouldBeFalse)
 
 		So(overview.Dimensions[0].Name, ShouldEqual, filterDims[3].Label)
 		So(overview.Dimensions[0].IsAreaType, ShouldBeTrue)
@@ -172,10 +177,12 @@ func TestOverview(t *testing.T) {
 
 		So(overview.EmergencyBanner, ShouldResemble, mappedEmergencyBanner())
 		So(overview.ServiceMessage, ShouldEqual, sm)
+
+		So(overview.HasSDC, ShouldBeFalse)
 	})
 
 	Convey("test truncation maps as expected", t, func() {
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, false, false)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, false)
 		So(overview.Dimensions[3].OptionsCount, ShouldEqual, filterDims[1].OptionsCount)
 		So(overview.Dimensions[3].Options, ShouldHaveLength, 9)
 		So(overview.Dimensions[3].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
@@ -193,14 +200,14 @@ func TestOverview(t *testing.T) {
 
 	Convey("test truncation shows all when parameter given", t, func() {
 		m.req = httptest.NewRequest("", "/?showAll=Truncated+dim+2", nil)
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, false, false)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, false)
 		So(overview.Dimensions[4].OptionsCount, ShouldEqual, filterDims[2].OptionsCount)
 		So(overview.Dimensions[4].Options, ShouldHaveLength, 12)
 		So(overview.Dimensions[4].IsTruncated, ShouldBeFalse)
 	})
 
 	Convey("test area type dimension options do not truncate and map to 'coverage' dimension", t, func() {
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, false, false)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, false)
 		So(overview.Dimensions[1].Options, ShouldHaveLength, 10)
 		So(overview.Dimensions[1].IsTruncated, ShouldBeFalse)
 		So(overview.Dimensions[1].IsCoverage, ShouldBeTrue)
@@ -217,21 +224,72 @@ func TestOverview(t *testing.T) {
 			},
 		}...)
 
-		overview := m.CreateFilterFlexOverview(filterJob, newFilterDims, dimDescriptions, false, false)
+		overview := m.CreateFilterFlexOverview(filterJob, newFilterDims, dimDescriptions, sdc, false, false)
 		So(overview.Dimensions[5].Name, ShouldEqual, "Example")
 	})
 
 	Convey("given hasNoAreaOptions parameter", t, func() {
 		Convey("when parameter is true", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, true, false)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, true, false)
 			Convey("then isDefaultCoverage is set to true", func() {
 				So(overview.Dimensions[1].IsDefaultCoverage, ShouldBeTrue)
 			})
 		})
 		Convey("when parameter is false", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, false, false)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, false)
 			Convey("then isDefaultCoverage is set to false", func() {
 				So(overview.Dimensions[1].IsDefaultCoverage, ShouldBeFalse)
+			})
+		})
+	})
+
+	Convey("Given a filter based on a multivariate dataset", t, func() {
+		Convey("When there are blocked areas greater than zero", func() {
+			sdc.Blocked = 10
+			sdc.Passed = 15
+			sdc.Total = 25
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, true)
+			Convey("Then the bool isMultivariate is true", func() {
+				So(overview.IsMultivariate, ShouldBeTrue)
+			})
+			Convey("Then the sdc bool is true", func() {
+				So(overview.HasSDC, ShouldBeTrue)
+			})
+			Convey("Then the sdc panel is displayed", func() {
+				mockPanel := model.Panel{
+					Type:       model.Pending,
+					CssClasses: []string{"ons-u-mb-s"},
+					SafeHTML:   []string{"15 of 25 areas are available", "Protecting personal data will prevent 10 areas from being published"},
+					Language:   lang,
+				}
+				So(overview.Panel, ShouldResemble, mockPanel)
+			})
+			Convey("Then the 'how to improve your results collapsible' is populated", func() {
+				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 1)
+			})
+		})
+		Convey("When all areas are available", func() {
+			sdc.Blocked = 0
+			sdc.Passed = 25
+			sdc.Total = 25
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, sdc, false, true)
+			Convey("Then the bool isMultivariate is true", func() {
+				So(overview.IsMultivariate, ShouldBeTrue)
+			})
+			Convey("Then the sdc bool is true", func() {
+				So(overview.HasSDC, ShouldBeTrue)
+			})
+			Convey("Then the sdc panel is displayed", func() {
+				mockPanel := model.Panel{
+					Type:       model.Success,
+					CssClasses: []string{"ons-u-mb-l"},
+					SafeHTML:   []string{"All areas available"},
+					Language:   lang,
+				}
+				So(overview.Panel, ShouldResemble, mockPanel)
+			})
+			Convey("Then the 'how to improve your results' collapsible is empty", func() {
+				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 0)
 			})
 		})
 	})
