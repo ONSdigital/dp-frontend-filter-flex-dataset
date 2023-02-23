@@ -20,7 +20,6 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 			URI:   fmt.Sprintf("/filters/%s/dimensions", m.fid),
 		},
 	}
-	mapCommonProps(m.req, &p.Page, "change_variables", "Add or remove variables", m.lang, m.serviceMsg, m.eb)
 	p.FormAction = formAction
 
 	selections := []model.SelectableElement{}
@@ -49,6 +48,13 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 		Value:    q,
 		Label:    helper.Localise("DimensionsSearchLabel", m.lang, 1),
 	}
+	var title string
+	if len(selections) > 0 {
+		title = "Add or remove variables"
+	} else {
+		title = "Add variables"
+	}
+	mapCommonProps(m.req, &p.Page, "change_variables", title, m.lang, m.serviceMsg, m.eb)
 
 	browseResults := mapDimensionsResponse(pDims, &selections, m.lang)
 	searchResults := mapDimensionsResponse(results, &selections, m.lang)

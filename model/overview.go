@@ -11,6 +11,7 @@ type Overview struct {
 	Panel                 Panel       `json:"panel"`
 	Dimensions            []Dimension `json:"dimensions"`
 	IsMultivariate        bool        `json:"is_multivariate"`
+	EnableGetData         bool        `json:"enable_get_data"`
 	HasSDC                bool        `json:"has_sdc"`
 	ImproveResults        coreModel.Collapsible
 	DimensionDescriptions coreModel.Collapsible
