@@ -117,6 +117,10 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 			p.HasSDC = true
 			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Success)
 		}
+
+		p.EnableGetData = len(p.Dimensions) > 2
+	} else {
+		p.EnableGetData = true
 	}
 
 	return p
