@@ -322,7 +322,10 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			return
 		}
 
-		categorisationCount, err := getDimensionCategorisations(filterJob.PopulationType, filterDimension.Name)
+		categorisationCount := 0
+		if !isAreaType(filterDimension) {
+			categorisationCount, err = getDimensionCategorisations(filterJob.PopulationType, filterDimension.Name)
+		}
 
 		filterDims.Items[i].Options = options
 		fDims = append(fDims, model.FilterDimension{
