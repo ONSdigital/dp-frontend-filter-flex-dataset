@@ -19,7 +19,7 @@ func mapImproveResultsCollapsible(dims []model.Dimension) (areaTypeUri string, l
 	for _, dim := range dims {
 		if dim.IsAreaType {
 			areaTypeUri = dim.URI
-		} else if dim.Name != "" {
+		} else if dim.Name != "" && dim.IsChangeCategories {
 			dimsLinks = append(dimsLinks, Link{
 				Uri:  dim.URI,
 				Text: dim.Name,
