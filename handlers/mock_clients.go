@@ -583,6 +583,21 @@ func (mr *MockPopulationClientMockRecorder) GetParentAreaCount(ctx, input interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParentAreaCount", reflect.TypeOf((*MockPopulationClient)(nil).GetParentAreaCount), ctx, input)
 }
 
+// GetPopulationTypes mocks base method.
+func (m *MockPopulationClient) GetPopulationTypes(ctx context.Context, input population.GetPopulationTypesInput) (population.GetPopulationTypesResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPopulationTypes", ctx, input)
+	ret0, _ := ret[0].(population.GetPopulationTypesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPopulationTypes indicates an expected call of GetPopulationTypes.
+func (mr *MockPopulationClientMockRecorder) GetPopulationTypes(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPopulationTypes", reflect.TypeOf((*MockPopulationClient)(nil).GetPopulationTypes), ctx, input)
+}
+
 // MockZebedeeClient is a mock of ZebedeeClient interface.
 type MockZebedeeClient struct {
 	ctrl     *gomock.Controller
