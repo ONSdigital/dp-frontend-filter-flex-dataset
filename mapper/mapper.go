@@ -235,7 +235,7 @@ func (m *Mapper) mapBlockedAreasPanel(sdc *population.GetBlockedAreaCountResult,
 			CssClasses: []string{"ons-u-mb-l"},
 			Language:   m.lang,
 			SafeHTML: []string{
-				helper.Localise("SDCAllAreasAvailable", m.lang, 1, strconv.Itoa(sdc.Total)),
+				helper.Localise("SDCAllAreasAvailable", m.lang, sdc.Total, strconv.Itoa(sdc.Total)),
 			},
 		}
 	}
