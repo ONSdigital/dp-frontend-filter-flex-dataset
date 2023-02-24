@@ -15,7 +15,7 @@ import (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, sdc population.GetBlockedAreaCountResult, hasNoAreaOptions, isMultivariate bool) model.Overview {
+func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, sdc population.GetBlockedAreaCountResult, isMultivariate bool) model.Overview {
 	queryStrValues := m.req.URL.Query()["showAll"]
 	path := m.req.URL.Path
 
@@ -37,52 +37,77 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 		},
 	}
 
+	pop := model.Dimension{
+		Name:        "Population type",
+		Options:     []string{"Usual residents"},
+		ID:          filterJob.PopulationType,
+		IsGeography: true,
+	}
+
+	coverage := model.Dimension{
+		Name:        helper.Localise("AreaTypeCoverageTitle", m.lang, 1),
+		IsGeography: true,
+		HasChange:   true,
+		URI:         fmt.Sprintf("%s/geography/coverage", path),
+		ID:          "coverage",
+	}
+
+	var area model.Dimension
 	for _, dim := range filterDims {
-		pageDim := model.Dimension{}
-		pageDim.Name = cleanDimensionLabel(dim.Label)
-		pageDim.IsAreaType = *dim.IsAreaType
-		pageDim.OptionsCount = dim.OptionsCount
-		pageDim.ID = dim.ID
-		pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
-		pageDim.IsChangeCategories = isMultivariate && dim.CategorisationCount > 1
-
-		q := url.Values{}
-		midFloor, midCeiling := getTruncationMidRange(dim.OptionsCount)
-
-		var displayedOptions []string
-		if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) && !*dim.IsAreaType {
-			displayedOptions = append(displayedOptions, dim.Options[:3]...)
-			displayedOptions = append(displayedOptions, dim.Options[midFloor:midCeiling]...)
-			displayedOptions = append(displayedOptions, dim.Options[len(dim.Options)-3:]...)
-			q.Add(queryStrKey, dim.Name)
-			helpers.PersistExistingParams(queryStrValues, queryStrKey, dim.Name, q)
-			pageDim.IsTruncated = true
+		if *dim.IsAreaType {
+			area.Name = helper.Localise("AreaTypeDescription", m.lang, 1)
+			area.Options = []string{cleanDimensionLabel(dim.Label)}
+			area.IsGeography = true
+			area.OptionsCount = dim.OptionsCount
+			coverage.Options = dim.Options
+			area.ID = dim.ID
+			area.URI = fmt.Sprintf("%s/%s", path, dim.Name)
+			area.HasChange = true
 		} else {
-			helpers.PersistExistingParams(queryStrValues, queryStrKey, dim.Name, q)
-			displayedOptions = dim.Options
-			pageDim.IsTruncated = false
-		}
+			pageDim := model.Dimension{}
+			pageDim.Name = cleanDimensionLabel(dim.Label)
+			pageDim.OptionsCount = dim.OptionsCount
+			pageDim.IsGeography = *dim.IsAreaType
+			pageDim.ID = dim.ID
+			pageDim.URI = fmt.Sprintf("%s/%s", path, dim.Name)
+			pageDim.HasChange = isMultivariate && dim.CategorisationCount > 1
+			pageDim.HasCategories = true
+			q := url.Values{}
+			midFloor, midCeiling := getTruncationMidRange(dim.OptionsCount)
 
-		pageDim.Options = append(pageDim.Options, displayedOptions...)
-		pageDim.TruncateLink = generateTruncatePath(path, dim.ID, q)
-		p.Dimensions = append(p.Dimensions, pageDim)
+			var displayedOptions []string
+			if len(dim.Options) > 9 && !helpers.HasStringInSlice(dim.Name, queryStrValues) {
+				displayedOptions = append(displayedOptions, dim.Options[:3]...)
+				displayedOptions = append(displayedOptions, dim.Options[midFloor:midCeiling]...)
+				displayedOptions = append(displayedOptions, dim.Options[len(dim.Options)-3:]...)
+				q.Add(queryStrKey, dim.Name)
+				helpers.PersistExistingParams(queryStrValues, queryStrKey, dim.Name, q)
+				pageDim.IsTruncated = true
+			} else {
+				helpers.PersistExistingParams(queryStrValues, queryStrKey, dim.Name, q)
+				displayedOptions = dim.Options
+				pageDim.IsTruncated = false
+			}
+
+			pageDim.Options = append(pageDim.Options, displayedOptions...)
+			pageDim.TruncateLink = generateTruncatePath(path, dim.ID, q)
+			p.Dimensions = append(p.Dimensions, pageDim)
+		}
+	}
+
+	if len(coverage.Options) == 0 {
+		coverage.Options = []string{helper.Localise("AreaTypeDefaultCoverage", m.lang, 1)}
 	}
 
 	sort.Slice(p.Dimensions, func(i, j int) bool {
-		return p.Dimensions[i].IsAreaType
+		return p.Dimensions[i].Name < p.Dimensions[j].Name
 	})
 
-	coverage := []model.Dimension{
-		{
-			IsCoverage:        true,
-			IsDefaultCoverage: hasNoAreaOptions,
-			URI:               fmt.Sprintf("%s/geography/coverage", path),
-			Options:           p.Dimensions[0].Options,
-			ID:                "coverage",
-		},
-	}
-	temp := append(coverage, p.Dimensions[1:]...)
-	p.Dimensions = append(p.Dimensions[:1], temp...)
+	p.Dimensions = append([]model.Dimension{
+		pop,
+		area,
+		coverage,
+	}, p.Dimensions...)
 
 	p.DimensionDescriptions = coreModel.Collapsible{
 		Title: coreModel.Localisation{
@@ -118,7 +143,7 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Success)
 		}
 
-		p.EnableGetData = len(p.Dimensions) > 2
+		p.EnableGetData = len(p.Dimensions) > 3 // all geography dimensions (population type, area type and coverage)
 	} else {
 		p.EnableGetData = true
 	}

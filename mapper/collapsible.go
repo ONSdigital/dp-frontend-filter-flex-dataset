@@ -17,9 +17,9 @@ type Link struct {
 func mapImproveResultsCollapsible(dims []model.Dimension) (areaTypeUri string, linksItem string) {
 	var dimsLinks []Link
 	for _, dim := range dims {
-		if dim.IsAreaType {
+		if dim.IsGeography {
 			areaTypeUri = dim.URI
-		} else if dim.Name != "" && dim.IsChangeCategories {
+		} else if dim.Name != "" && dim.HasChange {
 			dimsLinks = append(dimsLinks, Link{
 				Uri:  dim.URI,
 				Text: dim.Name,
@@ -51,12 +51,12 @@ func mapDescriptionsCollapsible(dimDescriptions population.GetDimensionsResponse
 
 	for _, dim := range dims {
 		for _, dimDescription := range dimDescriptions.Dimensions {
-			if dim.ID == dimDescription.ID && !dim.IsAreaType {
+			if dim.ID == dimDescription.ID && !dim.IsGeography {
 				collapsibleContentItems = append(collapsibleContentItems, coreModel.CollapsibleItem{
 					Subheading: cleanDimensionLabel(dimDescription.Label),
 					Content:    strings.Split(dimDescription.Description, "\n"),
 				})
-			} else if dim.ID == dimDescription.ID && dim.IsAreaType {
+			} else if dim.ID == dimDescription.ID && dim.IsGeography {
 				areaItem.Subheading = cleanDimensionLabel(dimDescription.Label)
 				areaItem.Content = strings.Split(dimDescription.Description, "\n")
 			}

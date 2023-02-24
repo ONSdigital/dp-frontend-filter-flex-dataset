@@ -33,10 +33,10 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 			})
 		}
 		pageDims = append(pageDims, model.Dimension{
-			IsAreaType: *dim.IsAreaType,
-			ID:         dim.ID,
-			URI:        fmt.Sprintf("/filters/%s/dimensions/%s", m.fid, dim.Name),
-			Name:       cleanDimensionLabel(dim.Label),
+			IsGeography: *dim.IsAreaType,
+			ID:          dim.ID,
+			URI:         fmt.Sprintf("/filters/%s/dimensions/%s", m.fid, dim.Name),
+			Name:        cleanDimensionLabel(dim.Label),
 		})
 	}
 	p.Output.Selections = selections

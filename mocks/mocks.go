@@ -47,6 +47,12 @@ var cyLocale = []string{
 	"[SDCAllAreasAvailable]",
 	"one = \"1 area available (cy)\"",
 	"other = \"All areas available (cy)\"",
+	"[AreaTypeCoverageTitle]",
+	"one = \"Coverage (cy)\"",
+	"[AreaTypeDefaultCoverage]",
+	"one = \"England and Wales (cy)\"",
+	"[AreaTypeDescription]",
+	"one = \"Area type (cy)\"",
 }
 
 var enLocale = []string{
@@ -94,6 +100,12 @@ var enLocale = []string{
 	"[SDCAllAreasAvailable]",
 	"one = \"1 area available\"",
 	"other = \"All areas available\"",
+	"[AreaTypeCoverageTitle]",
+	"one = \"Coverage\"",
+	"[AreaTypeDefaultCoverage]",
+	"one = \"England and Wales\"",
+	"[AreaTypeDescription]",
+	"one = \"Area type\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes

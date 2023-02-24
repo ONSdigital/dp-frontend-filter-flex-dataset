@@ -3,19 +3,13 @@
     <h2 class="ons-u-fw-b">{{ localise "Variable" $lang 4 }}</h2>
     <div class="ons-summary ons-summary--hub">
         <div class="ons-summary__group">
-            <div class="ons-summary__items ons-u-mb-s">
+            <div class="ons-summary__items ons-u-mb-s ons-u-bt ons-u-bb">
                 {{ range $i, $dim := .Dimensions }}
                     <div class="ons-summary__item">
-                        <dl id="{{.ID}}" class="ons-summary__row ons-summary__row--has-values ons-grid--flex@xxs@m ons-grid--row@xxs@m ons-u-order--sb@xxs@m{{ if eq $i 0 }} ons-u-bt{{ end }}{{ if last $i $.Dimensions }} ons-u-bb{{ end }}">
+                        <dl id="{{.ID}}" class="ons-summary__row ons-summary__row--has-values ons-grid--flex@xxs@m ons-grid--row@xxs@m ons-u-order--sb@xxs@m{{ if eq $i 0 }} ons-u-bt{{ end }}">
                             <dt class="ons-summary__item-title ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-order--1@xxs@m ons-u-flex--2@xxs@m ons-col-4@m">
                                 <div class="ons-summary__item--text ons-u-fw-b">
-                                    {{ if .IsAreaType }}
-                                        {{- localise "AreaTypeDescription" $lang 1 -}}
-                                    {{ else if .IsCoverage}}
-                                        {{- localise "AreaTypeCoverageTitle" $lang 1 -}}
-                                    {{ else }}
-                                        {{- .Name -}}
-                                    {{ end }}
+                                    {{- .Name -}}
                                 </div>
                             </dt>
                             <dd class="ons-summary__values ons-u-pt-s ons-u-pb-s ons-u-pr-m ons-u-pl-no@xxs@m ons-u-order--3@xxs@m ons-u-fw@xxs@m
@@ -23,58 +17,42 @@
                                 {{ $length := len .Options }}
                                 {{ $strOptCount := intToString .OptionsCount }}
                                 {{ $isTruncated := .IsTruncated }}
-                                {{ if and (eq .IsAreaType false) (eq .IsCoverage false)  }}
+                                {{ $hasCategories := .HasCategories }}
+                                {{ $length := len .Options }}
+                                {{ if $hasCategories }}
                                     {{ localise "HasSelectedCategories" $lang 1 $strOptCount }}
                                     <div class="ons-u-mt-s ons-u-fs-s ons-list--container">
-                                        <ul class="ons-list{{ if $isTruncated }}--truncated{{end}}{{ if or (gt $length 9) ($isTruncated) }} ons-u-mb-xs{{else}}
+                                {{ end }}
+                                {{ if .Options }}
+                                    {{ if gt $length 1 }}
+                                        <ul class="ons-list{{if $isTruncated}}--truncated{{end}}{{ if or (gt $length 9) ($isTruncated) }} ons-u-mb-xs{{else}}
                                                 ons-u-m-no{{end}}">
-                                            {{ range $i, $opt := .Options }}
-                                                <li class="ons-list__item{{ if $isTruncated }}--truncated{{end}} ons-u-mb-no">
-                                                    {{ . }}
+                                            {{ range .Options }}
+                                                <li class="ons-list__item{{if $isTruncated}}--truncated{{end}} {{if $hasCategories }} ons-u-mb-no{{end}}">
+                                                    {{- . -}}
                                                 </li>
                                             {{ end }}
                                         </ul>
-                                        {{ if $isTruncated }}
-                                            <a href="{{.TruncateLink}}">{{- localise "TruncateShowAll" $lang 1 $strOptCount -}}</a>
-                                        {{ else if gt $length 9 }}
-                                            <a href="{{.TruncateLink}}">{{- localise "TruncateShowFewer" $lang 1 -}}</a>
-                                        {{ end }}
-                                    </div>
-                                {{ else }}
-                                    {{ if or (.IsAreaType) (.IsDefaultCoverage) }}
-                                        {{ if .IsDefaultCoverage }}
-                                            {{- localise "AreaTypeDefaultCoverage" $lang 1 -}}
-                                        {{ else if .IsAreaType }}
-                                            {{- .Name }}
-                                        {{ end }}
                                     {{ else }}
-                                        {{ if .Options }}
-                                            {{ if gt $length 1 }}
-                                                <ul class="ons-list ons-u-mb-no">
-                                                    {{ range $i, $opt := .Options }}
-                                                        <li class="ons-list__item">{{- . -}}</li>
-                                                    {{ end }}
-                                                </ul>
-                                            {{ else }}
-                                                {{- index .Options 0 -}}
-                                            {{ end }}
-                                        {{ end }}
+                                        {{- index .Options 0 -}}
                                     {{ end }}
                                 {{ end }}
+                                {{ if .HasCategories }}
+                                    {{ if $isTruncated }}
+                                        <a href="{{.TruncateLink}}">{{- localise "TruncateShowAll" $lang 1 $strOptCount -}}</a>
+                                    {{ else if gt $length 9 }}
+                                        <a href="{{.TruncateLink}}">{{- localise "TruncateShowFewer" $lang 1 -}}</a>
+                                    {{ end }}
+                                    </div>
+                                {{ end }}
                             </dd>
-                            {{ if or (.IsAreaType) (.IsCoverage) (.IsChangeCategories) }}
+                            {{ if .HasChange }}
                                 <dd class="ons-summary__actions ons-u-flex-ai-fs ons-u-pt-s ons-u-pb-s ons-u-pl-no@xxs ons-u-ml-xs@xxs ons-u-order--2@xxs@m
                                         ons-col-2@m">
                                     <a href="{{ .URI }}" class="ons-summary__button">
                                         {{ localise "Change" $lang 1 }}
                                         <span class="ons-u-vh">
-                                            {{ if .IsAreaType }}
-                                                {{- localise "AreaTypeDescription" $lang 1 -}}
-                                            {{ else if .IsCoverage }}
-                                                {{- localise "AreaTypeCoverageTitle" $lang 1 -}}
-                                            {{ else }}
-                                                {{- .Name -}}
-                                            {{ end }}
+                                            {{- .Name -}}
                                         </span>
                                     </a>
                                 </dd>

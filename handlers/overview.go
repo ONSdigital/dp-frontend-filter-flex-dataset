@@ -195,7 +195,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		return cats.PaginationResponse.TotalCount, err
 	}
 
-	var hasNoAreaOptions bool
 	getAreaOptions := func(dim filter.Dimension) ([]string, int, error) {
 		q := filter.QueryParams{Offset: 0, Limit: 500}
 		opts, _, err := f.FilterClient.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dim.Name, &q)
@@ -219,7 +218,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 				return nil, 0, fmt.Errorf("failed to get dimension areas: %w", err)
 			}
 
-			hasNoAreaOptions = true
 			return options, areas.TotalCount, nil
 		}
 
@@ -353,7 +351,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 	basePage := f.Render.NewBasePageModel()
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, *sdc, hasNoAreaOptions, isMultivariate)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, *sdc, isMultivariate)
 	f.Render.BuildPage(w, overview, "overview")
 }
 
