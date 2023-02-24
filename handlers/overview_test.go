@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -645,7 +646,7 @@ func TestOverviewHandler(t *testing.T) {
 						mockPc.
 							EXPECT().
 							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
-							Return(&population.GetBlockedAreaCountResult{}, nil)
+							Return(&cantabular.GetBlockedAreaCountResult{}, nil)
 						mockPc.
 							EXPECT().
 							GetDimensionCategories(ctx, gomock.Any()).
@@ -926,7 +927,7 @@ func TestOverviewHandler(t *testing.T) {
 				mockPc.
 					EXPECT().
 					GetBlockedAreaCount(gomock.Any(), gomock.Any()).
-					Return(&population.GetBlockedAreaCountResult{}, errors.New("Sorry"))
+					Return(&cantabular.GetBlockedAreaCountResult{}, errors.New("Sorry"))
 				mockPc.
 					EXPECT().
 					GetDimensionCategories(ctx, gomock.Any()).

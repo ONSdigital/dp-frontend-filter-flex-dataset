@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
@@ -34,7 +35,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var dimCategories population.GetDimensionCategoriesResponse
 	var filterJob *filter.GetFilterResponse
 	var eb zebedee.EmergencyBanner
-	var sdc *population.GetBlockedAreaCountResult
+	var sdc *cantabular.GetBlockedAreaCountResult
 	var fErr, dErr, fdsErr, imErr, zErr, sErr, dcErr error
 	var isMultivariate bool
 	var serviceMsg, areaTypeID, parent string
@@ -346,7 +347,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			return
 		}
 	} else {
-		sdc = &population.GetBlockedAreaCountResult{}
+		sdc = &cantabular.GetBlockedAreaCountResult{}
 	}
 
 	basePage := f.Render.NewBasePageModel()

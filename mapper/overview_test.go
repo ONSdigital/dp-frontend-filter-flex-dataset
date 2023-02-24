@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
@@ -128,7 +129,7 @@ func TestOverview(t *testing.T) {
 			},
 		},
 	}
-	sdc := population.GetBlockedAreaCountResult{
+	sdc := cantabular.GetBlockedAreaCountResult{
 		Passed:  100,
 		Blocked: 0,
 		Total:   100,

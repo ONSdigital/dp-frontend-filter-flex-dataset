@@ -3,6 +3,7 @@ package mapper
 import (
 	"fmt"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -10,7 +11,7 @@ import (
 )
 
 // CreateGetChangeDimensions maps data to the ChangeDimensions model
-func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse, sdc *population.GetBlockedAreaCountResult) model.ChangeDimensions {
+func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse, sdc *cantabular.GetBlockedAreaCountResult) model.ChangeDimensions {
 	p := model.ChangeDimensions{
 		Page: m.basePage,
 	}

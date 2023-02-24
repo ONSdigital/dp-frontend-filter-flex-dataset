@@ -8,6 +8,7 @@ import (
 
 	"net/http"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
@@ -79,7 +80,7 @@ func setStatusCode(req *http.Request, w http.ResponseWriter, err error) {
 }
 
 // getBlockedAreaCount is a helper function that does the required sorting and checks before making the api request
-func (f *FilterFlex) getBlockedAreaCount(ctx context.Context, accessToken, populationType, areaTypeID, parent string, dimensionIds, areaOptions []string) (*population.GetBlockedAreaCountResult, error) {
+func (f *FilterFlex) getBlockedAreaCount(ctx context.Context, accessToken, populationType, areaTypeID, parent string, dimensionIds, areaOptions []string) (*cantabular.GetBlockedAreaCountResult, error) {
 	sort.Slice(dimensionIds, func(i, j int) bool {
 		return dimensionIds[i] == areaTypeID || dimensionIds[i] == parent
 	})

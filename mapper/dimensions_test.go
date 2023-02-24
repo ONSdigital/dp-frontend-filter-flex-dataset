@@ -4,6 +4,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
@@ -87,7 +88,7 @@ func TestGetChangeDimensions(t *testing.T) {
 				mockFds,
 				mockPds,
 				mockPdsR,
-				&population.GetBlockedAreaCountResult{},
+				&cantabular.GetBlockedAreaCountResult{},
 			)
 			Convey("Then it maps page metadata", func() {
 				So(p.BetaBannerEnabled, ShouldBeTrue)
@@ -210,7 +211,7 @@ func TestGetChangeDimensions(t *testing.T) {
 				[]model.FilterDimension{},
 				population.GetDimensionsResponse{},
 				population.GetDimensionsResponse{},
-				&population.GetBlockedAreaCountResult{},
+				&cantabular.GetBlockedAreaCountResult{},
 			)
 			Convey("then it sets HasNoResults to true", func() {
 				So(p.SearchOutput.HasNoResults, ShouldBeTrue)
@@ -218,7 +219,7 @@ func TestGetChangeDimensions(t *testing.T) {
 		})
 
 		Convey("when areas are blocked", func() {
-			mockSdc := population.GetBlockedAreaCountResult{
+			mockSdc := cantabular.GetBlockedAreaCountResult{
 				Passed:  10,
 				Blocked: 20,
 				Total:   0,

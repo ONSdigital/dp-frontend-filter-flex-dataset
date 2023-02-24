@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-cookies/cookies"
@@ -217,7 +218,7 @@ func mapPanel(locale coreModel.Localisation, language string, utilityCssClasses 
 }
 
 // mapBlockedAreasPanel is a helper function that returns the blocked areas panel
-func (m *Mapper) mapBlockedAreasPanel(sdc *population.GetBlockedAreaCountResult, panelType model.PanelType) (p *model.Panel) {
+func (m *Mapper) mapBlockedAreasPanel(sdc *cantabular.GetBlockedAreaCountResult, panelType model.PanelType) (p *model.Panel) {
 	switch panelType {
 	case model.Pending:
 		p = &model.Panel{
