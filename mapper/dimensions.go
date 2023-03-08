@@ -3,6 +3,7 @@ package mapper
 import (
 	"fmt"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/helper"
@@ -10,7 +11,7 @@ import (
 )
 
 // CreateGetChangeDimensions maps data to the ChangeDimensions model
-func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse, sdc *population.GetBlockedAreaCountResult) model.ChangeDimensions {
+func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse, sdc *cantabular.GetBlockedAreaCountResult) model.ChangeDimensions {
 	p := model.ChangeDimensions{
 		Page: m.basePage,
 	}
@@ -20,7 +21,6 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 			URI:   fmt.Sprintf("/filters/%s/dimensions", m.fid),
 		},
 	}
-	mapCommonProps(m.req, &p.Page, "change_variables", "Add or remove variables", m.lang, m.serviceMsg, m.eb)
 	p.FormAction = formAction
 
 	selections := []model.SelectableElement{}
@@ -34,10 +34,10 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 			})
 		}
 		pageDims = append(pageDims, model.Dimension{
-			IsAreaType: *dim.IsAreaType,
-			ID:         dim.ID,
-			URI:        fmt.Sprintf("/filters/%s/dimensions/%s", m.fid, dim.Name),
-			Name:       cleanDimensionLabel(dim.Label),
+			IsGeography: *dim.IsAreaType,
+			ID:          dim.ID,
+			URI:         fmt.Sprintf("/filters/%s/dimensions/%s", m.fid, dim.Name),
+			Name:        cleanDimensionLabel(dim.Label),
 		})
 	}
 	p.Output.Selections = selections
@@ -49,6 +49,13 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 		Value:    q,
 		Label:    helper.Localise("DimensionsSearchLabel", m.lang, 1),
 	}
+	var title string
+	if len(selections) > 0 {
+		title = "Add or remove variables"
+	} else {
+		title = "Add variables"
+	}
+	mapCommonProps(m.req, &p.Page, "change_variables", title, m.lang, m.serviceMsg, m.eb)
 
 	browseResults := mapDimensionsResponse(pDims, &selections, m.lang)
 	searchResults := mapDimensionsResponse(results, &selections, m.lang)

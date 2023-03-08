@@ -9,6 +9,7 @@ import (
 	io "io"
 	reflect "reflect"
 
+	cantabular "github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	dataset "github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	filter "github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	population "github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -493,10 +494,10 @@ func (mr *MockPopulationClientMockRecorder) GetAreas(ctx, input interface{}) *go
 }
 
 // GetBlockedAreaCount mocks base method.
-func (m *MockPopulationClient) GetBlockedAreaCount(ctx context.Context, input population.GetBlockedAreaCountInput) (*population.GetBlockedAreaCountResult, error) {
+func (m *MockPopulationClient) GetBlockedAreaCount(ctx context.Context, input population.GetBlockedAreaCountInput) (*cantabular.GetBlockedAreaCountResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlockedAreaCount", ctx, input)
-	ret0, _ := ret[0].(*population.GetBlockedAreaCountResult)
+	ret0, _ := ret[0].(*cantabular.GetBlockedAreaCountResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -521,7 +522,7 @@ func (mr *MockPopulationClientMockRecorder) GetCategorisations(ctx, input interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategorisations", reflect.TypeOf((*MockPopulationClient)(nil).GetCategorisations), ctx, input)
 }
- 
+
 // GetDimensionCategories mocks base method.
 func (m *MockPopulationClient) GetDimensionCategories(ctx context.Context, input population.GetDimensionCategoryInput) (population.GetDimensionCategoriesResponse, error) {
 	m.ctrl.T.Helper()
@@ -580,6 +581,21 @@ func (m *MockPopulationClient) GetParentAreaCount(ctx context.Context, input pop
 func (mr *MockPopulationClientMockRecorder) GetParentAreaCount(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParentAreaCount", reflect.TypeOf((*MockPopulationClient)(nil).GetParentAreaCount), ctx, input)
+}
+
+// GetPopulationTypes mocks base method.
+func (m *MockPopulationClient) GetPopulationTypes(ctx context.Context, input population.GetPopulationTypesInput) (population.GetPopulationTypesResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPopulationTypes", ctx, input)
+	ret0, _ := ret[0].(population.GetPopulationTypesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPopulationTypes indicates an expected call of GetPopulationTypes.
+func (mr *MockPopulationClientMockRecorder) GetPopulationTypes(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPopulationTypes", reflect.TypeOf((*MockPopulationClient)(nil).GetPopulationTypes), ctx, input)
 }
 
 // MockZebedeeClient is a mock of ZebedeeClient interface.

@@ -45,7 +45,14 @@ var cyLocale = []string{
 	"one = \"Protecting personal data will prevent 1 area from being published (cy)\"",
 	"other = \"Protecting personal data will prevent 10 areas from being published (cy)\"",
 	"[SDCAllAreasAvailable]",
-	"one = \"All areas available (cy)\"",
+	"one = \"1 area available (cy)\"",
+	"other = \"All areas available (cy)\"",
+	"[AreaTypeCoverageTitle]",
+	"one = \"Coverage (cy)\"",
+	"[AreaTypeDefaultCoverage]",
+	"one = \"England and Wales (cy)\"",
+	"[AreaTypeDescription]",
+	"one = \"Area type (cy)\"",
 }
 
 var enLocale = []string{
@@ -91,7 +98,14 @@ var enLocale = []string{
 	"one = \"Protecting personal data will prevent 1 area from being published\"",
 	"other = \"Protecting personal data will prevent 10 areas from being published\"",
 	"[SDCAllAreasAvailable]",
-	"one = \"All areas available\"",
+	"one = \"1 area available\"",
+	"other = \"All areas available\"",
+	"[AreaTypeCoverageTitle]",
+	"one = \"Coverage\"",
+	"[AreaTypeDefaultCoverage]",
+	"one = \"England and Wales\"",
+	"[AreaTypeDescription]",
+	"one = \"Area type\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes

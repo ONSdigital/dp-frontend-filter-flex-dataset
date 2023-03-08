@@ -27,6 +27,10 @@ other = "Variable and dataset information"
 description = "Add or remove variable"
 one = "Add or remove variable"
 
+[VariableAdd]
+description = "Add a variable"
+one = "Add a variable"
+
 [GetDataBtn]
 description = "Get the data"
 one = "Get the data"
@@ -277,4 +281,5 @@ other = "<br><a href=\"/peoplepopulationandcommunity/populationandmigration/popu
 
 [SDCAllAreasAvailable]
 description = "All {{.total}} areas available"
-one = "<strong>All {{.arg0}} areas available</strong>"
+one = "<strong>{{.arg0}} area available</strong>"
+other = "<strong>All {{.arg0}} areas available</strong>"

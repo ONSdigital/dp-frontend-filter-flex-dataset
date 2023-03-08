@@ -99,16 +99,17 @@ func TestMapImproveResultsCollapsible(t *testing.T) {
 		Convey("When the mapImproveResultsCollapsible function is called", func() {
 			mockDims := []model.Dimension{
 				{
-					Name:       "Test area dim",
-					ID:         "test_dim_1",
-					URI:        "/test_dim_1",
-					IsAreaType: true,
+					Name:        "Test area dim",
+					ID:          "test_dim_1",
+					URI:         "/test_dim_1",
+					IsGeography: true,
 				},
 				{
-					Name:       "Test dim 2",
-					ID:         "test_dim_2",
-					URI:        "/test_dim_2",
-					IsAreaType: false,
+					Name:        "Test dim 2",
+					ID:          "test_dim_2",
+					URI:         "/test_dim_2",
+					IsGeography: false,
+					HasChange:   true,
 				},
 			}
 			areaUri, dimLink := mapImproveResultsCollapsible(mockDims)
@@ -118,6 +119,38 @@ func TestMapImproveResultsCollapsible(t *testing.T) {
 			})
 			Convey("Then the dimension link and text is returned", func() {
 				So(dimLink, ShouldEqual, "<a href=\"/test_dim_2\">Test dim 2</a>")
+			})
+		})
+	})
+
+	Convey("Given page dimensions where some do not have change pages", t, func() {
+		Convey("When the mapImproveResultsCollapsible function is called", func() {
+			mockDims := []model.Dimension{
+				{
+					Name:        "Test area dim",
+					ID:          "test_dim_1",
+					URI:         "/test_dim_1",
+					IsGeography: true,
+				},
+				{
+					Name:        "Test dim 2",
+					ID:          "test_dim_2",
+					URI:         "/test_dim_2",
+					IsGeography: false,
+					HasChange:   false,
+				},
+				{
+					Name:        "Test dim 3",
+					ID:          "test_dim_3",
+					URI:         "/test_dim_3",
+					IsGeography: false,
+					HasChange:   true,
+				},
+			}
+			_, dimLink := mapImproveResultsCollapsible(mockDims)
+
+			Convey("Then the dimension link should only include the changeable categories", func() {
+				So(dimLink, ShouldEqual, "<a href=\"/test_dim_3\">Test dim 3</a>")
 			})
 		})
 	})
@@ -149,16 +182,16 @@ func TestMapDescriptionsCollapsible(t *testing.T) {
 
 			mockPageDims := []model.Dimension{
 				{
-					Name:       "Test area dim",
-					ID:         "test_dim_1",
-					URI:        "/test_dim_1",
-					IsAreaType: true,
+					Name:        "Test area dim",
+					ID:          "test_dim_1",
+					URI:         "/test_dim_1",
+					IsGeography: true,
 				},
 				{
-					Name:       "Test dim 2",
-					ID:         "test_dim_2",
-					URI:        "/test_dim_2",
-					IsAreaType: false,
+					Name:        "Test dim 2",
+					ID:          "test_dim_2",
+					URI:         "/test_dim_2",
+					IsGeography: false,
 				},
 			}
 			sut := mapDescriptionsCollapsible(mockDescriptions, mockPageDims)

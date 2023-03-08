@@ -17,19 +17,25 @@
                     <a
                         href="/filters/{{.FilterID}}/dimensions/change"
                         role="button"
-                        class="ons-btn ons-btn--download ons-btn--secondary ons-btn--link ons-js-submit-btn ons-u-mt-s">
+                        class="ons-btn {{if .EnableGetData}}ons-btn--secondary{{end}} ons-btn--link ons-js-submit-btn ons-u-mt-s">
                         <span class="ons-btn__inner">
-                            {{- localise "VariableChange" .Language 1 -}}
+                            {{ if .EnableGetData }}
+                                {{- localise "VariableChange" .Language 1 -}}
+                            {{ else }}
+                                {{- localise "VariableAdd" .Language 1 -}}
+                            {{ end }}
                         </span>
                     </a>
                 {{ end }}
-                <form method="post" action="/filters/{{.FilterID}}/submit">
-                    <button class="ons-u-mt-xl ons-btn">
-                        <span class="ons-btn__inner">
-                            {{- localise "GetDataBtn" .Language 1 -}}
-                        </span>
-                    </button>
-                </form>
+                {{ if .EnableGetData }}
+                    <form method="post" action="/filters/{{.FilterID}}/submit">
+                        <button class="ons-u-mt-xl ons-btn">
+                            <span class="ons-btn__inner">
+                                {{- localise "GetDataBtn" .Language 1 -}}
+                            </span>
+                        </button>
+                    </form>
+                {{ end }}
             </div>
         </div>
     </div>

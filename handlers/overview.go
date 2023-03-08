@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
@@ -34,14 +35,15 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var dimCategories population.GetDimensionCategoriesResponse
 	var filterJob *filter.GetFilterResponse
 	var eb zebedee.EmergencyBanner
-	var sdc *population.GetBlockedAreaCountResult
-	var fErr, dErr, fdsErr, imErr, zErr, sErr, dcErr error
+	var pops population.GetPopulationTypesResponse
+	var sdc *cantabular.GetBlockedAreaCountResult
+	var fErr, dErr, fdsErr, imErr, zErr, sErr, dcErr, pErr error
 	var isMultivariate bool
 	var serviceMsg, areaTypeID, parent string
 	var dimIds, areaOpts []string
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer wg.Done()
@@ -90,6 +92,17 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		}
 	}()
 
+	go func() {
+		defer wg.Done()
+		// TODO: Get single population type is being developed
+		pops, pErr = f.PopulationClient.GetPopulationTypes(ctx, population.GetPopulationTypesInput{
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+		})
+
+	}()
+
 	wg.Wait()
 
 	// log zebedee error but don't set a server error
@@ -111,6 +124,11 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			"filter_id": filterID,
 		})
 		setStatusCode(req, w, imErr)
+		return
+	}
+	if pErr != nil {
+		log.Error(ctx, "failed to get population types", pErr, log.Data{"filter_id": filterID})
+		setStatusCode(req, w, pErr)
 		return
 	}
 
@@ -181,7 +199,20 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		return options, len(options), nil
 	}
 
-	var hasNoAreaOptions bool
+	getDimensionCategorisations := func(populationType string, dimension string) (int, error) {
+		cats, err := f.PopulationClient.GetCategorisations(ctx, population.GetCategorisationsInput{
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+			PaginationParams: population.PaginationParams{
+				Limit: 1000,
+			},
+			PopulationType: populationType,
+			Dimension:      dimension,
+		})
+		return cats.PaginationResponse.TotalCount, err
+	}
+
 	getAreaOptions := func(dim filter.Dimension) ([]string, int, error) {
 		q := filter.QueryParams{Offset: 0, Limit: 500}
 		opts, _, err := f.FilterClient.GetDimensionOptions(ctx, accessToken, "", collectionID, filterID, dim.Name, &q)
@@ -205,7 +236,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 				return nil, 0, fmt.Errorf("failed to get dimension areas: %w", err)
 			}
 
-			hasNoAreaOptions = true
 			return options, areas.TotalCount, nil
 		}
 
@@ -307,10 +337,17 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			setStatusCode(req, w, err)
 			return
 		}
+
+		categorisationCount := 0
+		if !isAreaType(filterDimension) {
+			categorisationCount, _ = getDimensionCategorisations(filterJob.PopulationType, filterDimension.Name)
+		}
+
 		filterDims.Items[i].Options = options
 		fDims = append(fDims, model.FilterDimension{
-			Dimension:    filterDims.Items[i],
-			OptionsCount: count,
+			Dimension:           filterDims.Items[i],
+			OptionsCount:        count,
+			CategorisationCount: categorisationCount,
 		})
 	}
 
@@ -327,12 +364,12 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			return
 		}
 	} else {
-		sdc = &population.GetBlockedAreaCountResult{}
+		sdc = &cantabular.GetBlockedAreaCountResult{}
 	}
 
 	basePage := f.Render.NewBasePageModel()
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, *sdc, hasNoAreaOptions, isMultivariate)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, pops, *sdc, isMultivariate)
 	f.Render.BuildPage(w, overview, "overview")
 }
 
