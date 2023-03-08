@@ -77,3 +77,12 @@ func TrimCategoryValue(s string) string {
 	rx := regexp.MustCompile(`(_[\d])\w+`)
 	return rx.ReplaceAllString(s, "")
 }
+
+// IsBoolPtr determines if the given value is a pointer
+func IsBoolPtr(val *bool) bool {
+	if val == nil {
+		return false
+	}
+
+	return *val
+}

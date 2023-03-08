@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -54,5 +55,11 @@ func submit(w http.ResponseWriter, req *http.Request, accessToken, collectionID 
 	ed := dataset.Edition
 	v := strconv.Itoa(dataset.Version)
 	foID := resp.FilterOutputID
-	http.Redirect(w, req, fmt.Sprintf("/datasets/%s/editions/%s/versions/%s/filter-outputs/%s#get-data", dsID, ed, v, foID), http.StatusFound)
+
+	isCustom := helpers.IsBoolPtr(filterJob.Custom)
+	if isCustom {
+		http.Redirect(w, req, fmt.Sprintf("/datasets/create/filter-outputs/%s#get-data", foID), http.StatusFound)
+	} else {
+		http.Redirect(w, req, fmt.Sprintf("/datasets/%s/editions/%s/versions/%s/filter-outputs/%s#get-data", dsID, ed, v, foID), http.StatusFound)
+	}
 }
