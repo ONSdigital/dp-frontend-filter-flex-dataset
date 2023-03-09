@@ -23,7 +23,13 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	p := model.Overview{
 		Page: m.basePage,
 	}
-	mapCommonProps(m.req, &p.Page, reviewPageType, "Review changes", m.lang, m.serviceMsg, m.eb)
+
+	title := helper.Localise("OverviewTitle", m.lang, 1)
+	if helpers.IsBoolPtr(filterJob.Custom) {
+		title = helper.Localise("OverviewCustomTitle", m.lang, 1)
+	}
+
+	mapCommonProps(m.req, &p.Page, reviewPageType, title, m.lang, m.serviceMsg, m.eb)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 	p.IsMultivariate = isMultivariate
