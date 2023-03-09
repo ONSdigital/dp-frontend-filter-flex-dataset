@@ -11,6 +11,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-net/v2/handlers"
@@ -368,8 +369,10 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	}
 
 	basePage := f.Render.NewBasePageModel()
+	custom := helpers.IsBoolPtr(filterJob.Custom)
+
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, pops, *sdc, isMultivariate, *filterJob.Custom)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, pops, *sdc, isMultivariate, custom)
 	f.Render.BuildPage(w, overview, "overview")
 }
 

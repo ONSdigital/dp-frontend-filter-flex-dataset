@@ -205,7 +205,7 @@ func TestOverview(t *testing.T) {
 	})
 
 	Convey("test filter flex overview maps for custom datasets correctly", t, func() {
-		isCustom := false
+		isCustom := true
 		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, isCustom)
 		So(overview.Metadata.Title, ShouldEqual, "Create a custom dataset")
 	})
