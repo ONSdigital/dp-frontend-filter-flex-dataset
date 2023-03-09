@@ -16,17 +16,24 @@ import (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, pops population.GetPopulationTypesResponse, sdc cantabular.GetBlockedAreaCountResult, isMultivariate bool) model.Overview {
+func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, pops population.GetPopulationTypesResponse, sdc cantabular.GetBlockedAreaCountResult, isMultivariate, isCustom bool) model.Overview {
 	queryStrValues := m.req.URL.Query()["showAll"]
 	path := m.req.URL.Path
 
 	p := model.Overview{
 		Page: m.basePage,
 	}
-	mapCommonProps(m.req, &p.Page, reviewPageType, "Review changes", m.lang, m.serviceMsg, m.eb)
+
+	title := helper.Localise("OverviewTitle", m.lang, 1)
+	if isCustom {
+		title = helper.Localise("OverviewCustomTitle", m.lang, 1)
+	}
+	mapCommonProps(m.req, &p.Page, reviewPageType, title, m.lang, m.serviceMsg, m.eb)
+
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 	p.IsMultivariate = isMultivariate
+	p.IsCustom = isCustom
 
 	p.Breadcrumb = []coreModel.TaxonomyNode{
 		{

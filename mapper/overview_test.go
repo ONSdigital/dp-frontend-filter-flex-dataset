@@ -151,7 +151,7 @@ func TestOverview(t *testing.T) {
 	}
 
 	Convey("test filter flex overview maps correctly", t, func() {
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, false)
 		So(overview.BetaBannerEnabled, ShouldBeTrue)
 		So(overview.Type, ShouldEqual, "review_changes")
 		So(overview.Metadata.Title, ShouldEqual, "Review changes")
@@ -200,10 +200,18 @@ func TestOverview(t *testing.T) {
 		So(overview.ServiceMessage, ShouldEqual, sm)
 
 		So(overview.HasSDC, ShouldBeFalse)
+
+		So(overview.IsCustom, ShouldBeFalse)
+	})
+
+	Convey("test filter flex overview maps for custom datasets correctly", t, func() {
+		isCustom := false
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, isCustom)
+		So(overview.Metadata.Title, ShouldEqual, "Create a custom dataset")
 	})
 
 	Convey("test truncation maps as expected", t, func() {
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, false)
 		So(overview.Dimensions[4].OptionsCount, ShouldEqual, filterDims[1].OptionsCount)
 		So(overview.Dimensions[4].Options, ShouldHaveLength, 9)
 		So(overview.Dimensions[4].Options[:3], ShouldResemble, []string{"Opt 1", "Opt 2", "Opt 3"})
@@ -221,14 +229,14 @@ func TestOverview(t *testing.T) {
 
 	Convey("test truncation shows all when parameter given", t, func() {
 		m.req = httptest.NewRequest("", "/?showAll=Truncated+dim+2", nil)
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, false)
 		So(overview.Dimensions[5].OptionsCount, ShouldEqual, filterDims[2].OptionsCount)
 		So(overview.Dimensions[5].Options, ShouldHaveLength, 12)
 		So(overview.Dimensions[5].IsTruncated, ShouldBeFalse)
 	})
 
 	Convey("test area type dimension options do not truncate and map to 'coverage' dimension", t, func() {
-		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
+		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, false)
 		So(overview.Dimensions[2].Options, ShouldHaveLength, 10)
 		So(overview.Dimensions[2].IsTruncated, ShouldBeFalse)
 		So(overview.Dimensions[2].IsGeography, ShouldBeTrue)
@@ -245,20 +253,20 @@ func TestOverview(t *testing.T) {
 			},
 		}...)
 
-		overview := m.CreateFilterFlexOverview(filterJob, newFilterDims, dimDescriptions, pops, sdc, false)
+		overview := m.CreateFilterFlexOverview(filterJob, newFilterDims, dimDescriptions, pops, sdc, false, false)
 		So(overview.Dimensions[6].Name, ShouldEqual, "Example")
 	})
 
 	Convey("Given area type selection", t, func() {
 		Convey("When area types are selected", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, false)
 			Convey("Then area selection is displayed", func() {
 				So(overview.Dimensions[2].Options, ShouldResemble, filterDims[3].Options)
 			})
 		})
 		Convey("When no area types are selected", func() {
 			filterDims[3].Options = []string{}
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, false)
 			Convey("Then the default coverage is displayed", func() {
 				So(overview.Dimensions[2].Options[0], ShouldResemble, "England and Wales")
 			})
@@ -270,7 +278,7 @@ func TestOverview(t *testing.T) {
 			sdc.Blocked = 10
 			sdc.Passed = 15
 			sdc.Total = 25
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true, false)
 			Convey("Then the bool isMultivariate is true", func() {
 				So(overview.IsMultivariate, ShouldBeTrue)
 			})
@@ -294,7 +302,7 @@ func TestOverview(t *testing.T) {
 			sdc.Blocked = 0
 			sdc.Passed = 25
 			sdc.Total = 25
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true, false)
 			Convey("Then the bool isMultivariate is true", func() {
 				So(overview.IsMultivariate, ShouldBeTrue)
 			})
@@ -318,7 +326,7 @@ func TestOverview(t *testing.T) {
 
 	Convey("test IsChangeVisible parameter", t, func() {
 		Convey("when isMultivariate is false", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, false)
 			Convey("then IsChangeCategories is false for all", func() {
 				So(overview.Dimensions[3].HasChange, ShouldBeFalse)
 				So(overview.Dimensions[4].HasChange, ShouldBeFalse)
@@ -327,7 +335,7 @@ func TestOverview(t *testing.T) {
 		})
 
 		Convey("when isMultivariate is true", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true, false)
 			Convey("then IsChangeCategories is false if categorisation is only one available", func() {
 				So(overview.Dimensions[3].HasChange, ShouldBeFalse)
 				So(overview.Dimensions[4].HasChange, ShouldBeTrue)
@@ -338,14 +346,14 @@ func TestOverview(t *testing.T) {
 
 	Convey("test EnableGetData boolean", t, func() {
 		Convey("when isMultivariate is false", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false, false)
 			Convey("then EnableGetData should be true", func() {
 				So(overview.EnableGetData, ShouldBeTrue)
 			})
 		})
 
 		Convey("when isMultivariate is true and one or more dimensions are added", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true, false)
 			Convey("then EnableGetData should be true", func() {
 				So(overview.EnableGetData, ShouldBeTrue)
 			})
@@ -374,7 +382,7 @@ func TestOverview(t *testing.T) {
 					CategorisationCount: 2,
 				},
 			}
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true, false)
 			Convey("then EnableGetData should be false", func() {
 				So(overview.EnableGetData, ShouldBeFalse)
 			})
