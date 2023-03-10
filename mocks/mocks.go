@@ -57,6 +57,8 @@ var cyLocale = []string{
 	"one = \"Review changes (cy)\"",
 	"[OverviewCustomTitle]",
 	"one = \"Custom dataset (cy)\"",
+	"[CustomBack]",
+	"one = \"Start again - Create a custom dataset (cy)\"",
 }
 
 var enLocale = []string{
@@ -114,6 +116,8 @@ var enLocale = []string{
 	"one = \"Review changes\"",
 	"[OverviewCustomTitle]",
 	"one = \"Custom dataset\"",
+	"[CustomBack]",
+	"one = \"Start again - Create a custom dataset\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes

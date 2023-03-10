@@ -291,3 +291,11 @@ one = "Review changes"
 [OverviewCustomTitle]
 description = "Overview page title for Create a custom dataset"
 one = "Custom dataset"
+
+[Back]
+description = "General back link"
+one = "Back"
+
+[CustomBack]
+description = "Back link for Create a custom dataset"
+one = "Start again - Create a custom dataset"

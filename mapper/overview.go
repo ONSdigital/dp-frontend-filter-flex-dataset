@@ -160,7 +160,7 @@ func buildBreadcrumb(dataset filter.Dataset, isCustom bool, lang string) []coreM
 	if isCustom {
 		return []coreModel.TaxonomyNode{
 			{
-				Title: helper.Localise("Back", lang, 1),
+				Title: helper.Localise("CustomBack", lang, 1),
 				URI:   "/datasets/create",
 			},
 		}
