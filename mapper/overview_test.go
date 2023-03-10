@@ -215,6 +215,8 @@ func TestOverview(t *testing.T) {
 		}
 		overview := m.CreateFilterFlexOverview(customFilterJob, filterDims, dimDescriptions, pops, sdc, false)
 		So(overview.Metadata.Title, ShouldEqual, "Custom dataset")
+		So(overview.Breadcrumb[0].Title, ShouldEqual, "Back")
+		So(overview.Breadcrumb[0].URI, ShouldEqual, "/datasets/create")
 	})
 
 	Convey("test truncation maps as expected", t, func() {
