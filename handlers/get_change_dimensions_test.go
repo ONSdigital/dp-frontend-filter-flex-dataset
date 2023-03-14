@@ -346,14 +346,6 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					}, "", nil)
 				mockFc.
 					EXPECT().
-					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(filter.Dimension{
-						Name:       "test dim",
-						ID:         "td1",
-						IsAreaType: new(bool),
-					}, "", nil)
-				mockFc.
-					EXPECT().
 					GetFilter(gomock.Any(), gomock.Any()).
 					Return(&filter.GetFilterResponse{}, errors.New("Internal error"))
 
@@ -368,10 +360,6 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					EXPECT().
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
-				mockPc.
-					EXPECT().
-					GetCategorisations(gomock.Any(), gomock.Any()).
-					Return(population.GetCategorisationsResponse{}, nil)
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.

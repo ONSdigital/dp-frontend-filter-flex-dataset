@@ -52,7 +52,7 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(2)
 
 	go func() {
 		defer wg.Done()
@@ -102,6 +102,44 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 		}
 	}()
 
+	wg.Wait()
+
+	// error handling from waitgroup
+	// log zebedee error but don't set a server error
+	if zErr != nil {
+		log.Error(ctx, "unable to get homepage content", zErr, log.Data{"homepage_content": zErr})
+	}
+	if fErr != nil {
+		log.Error(ctx, "failed to get filter", fErr, log.Data{
+			"filter_id": fid,
+		})
+		setStatusCode(req, w, fErr)
+		return
+	}
+	if imErr != nil {
+		log.Error(ctx, "failed to determine if dataset type is multivariate", imErr, log.Data{
+			"filter_id": fid,
+		})
+		setStatusCode(req, w, imErr)
+		return
+	}
+	if pErr != nil {
+		log.Error(ctx, "failed to get population dimensions", pErr, log.Data{
+			"population_type": popType,
+		})
+		setStatusCode(req, w, pErr)
+		return
+	}
+	if prErr != nil {
+		log.Error(ctx, "failed to get population dimensions from query", prErr, log.Data{
+			"population_type": popType,
+			"query":           q,
+		})
+		setStatusCode(req, w, prErr)
+		return
+	}
+
+	wg.Add(1)
 	dimErrs := make([]error, len(fDims.Items))
 	go func() {
 		defer wg.Done()
@@ -159,53 +197,11 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 	}()
 	wg.Wait()
 
-	// error handling from waitgroup
-	// log zebedee error but don't set a server error
-	if zErr != nil {
-		log.Error(ctx, "unable to get homepage content", zErr, log.Data{"homepage_content": zErr})
-	}
-	if fErr != nil {
-		log.Error(ctx, "failed to get filter", fErr, log.Data{
-			"filter_id": fid,
-		})
-		setStatusCode(req, w, fErr)
-		return
-	}
-	if imErr != nil {
-		log.Error(ctx, "failed to determine if dataset type is multivariate", imErr, log.Data{
-			"filter_id": fid,
-		})
-		setStatusCode(req, w, imErr)
-		return
-	}
-	if pErr != nil {
-		log.Error(ctx, "failed to get population dimensions", pErr, log.Data{
-			"population_type": popType,
-		})
-		setStatusCode(req, w, pErr)
-		return
-	}
-	if prErr != nil {
-		log.Error(ctx, "failed to get population dimensions from query", prErr, log.Data{
-			"population_type": popType,
-			"query":           q,
-		})
-		setStatusCode(req, w, prErr)
-		return
-	}
 	if oErr != nil {
 		log.Error(ctx, "failed to get dimension options", oErr, log.Data{
 			"filter_id": fid,
 		})
 		setStatusCode(req, w, prErr)
-		return
-	}
-	if cErr != nil {
-		log.Error(ctx, "failed to get categorisation for dimension", cErr, log.Data{
-			"population_type": popType,
-			"filter_id":       fid,
-		})
-		setStatusCode(req, w, err)
 		return
 	}
 	var hasErrs bool
@@ -218,6 +214,14 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 		}
 	}
 	if hasErrs {
+		setStatusCode(req, w, err)
+		return
+	}
+	if cErr != nil {
+		log.Error(ctx, "failed to get categorisation for dimension", cErr, log.Data{
+			"population_type": popType,
+			"filter_id":       fid,
+		})
 		setStatusCode(req, w, err)
 		return
 	}
