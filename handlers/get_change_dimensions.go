@@ -31,15 +31,17 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 	q := req.URL.Query().Get("q")
 	isSearch := strings.Contains(req.URL.RawQuery, "q=")
 	form := req.URL.Query().Get("f")
-	var fErr, imErr, pErr, prErr, zErr, oErr error
+	var cErr, fErr, imErr, pErr, prErr, oErr, zErr error
 	var fj *filter.GetFilterResponse
 	var pDims, pResults population.GetDimensionsResponse
 	var dims []model.FilterDimension
 	var eb zebedee.EmergencyBanner
 	var opts filter.DimensionOptions
+	var cats population.GetCategorisationsResponse
 	var popType, serviceMsg, areaTypeID, parent string
 	var dimIds, areaOpts []string
 	var isMultivariate bool
+	var categorisationCount int
 
 	// get filter dimensions
 	fDims, _, err := f.FilterClient.GetDimensions(ctx, accessToken, "", collectionID, fid, &filter.QueryParams{Limit: 500})
@@ -114,9 +116,6 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 			}
 
 			dim.IsAreaType = fDim.IsAreaType
-			dims = append(dims, model.FilterDimension{
-				Dimension: dim,
-			})
 			dimIds = append(dimIds, fDim.ID)
 			if *fDim.IsAreaType {
 				opts, _, oErr = f.FilterClient.GetDimensionOptions(ctx, accessToken, "", collectionID, fid, dim.Name, &filter.QueryParams{Offset: 0, Limit: 500})
@@ -131,7 +130,31 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 				}
 				areaTypeID = fDim.ID
 				parent = fDim.FilterByParent
+			} else {
+				cats, cErr = f.PopulationClient.GetCategorisations(ctx, population.GetCategorisationsInput{
+					AuthTokens: population.AuthTokens{
+						UserAuthToken: accessToken,
+					},
+					PaginationParams: population.PaginationParams{
+						Limit: 1000,
+					},
+					PopulationType: popType,
+					Dimension:      fDim.Name,
+				})
+				if cErr != nil {
+					log.Error(ctx, "failed to get categorisation for dimension", cErr, log.Data{
+						"population_type": popType,
+						"dimension_name":  fDim.Name,
+					})
+					setStatusCode(req, w, err)
+					return
+				}
+				categorisationCount = cats.PaginationResponse.TotalCount
 			}
+			dims = append(dims, model.FilterDimension{
+				Dimension:           dim,
+				CategorisationCount: categorisationCount,
+			})
 		}
 	}()
 	wg.Wait()
@@ -175,6 +198,14 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 			"filter_id": fid,
 		})
 		setStatusCode(req, w, prErr)
+		return
+	}
+	if cErr != nil {
+		log.Error(ctx, "failed to get categorisation for dimension", cErr, log.Data{
+			"population_type": popType,
+			"filter_id":       fid,
+		})
+		setStatusCode(req, w, err)
 		return
 	}
 	var hasErrs bool

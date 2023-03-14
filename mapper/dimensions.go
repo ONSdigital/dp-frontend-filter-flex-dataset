@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -38,8 +39,12 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 			ID:          dim.ID,
 			URI:         fmt.Sprintf("/filters/%s/dimensions/%s", m.fid, dim.Name),
 			Name:        cleanDimensionLabel(dim.Label),
+			HasChange:   dim.CategorisationCount > 1,
 		})
 	}
+	sort.Slice(selections, func(i, j int) bool {
+		return selections[i].Text < selections[j].Text
+	})
 	p.Output.Selections = selections
 	p.Output.SelectionsTitle = "Variables added"
 	p.Search = model.SearchField{
@@ -67,7 +72,9 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 	if sdc.Blocked > 0 {
 		p.HasSDC = true
 		p.Panel = *m.mapBlockedAreasPanel(sdc, model.Pending)
-
+		sort.Slice(pageDims, func(i, j int) bool {
+			return pageDims[i].Name < pageDims[j].Name
+		})
 		areaTypeUri, dimNames := mapImproveResultsCollapsible(pageDims)
 		p.ImproveResults = coreModel.Collapsible{
 			Title: coreModel.Localisation{
