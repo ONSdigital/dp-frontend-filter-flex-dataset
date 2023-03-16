@@ -260,5 +260,28 @@ func TestGetChangeDimensions(t *testing.T) {
 				So(p.ImproveResults, ShouldResemble, improveResults)
 			})
 		})
+
+		Convey("when maximum variable count is exceeded", func() {
+			mockSdc := cantabular.GetBlockedAreaCountResult{
+				TableError: "Maximum variables exceeded",
+			}
+			p := m.CreateGetChangeDimensions(
+				"dim-a",
+				"",
+				[]model.FilterDimension{},
+				population.GetDimensionsResponse{},
+				population.GetDimensionsResponse{},
+				&mockSdc,
+			)
+			Convey("then it sets MaxVariableError to true", func() {
+				So(p.MaxVariableError, ShouldBeTrue)
+			})
+			Convey("and it sets page error", func() {
+				So(p.Error.Title, ShouldNotBeBlank)
+			})
+			Convey("and it sets page outputs to display an error", func() {
+				So(p.Output.HasValidationError, ShouldBeTrue)
+			})
+		})
 	})
 }

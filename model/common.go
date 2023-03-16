@@ -13,11 +13,12 @@ Selections is an array of previously added selections
 Language is the user set language
 */
 type SearchOutput struct {
-	HasNoResults    bool                `json:"has_no_results"`
-	Results         []SelectableElement `json:"search_results"`
-	Selections      []SelectableElement `json:"selections"`
-	SelectionsTitle string              `json:"selections_title"`
-	Language        string              `json:"language"`
+	HasNoResults       bool                `json:"has_no_results"`
+	HasValidationError bool                `json:"has_validation_error"`
+	Results            []SelectableElement `json:"search_results"`
+	Selections         []SelectableElement `json:"selections"`
+	SelectionsTitle    string              `json:"selections_title"`
+	Language           string              `json:"language"`
 	coreModel.Pagination
 }
 

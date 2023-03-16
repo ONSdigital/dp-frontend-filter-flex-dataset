@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	coreModel "github.com/ONSdigital/dp-renderer/model"
 	. "github.com/smartystreets/goconvey/convey"
@@ -45,6 +46,24 @@ func TestCleanDimensionsLabel(t *testing.T) {
 		So(cleanDimensionLabel(""), ShouldEqual, "")
 		So(cleanDimensionLabel("Example 1 category"), ShouldEqual, "Example 1 category")
 		So(cleanDimensionLabel("Example (something in brackets) (1 Category)"), ShouldEqual, "Example (something in brackets)")
+	})
+}
+
+func TestMaxVariablesErrorl(t *testing.T) {
+	Convey("Returns true if the sdc error string contains Maximum variables", t, func() {
+		So(isMaxVariablesError(&cantabular.GetBlockedAreaCountResult{
+			TableError: "Maximum variables at the start",
+		}), ShouldBeTrue)
+		So(isMaxVariablesError(&cantabular.GetBlockedAreaCountResult{
+			TableError: "Not at the start but still contains Maximum variables",
+		}), ShouldBeTrue)
+
+		So(isMaxVariablesError(&cantabular.GetBlockedAreaCountResult{
+			TableError: "maximum variables in lower case",
+		}), ShouldBeFalse)
+		So(isMaxVariablesError(&cantabular.GetBlockedAreaCountResult{
+			TableError: "doesn't contain string at all",
+		}), ShouldBeFalse)
 	})
 }
 

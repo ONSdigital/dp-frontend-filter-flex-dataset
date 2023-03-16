@@ -55,6 +55,7 @@ const (
 	coverageTitle         = "Coverage"
 	areaPageType          = "area_type_options"
 	reviewPageType        = "review_changes"
+	maxVariableErrorStr   = "Maximum variables"
 )
 
 // mapDimensionsResponse returns a sorted array of selectable elements
@@ -241,4 +242,9 @@ func (m *Mapper) mapBlockedAreasPanel(sdc *cantabular.GetBlockedAreaCountResult,
 		}
 	}
 	return p
+}
+
+// isMaxVariablesError returns true if the sdc result is returning a maximum variables exceeded TableError
+func isMaxVariablesError(sdc *cantabular.GetBlockedAreaCountResult) bool {
+	return strings.Contains(sdc.TableError, maxVariableErrorStr)
 }
