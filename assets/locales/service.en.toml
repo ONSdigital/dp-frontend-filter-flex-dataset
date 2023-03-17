@@ -299,3 +299,11 @@ one = "Back"
 [CustomBack]
 description = "Back link for Create a custom dataset"
 one = "Start again - Create a custom dataset"
+
+[MaximumVariablesErrorTitle]
+description = "Title for a maximum variable exceeded error"
+one = "There are too many variables within this dataset"
+
+[MaximumVariablesErrorDescription]
+description = "Description for a maximum variable exceeded error"
+one = "Remove a variable to continue"

@@ -98,5 +98,25 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 		}, m.lang, []string{"ons-u-mb-s"})
 	}
 
+	if isMaxVariablesError(sdc) {
+		p.Page.Error = coreModel.Error{
+			Title: helper.Localise("MaximumVariablesErrorTitle", m.lang, 1),
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "MaximumVariablesErrorDescription",
+						Plural:    1,
+					},
+					URL: "#remove-a-variable-error",
+				},
+			},
+			Language: m.lang,
+		}
+		p.MaxVariableError = true
+		p.Output.HasValidationError = true
+	} else {
+		p.MaxVariableError = false
+	}
+
 	return p
 }

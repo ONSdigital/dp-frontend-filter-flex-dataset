@@ -59,6 +59,10 @@ var cyLocale = []string{
 	"one = \"Custom dataset (cy)\"",
 	"[CustomBack]",
 	"one = \"Start again - Create a custom dataset (cy)\"",
+	"[MaximumVariablesErrorTitle]",
+	"one = \"There are too many variables within this dataset (cy)\"",
+	"[MaximumVariablesErrorDescription]",
+	"one = \"Remove a variable to continue(cy)\"",
 }
 
 var enLocale = []string{
@@ -118,6 +122,10 @@ var enLocale = []string{
 	"one = \"Custom dataset\"",
 	"[CustomBack]",
 	"one = \"Start again - Create a custom dataset\"",
+	"[MaximumVariablesErrorTitle]",
+	"one = \"There are too many variables within this dataset\"",
+	"[MaximumVariablesErrorDescription]",
+	"one = \"Remove a variable to continue\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes
