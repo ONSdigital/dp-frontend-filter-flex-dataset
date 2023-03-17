@@ -69,9 +69,10 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 	p.SearchOutput.Results = searchResults
 	p.SearchOutput.HasNoResults = len(p.SearchOutput.Results) == 0 && formAction == "search"
 
-	if sdc.Blocked > 0 {
+	maxCellsError := isMaxCellsError(sdc)
+	if sdc.Blocked > 0 || maxCellsError {
 		p.HasSDC = true
-		p.Panel = *m.mapBlockedAreasPanel(sdc, model.Pending)
+		p.Panel = *m.mapBlockedAreasPanel(sdc, maxCellsError, model.Pending)
 		sort.Slice(pageDims, func(i, j int) bool {
 			return pageDims[i].Name < pageDims[j].Name
 		})

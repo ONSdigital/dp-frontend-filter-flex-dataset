@@ -307,3 +307,7 @@ one = "There are too many variables within this dataset"
 [MaximumVariablesErrorDescription]
 description = "Description for a maximum variable exceeded error"
 one = "Remove a variable to continue"
+
+[MaxCellsErrorPanelDescription]
+description = "Description for warning panel if maximum cells exceeded error"
+one = "<strong>This dataset has more than one million cells, the maximum number permitted.</strong>"

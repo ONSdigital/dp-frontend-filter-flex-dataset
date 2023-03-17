@@ -49,7 +49,7 @@ func TestCleanDimensionsLabel(t *testing.T) {
 	})
 }
 
-func TestMaxVariablesErrorl(t *testing.T) {
+func TestMaxVariablesError(t *testing.T) {
 	Convey("Returns true if the sdc error string contains Maximum variables", t, func() {
 		So(isMaxVariablesError(&cantabular.GetBlockedAreaCountResult{
 			TableError: "Maximum variables at the start",
@@ -62,6 +62,20 @@ func TestMaxVariablesErrorl(t *testing.T) {
 			TableError: "maximum variables in lower case",
 		}), ShouldBeFalse)
 		So(isMaxVariablesError(&cantabular.GetBlockedAreaCountResult{
+			TableError: "doesn't contain string at all",
+		}), ShouldBeFalse)
+	})
+}
+
+func TestMaxCellsError(t *testing.T) {
+	Convey("Returns true if the sdc error string contains withinMaxCells", t, func() {
+		So(isMaxCellsError(&cantabular.GetBlockedAreaCountResult{
+			TableError: "withinMaxCells",
+		}), ShouldBeTrue)
+		So(isMaxCellsError(&cantabular.GetBlockedAreaCountResult{
+			TableError: "withinmaxcells is case sensitive",
+		}), ShouldBeFalse)
+		So(isMaxCellsError(&cantabular.GetBlockedAreaCountResult{
 			TableError: "doesn't contain string at all",
 		}), ShouldBeFalse)
 	})

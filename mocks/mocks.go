@@ -63,6 +63,8 @@ var cyLocale = []string{
 	"one = \"There are too many variables within this dataset (cy)\"",
 	"[MaximumVariablesErrorDescription]",
 	"one = \"Remove a variable to continue(cy)\"",
+	"[MaxCellsErrorPanelDescription]",
+	"one = \"This dataset has more than one million cells, the maximum number permitted. (cy)\"",
 }
 
 var enLocale = []string{
@@ -126,6 +128,8 @@ var enLocale = []string{
 	"one = \"There are too many variables within this dataset\"",
 	"[MaximumVariablesErrorDescription]",
 	"one = \"Remove a variable to continue\"",
+	"[MaxCellsErrorPanelDescription]",
+	"one = \"This dataset has more than one million cells, the maximum number permitted.\"",
 }
 
 // MockAssetFunction returns mocked toml []bytes

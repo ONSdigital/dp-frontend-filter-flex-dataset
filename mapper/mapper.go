@@ -56,6 +56,7 @@ const (
 	areaPageType          = "area_type_options"
 	reviewPageType        = "review_changes"
 	maxVariableErrorStr   = "Maximum variables"
+	maxCellsErrorStr      = "withinMaxCells"
 )
 
 // mapDimensionsResponse returns a sorted array of selectable elements
@@ -219,7 +220,18 @@ func mapPanel(locale coreModel.Localisation, language string, utilityCssClasses 
 }
 
 // mapBlockedAreasPanel is a helper function that returns the blocked areas panel
-func (m *Mapper) mapBlockedAreasPanel(sdc *cantabular.GetBlockedAreaCountResult, panelType model.PanelType) (p *model.Panel) {
+func (m *Mapper) mapBlockedAreasPanel(sdc *cantabular.GetBlockedAreaCountResult, isMaxCellsError bool, panelType model.PanelType) (p *model.Panel) {
+	if isMaxCellsError {
+		return &model.Panel{
+			Type:       model.Error,
+			CssClasses: []string{"ons-u-mb-s"},
+			Language:   m.lang,
+			SafeHTML: []string{
+				helper.Localise("MaxCellsErrorPanelDescription", m.lang, 1),
+			},
+		}
+	}
+
 	switch panelType {
 	case model.Pending:
 		p = &model.Panel{
@@ -247,4 +259,9 @@ func (m *Mapper) mapBlockedAreasPanel(sdc *cantabular.GetBlockedAreaCountResult,
 // isMaxVariablesError returns true if the sdc result is returning a maximum variables exceeded TableError
 func isMaxVariablesError(sdc *cantabular.GetBlockedAreaCountResult) bool {
 	return strings.Contains(sdc.TableError, maxVariableErrorStr)
+}
+
+// isMaxCellsError returns true if the sdc result is returning a maximum cells exceeded TableError
+func isMaxCellsError(sdc *cantabular.GetBlockedAreaCountResult) bool {
+	return strings.Contains(sdc.TableError, maxCellsErrorStr)
 }

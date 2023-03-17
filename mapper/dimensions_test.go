@@ -283,5 +283,46 @@ func TestGetChangeDimensions(t *testing.T) {
 				So(p.Output.HasValidationError, ShouldBeTrue)
 			})
 		})
+
+		Convey("when maximum cell count is exceeded", func() {
+			mockSdc := cantabular.GetBlockedAreaCountResult{
+				TableError: "withinMaxCells",
+			}
+			p := m.CreateGetChangeDimensions(
+				"dim-a",
+				"",
+				[]model.FilterDimension{},
+				population.GetDimensionsResponse{},
+				population.GetDimensionsResponse{},
+				&mockSdc,
+			)
+			Convey("then it sets HasSDC to true", func() {
+				So(p.HasSDC, ShouldBeTrue)
+			})
+			sdcPanel := model.Panel{
+				Type:       model.Error,
+				CssClasses: []string{"ons-u-mb-s"},
+				SafeHTML:   []string{"This dataset has more than one million cells, the maximum number permitted."},
+				Language:   lang,
+			}
+			Convey("then it sets the SDC panel", func() {
+				So(p.Panel, ShouldResemble, sdcPanel)
+			})
+			improveResults := coreModel.Collapsible{
+				Title: coreModel.Localisation{LocaleKey: "ImproveResultsTitle", Plural: 4},
+				CollapsibleItems: []coreModel.CollapsibleItem{
+					{
+						Subheading: "Improve results sub heading",
+						SafeHTML: coreModel.Localisation{
+							Text: "Improve your results variant",
+						},
+					},
+				},
+				Language: lang,
+			}
+			Convey("then it sets the improve results collapsible", func() {
+				So(p.ImproveResults, ShouldResemble, improveResults)
+			})
+		})
 	})
 }

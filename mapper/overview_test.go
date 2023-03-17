@@ -307,6 +307,32 @@ func TestOverview(t *testing.T) {
 				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 1)
 			})
 		})
+
+		Convey("When the maximum cells limit has been hit", func() {
+			maxCellsSdc := cantabular.GetBlockedAreaCountResult{
+				Passed:     0,
+				Blocked:    0,
+				Total:      0,
+				TableError: "withinMaxCells",
+			}
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, maxCellsSdc, true)
+			Convey("Then the sdc bool is true", func() {
+				So(overview.HasSDC, ShouldBeTrue)
+			})
+			Convey("Then the sdc panel is displayed", func() {
+				mockPanel := model.Panel{
+					Type:       model.Error,
+					CssClasses: []string{"ons-u-mb-s"},
+					SafeHTML:   []string{"This dataset has more than one million cells, the maximum number permitted."},
+					Language:   lang,
+				}
+				So(overview.Panel, ShouldResemble, mockPanel)
+			})
+			Convey("Then the 'how to improve your results collapsible' is populated", func() {
+				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 1)
+			})
+		})
+
 		Convey("When all areas are available", func() {
 			sdc.Blocked = 0
 			sdc.Passed = 25
