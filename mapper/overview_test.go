@@ -331,6 +331,19 @@ func TestOverview(t *testing.T) {
 				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 0)
 			})
 		})
+
+		Convey("when maximum variable count is exceeded", func() {
+			mockSdc := cantabular.GetBlockedAreaCountResult{
+				TableError: "Maximum variables exceeded",
+			}
+			p := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, mockSdc, true)
+			Convey("then it sets MaxVariableError to true", func() {
+				So(p.MaxVariableError, ShouldBeTrue)
+			})
+			Convey("and it sets page error", func() {
+				So(p.Error.Title, ShouldNotBeBlank)
+			})
+		})
 	})
 
 	Convey("test IsChangeVisible parameter", t, func() {

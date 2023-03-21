@@ -13,6 +13,7 @@ type Overview struct {
 	IsMultivariate        bool        `json:"is_multivariate"`
 	EnableGetData         bool        `json:"enable_get_data"`
 	HasSDC                bool        `json:"has_sdc"`
+	MaxVariableError      bool        `json:"max_variable_error"`
 	ImproveResults        coreModel.Collapsible
 	DimensionDescriptions coreModel.Collapsible
 }

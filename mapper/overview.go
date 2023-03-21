@@ -153,6 +153,25 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 		p.EnableGetData = true
 	}
 
+	if isMaxVariablesError(&sdc) {
+		p.Page.Error = coreModel.Error{
+			Title: helper.Localise("MaximumVariablesErrorTitle", m.lang, 1),
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "MaximumVariablesErrorDescription",
+						Plural:    1,
+					},
+					URL: fmt.Sprintf("%s/change", path),
+				},
+			},
+			Language: m.lang,
+		}
+		p.MaxVariableError = true
+	} else {
+		p.MaxVariableError = false
+	}
+
 	return p
 }
 
