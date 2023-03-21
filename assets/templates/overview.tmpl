@@ -20,9 +20,9 @@
                     <a
                         href="/filters/{{.FilterID}}/dimensions/change"
                         role="button"
-                        class="ons-btn {{if .EnableGetData}}ons-btn--secondary{{end}} ons-btn--link ons-js-submit-btn ons-u-mt-s">
+                        class="ons-btn {{if .ShowGetDataButton}}ons-btn--secondary{{end}} ons-btn--link ons-js-submit-btn ons-u-mt-s">
                         <span class="ons-btn__inner">
-                            {{ if .EnableGetData }}
+                            {{ if .ShowGetDataButton }}
                                 {{- localise "VariableChange" .Language 1 -}}
                             {{ else }}
                                 {{- localise "VariableAdd" .Language 1 -}}
@@ -30,9 +30,9 @@
                         </span>
                     </a>
                 {{ end }}
-                {{ if .EnableGetData }}
+                {{ if .ShowGetDataButton }}
                     <form method="post" action="/filters/{{.FilterID}}/submit">
-                        {{ if .MaxVariableError }}
+                        {{ if .DisableGetDataButton }}
                         <button class="ons-u-mt-xl ons-btn ons-btn--disabled" disabled>
                         {{ else }}
                         <button class="ons-u-mt-xl ons-btn">

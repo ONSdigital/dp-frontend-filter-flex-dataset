@@ -148,9 +148,9 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Success)
 		}
 
-		p.EnableGetData = len(p.Dimensions) > 3 // all geography dimensions (population type, area type and coverage)
+		p.ShowGetDataButton = len(p.Dimensions) > 3 // all geography dimensions (population type, area type and coverage)
 	} else {
-		p.EnableGetData = true
+		p.ShowGetDataButton = true
 	}
 
 	if isMaxVariablesError(&sdc) {
@@ -171,6 +171,8 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	} else {
 		p.MaxVariableError = false
 	}
+
+	p.DisableGetDataButton = sdc.Passed == 0
 
 	return p
 }
