@@ -23,20 +23,18 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	p := model.Overview{
 		Page: m.basePage,
 	}
-	mapCommonProps(m.req, &p.Page, reviewPageType, "Review changes", m.lang, m.serviceMsg, m.eb)
+
+	title := helper.Localise("OverviewTitle", m.lang, 1)
+	if helpers.IsBoolPtr(filterJob.Custom) {
+		title = helper.Localise("OverviewCustomTitle", m.lang, 1)
+	}
+
+	mapCommonProps(m.req, &p.Page, reviewPageType, title, m.lang, m.serviceMsg, m.eb)
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 	p.IsMultivariate = isMultivariate
 
-	p.Breadcrumb = []coreModel.TaxonomyNode{
-		{
-			Title: helper.Localise("Back", m.lang, 1),
-			URI: fmt.Sprintf("/datasets/%s/editions/%s/versions/%s",
-				dataset.DatasetID,
-				dataset.Edition,
-				strconv.Itoa(dataset.Version)),
-		},
-	}
+	p.Breadcrumb = buildBreadcrumb(dataset, helpers.IsBoolPtr(filterJob.Custom), m.lang)
 
 	pop := model.Dimension{
 		Name:        "Population type",
@@ -156,4 +154,25 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	}
 
 	return p
+}
+
+func buildBreadcrumb(dataset filter.Dataset, isCustom bool, lang string) []coreModel.TaxonomyNode {
+	if isCustom {
+		return []coreModel.TaxonomyNode{
+			{
+				Title: helper.Localise("CustomBack", lang, 1),
+				URI:   "/datasets/create",
+			},
+		}
+	} else {
+		return []coreModel.TaxonomyNode{
+			{
+				Title: helper.Localise("Back", lang, 1),
+				URI: fmt.Sprintf("/datasets/%s/editions/%s/versions/%s",
+					dataset.DatasetID,
+					dataset.Edition,
+					strconv.Itoa(dataset.Version)),
+			},
+		}
+	}
 }

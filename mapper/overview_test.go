@@ -32,6 +32,7 @@ func TestOverview(t *testing.T) {
 			Version:   1,
 		},
 		PopulationType: "UR",
+		Custom:         helpers.ToBoolPtr(false),
 	}
 	filterDims := []model.FilterDimension{
 		{
@@ -200,6 +201,22 @@ func TestOverview(t *testing.T) {
 		So(overview.ServiceMessage, ShouldEqual, sm)
 
 		So(overview.HasSDC, ShouldBeFalse)
+	})
+
+	Convey("test filter flex overview maps for custom datasets correctly", t, func() {
+		customFilterJob := filter.GetFilterResponse{
+			Dataset: filter.Dataset{
+				DatasetID: "example",
+				Edition:   "2021",
+				Version:   1,
+			},
+			PopulationType: "UR",
+			Custom:         helpers.ToBoolPtr(true),
+		}
+		overview := m.CreateFilterFlexOverview(customFilterJob, filterDims, dimDescriptions, pops, sdc, false)
+		So(overview.Metadata.Title, ShouldEqual, "Custom dataset")
+		So(overview.Breadcrumb[0].Title, ShouldEqual, "Start again - Create a custom dataset")
+		So(overview.Breadcrumb[0].URI, ShouldEqual, "/datasets/create")
 	})
 
 	Convey("test truncation maps as expected", t, func() {

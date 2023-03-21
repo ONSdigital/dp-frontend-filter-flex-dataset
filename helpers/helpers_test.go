@@ -159,3 +159,23 @@ func TestTrimCategoryValue(t *testing.T) {
 		})
 	})
 }
+
+func TestIsBoolPtr(t *testing.T) {
+	Convey("When the value is nil", t, func() {
+		Convey("Then the returned value is false", func() {
+			So(IsBoolPtr(nil), ShouldBeFalse)
+		})
+	})
+	Convey("When the value is a false pointer", t, func() {
+		ptr := *new(bool)
+		Convey("Then the returned value is false", func() {
+			So(IsBoolPtr(&ptr), ShouldBeFalse)
+		})
+	})
+	Convey("When the value is a true pointer", t, func() {
+		ptr := bool(true)
+		Convey("Then the returned value is true", func() {
+			So(IsBoolPtr(&ptr), ShouldBeTrue)
+		})
+	})
+}
