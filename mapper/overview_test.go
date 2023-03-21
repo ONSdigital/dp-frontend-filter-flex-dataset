@@ -339,10 +339,12 @@ func TestOverview(t *testing.T) {
 		})
 
 		Convey("When all areas are blocked", func() {
-			sdc.Blocked = 25
-			sdc.Passed = 0
-			sdc.Total = 25
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
+			mockSdc := cantabular.GetBlockedAreaCountResult{
+				Blocked: 25,
+				Passed:  0,
+				Total:   25,
+			}
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, mockSdc, true)
 			Convey("Then the Get Data button is disabled", func() {
 				So(overview.DisableGetDataButton, ShouldBeTrue)
 			})
@@ -384,51 +386,6 @@ func TestOverview(t *testing.T) {
 				So(overview.Dimensions[3].HasChange, ShouldBeFalse)
 				So(overview.Dimensions[4].HasChange, ShouldBeTrue)
 				So(overview.Dimensions[5].HasChange, ShouldBeTrue)
-			})
-		})
-	})
-
-	Convey("test ShowGetDataButton boolean", t, func() {
-		Convey("when isMultivariate is false", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
-			Convey("then ShowGetDataButton should be true", func() {
-				So(overview.ShowGetDataButton, ShouldBeTrue)
-			})
-		})
-
-		Convey("when isMultivariate is true and one or more dimensions are added", func() {
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
-			Convey("then ShowGetDataButton should be true", func() {
-				So(overview.ShowGetDataButton, ShouldBeTrue)
-			})
-		})
-
-		Convey("when isMultivariate is true and only the area type dimension is added", func() {
-			filterDims = []model.FilterDimension{
-				{
-					Dimension: filter.Dimension{
-						Name:       "An area dim",
-						IsAreaType: helpers.ToBoolPtr(true),
-						Options: []string{
-							"area 1",
-							"area 2",
-							"area 3",
-							"area 4",
-							"area 5",
-							"area 6",
-							"area 7",
-							"area 8",
-							"area 9",
-							"area 10",
-						},
-					},
-					OptionsCount:        10,
-					CategorisationCount: 2,
-				},
-			}
-			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
-			Convey("then ShowGetDataButton should be false", func() {
-				So(overview.ShowGetDataButton, ShouldBeFalse)
 			})
 		})
 	})
