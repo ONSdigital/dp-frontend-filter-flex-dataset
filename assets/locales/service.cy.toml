@@ -310,4 +310,4 @@ one = "Remove a variable to continue"
 
 [MaxCellsErrorPanelDescription]
 description = "Description for warning panel if maximum cells exceeded error"
-one = "<strong>This dataset has more than one million cells, the maximum number permitted.</strong>"
+one = "<strong>This dataset exceeds the maximum number of cells permitted.</strong>"
