@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
@@ -239,8 +238,8 @@ func (m *Mapper) mapBlockedAreasPanel(sdc *cantabular.GetBlockedAreaCountResult,
 			CssClasses: []string{"ons-u-mb-s"},
 			Language:   m.lang,
 			SafeHTML: []string{
-				helper.Localise("SDCAreasAvailable", m.lang, 1, strconv.Itoa(sdc.Passed), strconv.Itoa(sdc.Total)),
-				helper.Localise("SDCRestrictedAreas", m.lang, 4, strconv.Itoa(sdc.Blocked)),
+				helper.Localise("SDCAreasAvailable", m.lang, 1, helper.ThousandsSeparator(sdc.Passed), helper.ThousandsSeparator(sdc.Total)),
+				helper.Localise("SDCRestrictedAreas", m.lang, 4, helper.ThousandsSeparator(sdc.Blocked)),
 			},
 		}
 	case model.Success:
@@ -249,7 +248,7 @@ func (m *Mapper) mapBlockedAreasPanel(sdc *cantabular.GetBlockedAreaCountResult,
 			CssClasses: []string{"ons-u-mb-l"},
 			Language:   m.lang,
 			SafeHTML: []string{
-				helper.Localise("SDCAllAreasAvailable", m.lang, sdc.Total, strconv.Itoa(sdc.Total)),
+				helper.Localise("SDCAllAreasAvailable", m.lang, sdc.Total, helper.ThousandsSeparator(sdc.Total)),
 			},
 		}
 	}
