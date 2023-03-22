@@ -1,6 +1,9 @@
 <div class="ons-page__container ons-container">
     <div class="ons-grid ons-u-ml-no">
         {{ template "partials/breadcrumb" . }}
+        {{ if .Page.Error.Title }}
+            {{ template "partials/common/single-error-summary" .Page.Error }}
+        {{ end}}
         <h1 class="ons-u-fs-xxxl ons-u-mt-s ons-u-fw-b">{{ .Page.Metadata.Title }}</h1>
         <div class="ons-grid__col ons-col-8@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
@@ -17,9 +20,9 @@
                     <a
                         href="/filters/{{.FilterID}}/dimensions/change"
                         role="button"
-                        class="ons-btn {{if .EnableGetData}}ons-btn--secondary{{end}} ons-btn--link ons-js-submit-btn ons-u-mt-s">
+                        class="ons-btn {{if .ShowGetDataButton}}ons-btn--secondary{{end}} ons-btn--link ons-js-submit-btn ons-u-mt-s">
                         <span class="ons-btn__inner">
-                            {{ if .EnableGetData }}
+                            {{ if .ShowGetDataButton }}
                                 {{- localise "VariableChange" .Language 1 -}}
                             {{ else }}
                                 {{- localise "VariableAdd" .Language 1 -}}
@@ -27,9 +30,13 @@
                         </span>
                     </a>
                 {{ end }}
-                {{ if .EnableGetData }}
+                {{ if .ShowGetDataButton }}
                     <form method="post" action="/filters/{{.FilterID}}/submit">
+                        {{ if .DisableGetDataButton }}
+                        <button class="ons-u-mt-xl ons-btn ons-btn--disabled" disabled>
+                        {{ else }}
                         <button class="ons-u-mt-xl ons-btn">
+                        {{ end }}
                             <span class="ons-btn__inner">
                                 {{- localise "GetDataBtn" .Language 1 -}}
                             </span>

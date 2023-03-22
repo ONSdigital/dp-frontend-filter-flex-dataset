@@ -149,10 +149,31 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 			p.Panel = *m.mapBlockedAreasPanel(&sdc, maxCellsError, model.Success)
 		}
 
-		p.EnableGetData = len(p.Dimensions) > 3 // all geography dimensions (population type, area type and coverage)
+		p.ShowGetDataButton = len(p.Dimensions) > 3 // all geography dimensions (population type, area type and coverage)
 	} else {
-		p.EnableGetData = true
+		p.ShowGetDataButton = true
 	}
+
+	if isMaxVariablesError(&sdc) {
+		p.Page.Error = coreModel.Error{
+			Title: helper.Localise("MaximumVariablesErrorTitle", m.lang, 1),
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "MaximumVariablesErrorDescription",
+						Plural:    1,
+					},
+					URL: fmt.Sprintf("%s/change", path),
+				},
+			},
+			Language: m.lang,
+		}
+		p.MaxVariableError = true
+	} else {
+		p.MaxVariableError = false
+	}
+
+	p.DisableGetDataButton = sdc.Passed == 0
 
 	return p
 }
