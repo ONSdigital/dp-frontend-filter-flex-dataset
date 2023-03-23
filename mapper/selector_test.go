@@ -227,7 +227,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 								Label: "Cat twelve",
 							},
 						},
-						DefaultCategorisation: true,
+						DefaultCategorisation: false,
 					},
 				},
 			}
@@ -251,6 +251,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 						CategoriesCount: 12,
 						IsTruncated:     true,
 						TruncateLink:    "/?showAll=cat_12a#cat_12a",
+						IsSuggested:     false,
 					},
 				}
 				So(selector.Selections, ShouldResemble, truncCat)
@@ -280,6 +281,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 						CategoriesCount: 12,
 						IsTruncated:     false,
 						TruncateLink:    "/#cat_12a",
+						IsSuggested:     false,
 					},
 				}
 				So(selector.Selections, ShouldResemble, allCats)
