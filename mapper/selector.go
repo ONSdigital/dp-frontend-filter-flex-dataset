@@ -13,7 +13,7 @@ import (
 )
 
 // CreateCategorisationsSelector maps data to the Selector model
-func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId, defaultCat string, cats population.GetCategorisationsResponse) model.Selector {
+func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId string, cats population.GetCategorisationsResponse) model.Selector {
 	p := model.Selector{
 		Page: m.basePage,
 	}
@@ -33,7 +33,7 @@ func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId, defaultCat strin
 		for _, c := range sortCategoriesByID(cat.Categories) {
 			cats = append(cats, c.Label)
 		}
-		selections = append(selections, mapCats(cats, m.req.URL.Query()["showAll"], m.lang, m.req.URL.Path, cat.ID, defaultCat))
+		selections = append(selections, mapCats(cats, m.req.URL.Query()["showAll"], m.lang, m.req.URL.Path, cat.ID, cat.DefaultCategorisation))
 	}
 	p.Selections = selections
 

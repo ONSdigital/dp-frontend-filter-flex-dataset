@@ -76,10 +76,11 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 								Label: "Cat four",
 							},
 						},
+						DefaultCategorisation: true,
 					},
 				},
 			}
-			selector := m.CreateCategorisationsSelector("Dimension", "dim1234", "cat_4a", cats)
+			selector := m.CreateCategorisationsSelector("Dimension", "dim1234", cats)
 
 			Convey("Then it maps the page metadata", func() {
 				So(selector.BetaBannerEnabled, ShouldBeTrue)
@@ -155,7 +156,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 		})
 		Convey("When a form validation error occurs", func() {
 			m.req = httptest.NewRequest("", "/?error=true", nil)
-			selector := m.CreateCategorisationsSelector("Dimension", "dim1234", "", population.GetCategorisationsResponse{})
+			selector := m.CreateCategorisationsSelector("Dimension", "dim1234", population.GetCategorisationsResponse{})
 			Convey("Then it sets the error title", func() {
 				So(selector.Error.Title, ShouldEqual, "Dimension")
 			})
@@ -226,11 +227,12 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 								Label: "Cat twelve",
 							},
 						},
+						DefaultCategorisation: true,
 					},
 				},
 			}
 			Convey("Then categories are truncated as expected", func() {
-				selector := m.CreateCategorisationsSelector("Dimension", "dim1234", "", cats)
+				selector := m.CreateCategorisationsSelector("Dimension", "dim1234", cats)
 				truncCat := []model.Selection{
 					{
 						Value: cats.Items[0].ID,
@@ -256,7 +258,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 
 			Convey("Then a showAll request shows all categories as expected", func() {
 				m.req = httptest.NewRequest("", "/?showAll=cat_12a", nil)
-				selector := m.CreateCategorisationsSelector("Dimension", "dim1234", "", cats)
+				selector := m.CreateCategorisationsSelector("Dimension", "dim1234", cats)
 				allCats := []model.Selection{
 					{
 						Value: cats.Items[0].ID,
