@@ -108,7 +108,7 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 						LocaleKey: "MaximumVariablesErrorDescription",
 						Plural:    1,
 					},
-					URL: "#remove-a-variable-error",
+					URL: "#dimensions--added",
 				},
 			},
 			Language: m.lang,

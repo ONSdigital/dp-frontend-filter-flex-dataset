@@ -163,7 +163,7 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 						LocaleKey: "MaximumVariablesErrorDescription",
 						Plural:    1,
 					},
-					URL: fmt.Sprintf("%s/change", path),
+					URL: fmt.Sprintf("%s/change#dimensions--added", path),
 				},
 			},
 			Language: m.lang,

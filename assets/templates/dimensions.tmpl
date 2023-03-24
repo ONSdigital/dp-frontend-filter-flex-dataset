@@ -15,7 +15,7 @@
                 {{ end }}
                 {{ if .Output.Selections }}
                     {{ if .MaxVariableError }}
-                        <div class="ons-panel ons-panel--error ons-panel--no-title" id="remove-a-variable-error">
+                        <div class="ons-panel ons-panel--error ons-panel--no-title" id="dimensions--added">
                             <span class="ons-panel__assistive-text ons-u-vh">Error: </span>
                             <div class="ons-panel__body">
                                 <p class="ons-panel__error margin-bottom--0">
@@ -28,13 +28,13 @@
                             </div>
                         </div>
                     {{ else }}
-                        <form method="post">
+                        <form method="post" id="dimensions--added">
                             <input type="hidden" name="dimensions" value="selections">
                             {{ template "partials/common/selections" .Output }}
                         </form>
                     {{ end }}
                 {{ end }}
-                <form method="post">
+                <form method="post" id="dimensions--select">
                     <fieldset class="ons-fieldset ons-u-mt-m">
                         <legend class="ons-fieldset__legend ons-u-mb-s">{{- localise "DimensionsSelect" .Language 1 -}}</legend>
                         <div class="ons-radios__items">
@@ -94,8 +94,7 @@
                         </span>
                     </span>
                 </a>
-                {{ end }}
-                
+                {{ end }}  
             </div>
         </div>
     </div>

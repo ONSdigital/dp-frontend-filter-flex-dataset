@@ -36,6 +36,7 @@ func postChangeDimensions(w http.ResponseWriter, req *http.Request, fc FilterCli
 	v.Set("f", form.PrimaryAction)
 	if form.PrimaryAction == "search" {
 		v.Set("q", form.SearchQ)
+		req.URL.Fragment = "dimensions--select"
 	}
 
 	switch form.Action {
@@ -49,6 +50,7 @@ func postChangeDimensions(w http.ResponseWriter, req *http.Request, fc FilterCli
 			setStatusCode(req, w, err)
 			return
 		}
+		req.URL.Fragment = "dimensions--added"
 	case Delete:
 		_, err := fc.RemoveDimension(ctx, accessToken, "", collectionID, filterID, form.Value, "")
 		if err != nil {
@@ -59,6 +61,7 @@ func postChangeDimensions(w http.ResponseWriter, req *http.Request, fc FilterCli
 			setStatusCode(req, w, err)
 			return
 		}
+		req.URL.Fragment = "dimensions--added"
 	}
 	req.URL.RawQuery = v.Encode()
 	http.Redirect(w, req, fmt.Sprint(req.URL), http.StatusSeeOther)

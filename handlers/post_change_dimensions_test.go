@@ -39,7 +39,7 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 				w := runPostChangeDimensions(filterID, stubFormData, ff.PostChangeDimensions())
 
 				Convey("Then the location header should match the get change dimensions screen with query persisted", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=search&q=dimension", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=search&q=dimension#dimensions--select", filterID))
 				})
 
 				Convey("And the status code should be 303", func() {
@@ -72,7 +72,7 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 				w := runPostChangeDimensions(fid, stubFormData, ff.PostChangeDimensions())
 
 				Convey("Then the location header should match the get change dimensions screen with form action persisted", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=browse", fid))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=browse#dimensions--added", fid))
 				})
 
 				Convey("And the status code should be 303", func() {
@@ -138,7 +138,7 @@ func TestPostChangeDimensionsHandler(t *testing.T) {
 				w := runPostChangeDimensions(fid, stubFormData, ff.PostChangeDimensions())
 
 				Convey("Then the location header should match the get change dimensions screen with form action persisted", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=browse", fid))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/change?f=browse#dimensions--added", fid))
 				})
 
 				Convey("And the status code should be 303", func() {

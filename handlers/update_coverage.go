@@ -123,6 +123,13 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 		return
 	}
 
+	switch form.Coverage {
+	case ParentSearch:
+		req.URL.Fragment = "search--parent"
+	case NameSearch:
+		req.URL.Fragment = "search--name"
+	}
+
 	http.Redirect(w, req, fmt.Sprint(req.URL), http.StatusMovedPermanently)
 }
 
