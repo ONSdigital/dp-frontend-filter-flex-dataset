@@ -173,7 +173,7 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 		p.MaxVariableError = false
 	}
 
-	p.DisableGetDataButton = sdc.Passed == 0
+	p.DisableGetDataButton = isMultivariate && sdc.Passed == 0
 
 	return p
 }
