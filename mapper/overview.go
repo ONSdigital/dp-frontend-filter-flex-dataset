@@ -123,10 +123,11 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	}
 
 	if isMultivariate {
+		maxCellsError := isMaxCellsError(&sdc)
 		switch {
-		case sdc.Blocked > 0: // areas blocked
+		case sdc.Blocked > 0 || maxCellsError: // areas blocked
 			p.HasSDC = true
-			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Pending)
+			p.Panel = *m.mapBlockedAreasPanel(&sdc, maxCellsError, model.Pending)
 
 			areaTypeUri, dimNames := mapImproveResultsCollapsible(p.Dimensions)
 			p.ImproveResults = coreModel.Collapsible{
@@ -145,13 +146,34 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 			}
 		case sdc.Passed == sdc.Total && sdc.Total > 0: // all areas passing
 			p.HasSDC = true
-			p.Panel = *m.mapBlockedAreasPanel(&sdc, model.Success)
+			p.Panel = *m.mapBlockedAreasPanel(&sdc, maxCellsError, model.Success)
 		}
 
-		p.EnableGetData = len(p.Dimensions) > 3 // all geography dimensions (population type, area type and coverage)
+		p.ShowGetDataButton = len(p.Dimensions) > 3 // all geography dimensions (population type, area type and coverage)
 	} else {
-		p.EnableGetData = true
+		p.ShowGetDataButton = true
 	}
+
+	if isMaxVariablesError(&sdc) {
+		p.Page.Error = coreModel.Error{
+			Title: helper.Localise("MaximumVariablesErrorTitle", m.lang, 1),
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "MaximumVariablesErrorDescription",
+						Plural:    1,
+					},
+					URL: fmt.Sprintf("%s/change#dimensions--added", path),
+				},
+			},
+			Language: m.lang,
+		}
+		p.MaxVariableError = true
+	} else {
+		p.MaxVariableError = false
+	}
+
+	p.DisableGetDataButton = sdc.Passed == 0
 
 	return p
 }

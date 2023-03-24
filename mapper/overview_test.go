@@ -306,7 +306,36 @@ func TestOverview(t *testing.T) {
 			Convey("Then the 'how to improve your results collapsible' is populated", func() {
 				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 1)
 			})
+			Convey("Then the Get Data button is enabled", func() {
+				So(overview.DisableGetDataButton, ShouldBeFalse)
+			})
 		})
+
+		Convey("When the maximum cells limit has been hit", func() {
+			maxCellsSdc := cantabular.GetBlockedAreaCountResult{
+				Passed:     0,
+				Blocked:    0,
+				Total:      0,
+				TableError: "withinMaxCells",
+			}
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, maxCellsSdc, true)
+			Convey("Then the sdc bool is true", func() {
+				So(overview.HasSDC, ShouldBeTrue)
+			})
+			Convey("Then the sdc panel is displayed", func() {
+				mockPanel := model.Panel{
+					Type:       model.Error,
+					CssClasses: []string{"ons-u-mb-s"},
+					SafeHTML:   []string{"This dataset has more than one million cells, the maximum number permitted."},
+					Language:   lang,
+				}
+				So(overview.Panel, ShouldResemble, mockPanel)
+			})
+			Convey("Then the 'how to improve your results collapsible' is populated", func() {
+				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 1)
+			})
+		})
+
 		Convey("When all areas are available", func() {
 			sdc.Blocked = 0
 			sdc.Passed = 25
@@ -329,6 +358,40 @@ func TestOverview(t *testing.T) {
 			})
 			Convey("Then the 'how to improve your results' collapsible is empty", func() {
 				So(overview.ImproveResults.CollapsibleItems, ShouldHaveLength, 0)
+			})
+			Convey("Then the Get Data button is enabled", func() {
+				So(overview.DisableGetDataButton, ShouldBeFalse)
+			})
+		})
+
+		Convey("When all areas are blocked", func() {
+			mockSdc := cantabular.GetBlockedAreaCountResult{
+				Blocked: 25,
+				Passed:  0,
+				Total:   25,
+			}
+			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, mockSdc, true)
+			Convey("Then the Get Data button is disabled", func() {
+				So(overview.DisableGetDataButton, ShouldBeTrue)
+			})
+		})
+
+		Convey("when maximum variable count is exceeded", func() {
+			mockSdc := cantabular.GetBlockedAreaCountResult{
+				Blocked:    0,
+				Passed:     0,
+				Total:      0,
+				TableError: "Maximum variables exceeded",
+			}
+			p := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, mockSdc, true)
+			Convey("then it sets MaxVariableError to true", func() {
+				So(p.MaxVariableError, ShouldBeTrue)
+			})
+			Convey("and it sets page error", func() {
+				So(p.Error.Title, ShouldNotBeBlank)
+			})
+			Convey("and the Get Data button is disabled", func() {
+				So(p.DisableGetDataButton, ShouldBeTrue)
 			})
 		})
 	})
@@ -353,18 +416,18 @@ func TestOverview(t *testing.T) {
 		})
 	})
 
-	Convey("test EnableGetData boolean", t, func() {
+	Convey("test ShowGetDataButton boolean", t, func() {
 		Convey("when isMultivariate is false", func() {
 			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, false)
-			Convey("then EnableGetData should be true", func() {
-				So(overview.EnableGetData, ShouldBeTrue)
+			Convey("then ShowGetDataButton should be true", func() {
+				So(overview.ShowGetDataButton, ShouldBeTrue)
 			})
 		})
 
 		Convey("when isMultivariate is true and one or more dimensions are added", func() {
 			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
-			Convey("then EnableGetData should be true", func() {
-				So(overview.EnableGetData, ShouldBeTrue)
+			Convey("then ShowGetDataButton should be true", func() {
+				So(overview.ShowGetDataButton, ShouldBeTrue)
 			})
 		})
 
@@ -392,8 +455,8 @@ func TestOverview(t *testing.T) {
 				},
 			}
 			overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pops, sdc, true)
-			Convey("then EnableGetData should be false", func() {
-				So(overview.EnableGetData, ShouldBeFalse)
+			Convey("then ShowGetDataButton should be false", func() {
+				So(overview.ShowGetDataButton, ShouldBeFalse)
 			})
 		})
 	})

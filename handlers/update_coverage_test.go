@@ -51,7 +51,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage#search--name", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {
@@ -154,7 +154,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage#search--parent", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {
@@ -262,7 +262,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage#search--name", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {
@@ -358,7 +358,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage#search--parent", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {
@@ -434,7 +434,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage#search--name", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {
@@ -548,7 +548,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen with query persisted", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=name-search&q=area", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=name-search&q=area#search--name", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {
@@ -579,7 +579,7 @@ func TestUpdateCoverageHandler(t *testing.T) {
 				w := runUpdateCoverage(filterID, "geography", stubFormData, ff.UpdateCoverage())
 
 				Convey("Then the location header should match the get coverage screen with query persisted", func() {
-					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=parent-search&p=country&pq=area", filterID))
+					So(w.Header().Get("Location"), ShouldEqual, fmt.Sprintf("/filters/%s/dimensions/geography/coverage?c=parent-search&p=country&pq=area#search--parent", filterID))
 				})
 
 				Convey("And the status code should be 301", func() {

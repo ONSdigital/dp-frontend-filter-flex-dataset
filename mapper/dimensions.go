@@ -69,9 +69,10 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 	p.SearchOutput.Results = searchResults
 	p.SearchOutput.HasNoResults = len(p.SearchOutput.Results) == 0 && formAction == "search"
 
-	if sdc.Blocked > 0 {
+	maxCellsError := isMaxCellsError(sdc)
+	if sdc.Blocked > 0 || maxCellsError {
 		p.HasSDC = true
-		p.Panel = *m.mapBlockedAreasPanel(sdc, model.Pending)
+		p.Panel = *m.mapBlockedAreasPanel(sdc, maxCellsError, model.Pending)
 		sort.Slice(pageDims, func(i, j int) bool {
 			return pageDims[i].Name < pageDims[j].Name
 		})
@@ -96,6 +97,26 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 			LocaleKey: "DimensionsChangeWarning",
 			Plural:    1,
 		}, m.lang, []string{"ons-u-mb-s"})
+	}
+
+	if isMaxVariablesError(sdc) {
+		p.Page.Error = coreModel.Error{
+			Title: helper.Localise("MaximumVariablesErrorTitle", m.lang, 1),
+			ErrorItems: []coreModel.ErrorItem{
+				{
+					Description: coreModel.Localisation{
+						LocaleKey: "MaximumVariablesErrorDescription",
+						Plural:    1,
+					},
+					URL: "#dimensions--added",
+				},
+			},
+			Language: m.lang,
+		}
+		p.MaxVariableError = true
+		p.Output.HasValidationError = true
+	} else {
+		p.MaxVariableError = false
 	}
 
 	return p

@@ -1,6 +1,9 @@
 <div class="ons-page__container ons-container">
     <div class="ons-grid ons-u-ml-no">
         {{ template "partials/breadcrumb" . }}
+        {{ if .Page.Error.Title }}
+            {{ template "partials/common/single-error-summary" .Page.Error }}
+        {{ end}}
         <h1 class="ons-u-fs-xxxl ons-u-mt-s ons-u-fw-b">{{ .Page.Metadata.Title }}</h1>
         <div class="ons-grid__col ons-col-7@m ons-u-pl-no">
             <div class="ons-page__main ons-u-mt-l">
@@ -11,12 +14,27 @@
                     </div>
                 {{ end }}
                 {{ if .Output.Selections }}
-                    <form method="post">
-                        <input type="hidden" name="dimensions" value="selections">
-                        {{ template "partials/common/selections" .Output }}
-                    </form>
+                    {{ if .MaxVariableError }}
+                        <div class="ons-panel ons-panel--error ons-panel--no-title" id="dimensions--added">
+                            <span class="ons-panel__assistive-text ons-u-vh">Error: </span>
+                            <div class="ons-panel__body">
+                                <p class="ons-panel__error margin-bottom--0">
+                                    <strong>Remove a variable to continue</strong>
+                                </p>
+                                <form method="post">
+                                    <input type="hidden" name="dimensions" value="selections">
+                                    {{ template "partials/common/selections" .Output }}
+                                </form>
+                            </div>
+                        </div>
+                    {{ else }}
+                        <form method="post" id="dimensions--added">
+                            <input type="hidden" name="dimensions" value="selections">
+                            {{ template "partials/common/selections" .Output }}
+                        </form>
+                    {{ end }}
                 {{ end }}
-                <form method="post">
+                <form method="post" id="dimensions--select">
                     <fieldset class="ons-fieldset ons-u-mt-m">
                         <legend class="ons-fieldset__legend ons-u-mb-s">{{- localise "DimensionsSelect" .Language 1 -}}</legend>
                         <div class="ons-radios__items">
@@ -62,6 +80,13 @@
                         </div>
                     </fieldset>
                 </form>
+
+                {{ if .MaxVariableError }}
+                    <button class="ons-btn ons-js-submit-btn ons-u-mt-xl ons-u-mb-s ons-btn--disabled" disabled>
+                        <span class="ons-btn__inner"><span class="ons-btn__text">{{- localise "Continue" .Language 1 -}}</span>
+                        </span>
+                    </button>
+                {{ else }}
                 <a href="." role="button" class="ons-btn ons-btn--link ons-js-submit-btn ons-u-mt-xl ons-u-mb-s">
                     <span class="ons-btn__inner">
                         <span class="ons-btn__text">
@@ -69,6 +94,7 @@
                         </span>
                     </span>
                 </a>
+                {{ end }}  
             </div>
         </div>
     </div>

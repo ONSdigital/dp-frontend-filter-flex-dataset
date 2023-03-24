@@ -1,4 +1,5 @@
-<div class="ons-panel ons-panel--{{.FuncGetPanelType}} ons-panel--no-title{{range .CssClasses}} {{.}}{{end}}">
+{{ $panelType := .FuncGetPanelType }}
+<div class="ons-panel ons-panel--{{$panelType}} ons-panel--no-title{{range .CssClasses}} {{.}}{{end}}" {{ if eq $panelType "error" }} role="alert"{{ end }}>
     <span class="ons-panel__assistive-text ons-u-vh">{{- localise "ImportantInformation" .Language 1 -}}:</span>
     <div class="ons-panel__body">
         {{ if .SafeHTML }}
