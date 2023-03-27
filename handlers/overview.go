@@ -139,17 +139,21 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		dimCategories, dcErr = f.PopulationClient.GetDimensionCategories(ctx, population.GetDimensionCategoryInput{
-			AuthTokens: population.AuthTokens{
-				UserAuthToken: accessToken,
-			},
-			PaginationParams: population.PaginationParams{
-				Limit:  1000,
-				Offset: 0,
-			},
-			PopulationType: filterJob.PopulationType,
-			Dimensions:     nonAreaIds,
-		})
+		if len(nonAreaIds) > 0 {
+			dimCategories, dcErr = f.PopulationClient.GetDimensionCategories(ctx, population.GetDimensionCategoryInput{
+				AuthTokens: population.AuthTokens{
+					UserAuthToken: accessToken,
+				},
+				PaginationParams: population.PaginationParams{
+					Limit:  1000,
+					Offset: 0,
+				},
+				PopulationType: filterJob.PopulationType,
+				Dimensions:     nonAreaIds,
+			})
+		} else {
+			dimCategories = population.GetDimensionCategoriesResponse{}
+		}
 	}()
 
 	go func() {
