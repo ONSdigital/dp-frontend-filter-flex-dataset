@@ -352,13 +352,6 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
-						mockPc.
-							EXPECT().
-							GetDimensionCategories(ctx, gomock.Any()).
-							Return(population.GetDimensionCategoriesResponse{
-								PaginationResponse: population.PaginationResponse{TotalCount: 1},
-								Categories:         mockDimensionCategories,
-							}, nil)
 						mockPc.EXPECT().
 							GetCategorisations(ctx, gomock.Any()).
 							Return(population.GetCategorisationsResponse{
@@ -455,12 +448,6 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetDimensionsDescription(ctx, gomock.Any()).
 							Return(population.GetDimensionsResponse{}, nil)
-						mockPc.
-							EXPECT().
-							GetDimensionCategories(ctx, gomock.Any()).
-							Return(population.GetDimensionCategoriesResponse{
-								PaginationResponse: population.PaginationResponse{TotalCount: 1},
-								Categories:         mockDimensionCategories}, nil)
 						mockPc.EXPECT().
 							GetCategorisations(ctx, gomock.Any()).
 							Return(population.GetCategorisationsResponse{
