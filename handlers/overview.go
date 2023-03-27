@@ -11,6 +11,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-net/v2/handlers"
@@ -40,7 +41,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var fErr, dErr, fdsErr, imErr, zErr, sErr, dcErr, pErr error
 	var isMultivariate bool
 	var serviceMsg, areaTypeID, parent string
-	var dimIds, areaOpts []string
+	var dimIds, nonAreaIds, areaOpts []string
 
 	var wg sync.WaitGroup
 	wg.Add(4)
@@ -89,6 +90,9 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 		for _, dim := range filterDims.Items {
 			dimIds = append(dimIds, dim.ID)
+			if !helpers.IsBoolPtr(dim.IsAreaType) {
+				nonAreaIds = append(nonAreaIds, dim.ID)
+			}
 		}
 	}()
 
@@ -144,7 +148,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 				Offset: 0,
 			},
 			PopulationType: filterJob.PopulationType,
-			Dimensions:     dimIds,
+			Dimensions:     nonAreaIds,
 		})
 	}()
 
