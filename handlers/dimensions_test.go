@@ -832,6 +832,20 @@ func TestDimensionsHandler(t *testing.T) {
 				})
 			})
 		})
+
+	})
+
+	Convey("Lowest geography override", t, func() {
+		Convey("Test the override function", func() {
+			hardcodedPopulation := "UR_CE"
+			hardcodedLG := "msoa"
+			defaultLG := "default"
+
+			So(overrideLowestGeography(defaultLG, hardcodedPopulation, true), ShouldEqual, hardcodedLG)
+			So(overrideLowestGeography(defaultLG, hardcodedPopulation, false), ShouldEqual, defaultLG)
+			So(overrideLowestGeography(defaultLG, "normal population", true), ShouldEqual, defaultLG)
+			So(overrideLowestGeography(defaultLG, "normal population", false), ShouldEqual, defaultLG)
+		})
 	})
 }
 

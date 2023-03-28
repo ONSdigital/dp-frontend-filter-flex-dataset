@@ -7,6 +7,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-net/v2/handlers"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -148,9 +149,25 @@ func dimensionSelector(w http.ResponseWriter, req *http.Request, f *FilterFlex, 
 		return
 	}
 
+	lowestGeography := overrideLowestGeography(details.LowestGeography, currentFilter.PopulationType, helpers.IsBoolPtr(currentFilter.Custom))
+
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	selector := m.CreateAreaTypeSelector(areaTypes.AreaTypes, filterDimension, details.LowestGeography, releaseDate, dataset, hasOpts)
+	selector := m.CreateAreaTypeSelector(areaTypes.AreaTypes, filterDimension, lowestGeography, releaseDate, dataset, hasOpts)
 	f.Render.BuildPage(w, selector, "selector")
+}
+
+func overrideLowestGeography(defaultLowestGeography, populationType string, isCustom bool) string {
+	overrides := map[string]string{
+		"UR_CE": "msoa",
+	}
+	if isCustom {
+		lowestGeography, isOverridden := overrides[populationType]
+		if isOverridden {
+			return lowestGeography
+		}
+	}
+
+	return defaultLowestGeography
 }
 
 // isAreaType determines if the current dimension is an area type
