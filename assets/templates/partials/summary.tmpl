@@ -34,7 +34,10 @@
                                             {{ end }}
                                         </ul>
                                     {{ else }}
-                                        {{- index .Options 0 -}}
+                                        {{- index .Options 0 }}
+                                        {{ if gt .OptionsCount 0 }}
+                                            ({{ thousandsSeparator .OptionsCount -}})
+                                        {{ end }}
                                     {{ end }}
                                 {{ end }}
                                 {{ if .HasCategories }}

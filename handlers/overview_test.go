@@ -681,12 +681,130 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetPopulationTypes(ctx, gomock.Any()).
 							Return(population.GetPopulationTypesResponse{}, nil)
+						mockPc.
+							EXPECT().
+							GetParentAreaCount(ctx, gomock.Any()).
+							Return(0, nil)
 
-						// TODO: pc.GetParentAreaCount is causing production issues
-						// mockPc.
-						// 	EXPECT().
-						// 	GetParentAreaCount(ctx, gomock.Any()).
-						// 	Return(0, nil)
+						mockRend := NewMockRenderClient(mockCtrl)
+						mockRend.
+							EXPECT().
+							NewBasePageModel().
+							Return(coreModel.NewPage(cfg.PatternLibraryAssetsPath, cfg.SiteDomain)).
+							AnyTimes()
+						mockRend.
+							EXPECT().
+							BuildPage(gomock.Any(), gomock.Any(), "overview")
+
+						mockDc := NewMockDatasetClient(mockCtrl)
+						mockDc.
+							EXPECT().
+							Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(dataset.DatasetDetails{
+								Type: "multivariate",
+							}, nil)
+
+						mockZc := NewMockZebedeeClient(mockCtrl)
+						mockZc.
+							EXPECT().
+							GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(zebedee.HomepageContent{}, nil)
+
+						w := httptest.NewRecorder()
+						req := httptest.NewRequest(http.MethodGet, "/test", nil)
+
+						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
+						ff.FilterFlexOverview().
+							ServeHTTP(w, req)
+
+						Convey("Then the status code should be 200", func() {
+							So(w.Code, ShouldEqual, http.StatusOK)
+						})
+					})
+
+					Convey("Then pc.GetBlockedAreaCount errors", func() {
+						filterDim := filter.Dimension{
+							Name:           "geography",
+							ID:             "city",
+							Label:          "City",
+							IsAreaType:     helpers.ToBoolPtr(true),
+							FilterByParent: "england",
+						}
+
+						mockFc := NewMockFilterClient(mockCtrl)
+						mockFc.
+							EXPECT().
+							GetFilter(ctx, gomock.Any()).
+							Return(&filter.GetFilterResponse{}, nil).
+							AnyTimes()
+						mockFc.
+							EXPECT().
+							GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(filter.Dimensions{Items: []filter.Dimension{filterDim}}, "", nil).
+							AnyTimes()
+						mockFc.
+							EXPECT().
+							GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(filterDim, "", nil).
+							AnyTimes()
+						mockFc.
+							EXPECT().
+							GetDimensionOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(filter.DimensionOptions{
+								Items: []filter.DimensionOption{
+									{
+										Option: "0",
+									},
+								},
+								Count:      1,
+								TotalCount: 1,
+							}, "", nil)
+
+						area := population.GetAreaResponse{
+							Area: population.Area{
+								ID:       "0",
+								Label:    "London",
+								AreaType: "city",
+							},
+						}
+
+						mockPc := NewMockPopulationClient(mockCtrl)
+						mockPc.
+							EXPECT().
+							GetArea(ctx, gomock.Any()).
+							Return(area, nil)
+
+						mockPc.
+							EXPECT().
+							GetDimensionsDescription(ctx, gomock.Any()).
+							Return(population.GetDimensionsResponse{}, nil)
+						mockPc.
+							EXPECT().
+							GetBlockedAreaCount(gomock.Any(), gomock.Any()).
+							Return(&cantabular.GetBlockedAreaCountResult{}, nil)
+						mockPc.
+							EXPECT().
+							GetDimensionCategories(ctx, gomock.Any()).
+							Return(population.GetDimensionCategoriesResponse{
+								PaginationResponse: population.PaginationResponse{TotalCount: 1},
+								Categories:         mockDimensionCategories,
+							}, nil).AnyTimes()
+
+						mockPc.EXPECT().
+							GetCategorisations(ctx, gomock.Any()).
+							Return(population.GetCategorisationsResponse{
+								PaginationResponse: population.PaginationResponse{
+									TotalCount: 2,
+								},
+							}, nil).AnyTimes()
+						mockPc.
+							EXPECT().
+							GetPopulationTypes(ctx, gomock.Any()).
+							Return(population.GetPopulationTypesResponse{}, nil)
+						mockPc.
+							EXPECT().
+							GetParentAreaCount(ctx, gomock.Any()).
+							Return(0, errors.New("Internal error"))
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -977,6 +1095,10 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetPopulationTypes(ctx, gomock.Any()).
 					Return(population.GetPopulationTypesResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetParentAreaCount(gomock.Any(), gomock.Any()).
+					Return(0, nil)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 
@@ -1196,96 +1318,6 @@ func TestOverviewHandler(t *testing.T) {
 
 				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
-
-			// TODO: pc.GetParentAreaCount is causing production issues
-			// Convey("test FilterFlexOverview returns 500 if client GetParentAreaCount returns an error", func() {
-			// 	mockFc := NewMockFilterClient(mockCtrl)
-			// 	mockDc := NewMockDatasetClient(mockCtrl)
-			// 	mockPc := NewMockPopulationClient(mockCtrl)
-
-			// 	filterDim := filter.Dimension{
-			// 		Name:           "geography",
-			// 		ID:             "city",
-			// 		Label:          "City",
-			// 		IsAreaType:     helpers.ToBoolPtr(true),
-			// 		FilterByParent: "england",
-			// 	}
-			// 	mockDatasetDims := dataset.VersionDimensions{
-			// 		Items: []dataset.VersionDimension{},
-			// 	}
-
-			// 	mockFc.
-			// 		EXPECT().
-			// 		GetFilter(ctx, gomock.Any()).
-			// 		Return(&filter.GetFilterResponse{}, nil).
-			// 		AnyTimes()
-			// 	mockFc.
-			// 		EXPECT().
-			// 		GetDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			// 		Return(filter.Dimensions{Items: []filter.Dimension{filterDim}}, "", nil).
-			// 		AnyTimes()
-			// 	mockFc.
-			// 		EXPECT().
-			// 		GetDimension(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			// 		Return(filterDim, "", nil).
-			// 		AnyTimes()
-			// 	mockFc.
-			// 		EXPECT().
-			// 		GetDimensionOptions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			// 		Return(filter.DimensionOptions{
-			// 			Items: []filter.DimensionOption{
-			// 				{
-			// 					Option: "0",
-			// 				},
-			// 			},
-			// 			Count:      1,
-			// 			TotalCount: 1,
-			// 		}, "", nil)
-
-			// 	area := population.GetAreaResponse{
-			// 		Area: population.Area{
-			// 			ID:       "0",
-			// 			Label:    "London",
-			// 			AreaType: "city",
-			// 		},
-			// 	}
-
-			// 	mockPc.
-			// 		EXPECT().
-			// 		GetArea(ctx, gomock.Any()).
-			// 		Return(area, nil)
-			// 	mockPc.
-			// 		EXPECT().
-			// 		GetParentAreaCount(ctx, gomock.Any()).
-			// 		Return(0, errors.New("sorry"))
-
-			// 	mockRend := NewMockRenderClient(mockCtrl)
-
-			// 	mockDc.
-			// 		EXPECT().
-			// 		GetVersionDimensions(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			// 		Return(mockDatasetDims, nil)
-			// 	mockDc.
-			// 		EXPECT().
-			// 		Get(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			// 		Return(dataset.DatasetDetails{}, nil)
-
-			// 	mockZc := NewMockZebedeeClient(mockCtrl)
-			// 	mockZc.
-			// 		EXPECT().
-			// 		GetHomepageContent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			// 		Return(zebedee.HomepageContent{}, nil)
-
-			// 	w := httptest.NewRecorder()
-			// 	req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
-
-			// 	router := mux.NewRouter()
-			// 	router.HandleFunc("/filters/12345/dimensions", FilterFlexOverview(mockRend, mockFc, mockDc, mockPc, mockZc, cfg))
-
-			// 	router.ServeHTTP(w, req)
-
-			// 	So(w.Code, ShouldEqual, http.StatusInternalServerError)
-			// })
 		})
 	})
 
