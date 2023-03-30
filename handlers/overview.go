@@ -103,6 +103,9 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			AuthTokens: population.AuthTokens{
 				UserAuthToken: accessToken,
 			},
+			PaginationParams: population.PaginationParams{
+				Limit: 1000,
+			},
 		})
 
 	}()
