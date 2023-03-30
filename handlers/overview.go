@@ -36,7 +36,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var dimCategories population.GetDimensionCategoriesResponse
 	var filterJob *filter.GetFilterResponse
 	var eb zebedee.EmergencyBanner
-	var pops population.GetPopulationTypesResponse
+	var pop population.GetPopulationTypeResponse
 	var sdc *cantabular.GetBlockedAreaCountResult
 	var fErr, dErr, fdsErr, imErr, zErr, sErr, dcErr, pErr error
 	var isMultivariate bool
@@ -44,7 +44,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var dimIds, nonAreaIds, areaOpts []string
 
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
@@ -96,20 +96,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		}
 	}()
 
-	go func() {
-		defer wg.Done()
-		// TODO: Get single population type is being developed
-		pops, pErr = f.PopulationClient.GetPopulationTypes(ctx, population.GetPopulationTypesInput{
-			AuthTokens: population.AuthTokens{
-				UserAuthToken: accessToken,
-			},
-			PaginationParams: population.PaginationParams{
-				Limit: 1000,
-			},
-		})
-
-	}()
-
 	wg.Wait()
 
 	// log zebedee error but don't set a server error
@@ -133,13 +119,18 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		setStatusCode(req, w, imErr)
 		return
 	}
-	if pErr != nil {
-		log.Error(ctx, "failed to get population types", pErr, log.Data{"filter_id": filterID})
-		setStatusCode(req, w, pErr)
-		return
-	}
 
-	wg.Add(2)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		pop, pErr = f.PopulationClient.GetPopulationType(ctx, population.GetPopulationTypeInput{
+			PopulationType: filterJob.PopulationType,
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+		})
+	}()
+
 	go func() {
 		defer wg.Done()
 		if len(nonAreaIds) > 0 {
@@ -179,6 +170,15 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	}()
 
 	wg.Wait()
+
+	if pErr != nil {
+		log.Error(ctx, "failed to get population type", pErr, log.Data{
+			"filter_id":       filterID,
+			"population_type": filterJob.PopulationType,
+		})
+		setStatusCode(req, w, pErr)
+		return
+	}
 
 	if dErr != nil {
 		log.Error(ctx, "failed to get dimension descriptions", dErr, log.Data{
@@ -380,7 +380,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 	basePage := f.Render.NewBasePageModel()
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, pops, *sdc, isMultivariate)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, pop, *sdc, isMultivariate)
 	f.Render.BuildPage(w, overview, "overview")
 }
 

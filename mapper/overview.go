@@ -16,7 +16,7 @@ import (
 )
 
 // CreateFilterFlexOverview maps data to the Overview model
-func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, pops population.GetPopulationTypesResponse, sdc cantabular.GetBlockedAreaCountResult, isMultivariate bool) model.Overview {
+func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, pops population.GetPopulationTypeResponse, sdc cantabular.GetBlockedAreaCountResult, isMultivariate bool) model.Overview {
 	queryStrValues := m.req.URL.Query()["showAll"]
 	path := m.req.URL.Path
 
@@ -38,15 +38,9 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 
 	pop := model.Dimension{
 		Name:        "Population type",
-		ID:          filterJob.PopulationType,
+		ID:          pops.PopulationType.Name,
+		Options:     []string{pops.PopulationType.Label},
 		IsGeography: true,
-	}
-
-	for _, population := range pops.Items {
-		if population.Name == filterJob.PopulationType {
-			pop.Options = []string{population.Label}
-			break
-		}
 	}
 
 	coverage := model.Dimension{
