@@ -95,8 +95,8 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 				mockPc.
 					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
+					GetPopulationType(ctx, gomock.Any()).
+					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -152,8 +152,8 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 				mockPc.
 					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
+					GetPopulationType(ctx, gomock.Any()).
+					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -203,8 +203,8 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 				mockPc.
 					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
+					GetPopulationType(ctx, gomock.Any()).
+					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -273,8 +273,8 @@ func TestOverviewHandler(t *testing.T) {
 						}, nil).AnyTimes()
 					mockPc.
 						EXPECT().
-						GetPopulationTypes(ctx, gomock.Any()).
-						Return(population.GetPopulationTypesResponse{}, nil)
+						GetPopulationType(ctx, gomock.Any()).
+						Return(population.GetPopulationTypeResponse{}, nil)
 
 					mockDc := NewMockDatasetClient(mockCtrl)
 					mockDc.
@@ -361,8 +361,8 @@ func TestOverviewHandler(t *testing.T) {
 							}, nil).AnyTimes()
 						mockPc.
 							EXPECT().
-							GetPopulationTypes(ctx, gomock.Any()).
-							Return(population.GetPopulationTypesResponse{}, nil)
+							GetPopulationType(ctx, gomock.Any()).
+							Return(population.GetPopulationTypeResponse{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -457,8 +457,8 @@ func TestOverviewHandler(t *testing.T) {
 							}, nil).AnyTimes()
 						mockPc.
 							EXPECT().
-							GetPopulationTypes(ctx, gomock.Any()).
-							Return(population.GetPopulationTypesResponse{}, nil)
+							GetPopulationType(ctx, gomock.Any()).
+							Return(population.GetPopulationTypeResponse{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -565,8 +565,8 @@ func TestOverviewHandler(t *testing.T) {
 							}, nil).AnyTimes()
 						mockPc.
 							EXPECT().
-							GetPopulationTypes(ctx, gomock.Any()).
-							Return(population.GetPopulationTypesResponse{}, nil)
+							GetPopulationType(ctx, gomock.Any()).
+							Return(population.GetPopulationTypeResponse{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -679,12 +679,12 @@ func TestOverviewHandler(t *testing.T) {
 							}, nil).AnyTimes()
 						mockPc.
 							EXPECT().
-							GetPopulationTypes(ctx, gomock.Any()).
-							Return(population.GetPopulationTypesResponse{}, nil)
-						mockPc.
-							EXPECT().
 							GetParentAreaCount(ctx, gomock.Any()).
 							Return(0, nil)
+						mockPc.
+							EXPECT().
+							GetPopulationType(gomock.Any(), gomock.Any()).
+							Return(population.GetPopulationTypeResponse{}, nil)
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -799,8 +799,8 @@ func TestOverviewHandler(t *testing.T) {
 							}, nil).AnyTimes()
 						mockPc.
 							EXPECT().
-							GetPopulationTypes(ctx, gomock.Any()).
-							Return(population.GetPopulationTypesResponse{}, nil)
+							GetPopulationType(gomock.Any(), gomock.Any()).
+							Return(population.GetPopulationTypeResponse{}, nil)
 						mockPc.
 							EXPECT().
 							GetParentAreaCount(ctx, gomock.Any()).
@@ -880,10 +880,6 @@ func TestOverviewHandler(t *testing.T) {
 							TotalCount: 2,
 						},
 					}, nil).AnyTimes()
-				mockPc.
-					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -934,10 +930,6 @@ func TestOverviewHandler(t *testing.T) {
 							TotalCount: 2,
 						},
 					}, nil).AnyTimes()
-				mockPc.
-					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -1004,8 +996,8 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 				mockPc.
 					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
+					GetPopulationType(ctx, gomock.Any()).
+					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -1093,8 +1085,8 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 				mockPc.
 					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
+					GetPopulationType(ctx, gomock.Any()).
+					Return(population.GetPopulationTypeResponse{}, nil)
 				mockPc.
 					EXPECT().
 					GetParentAreaCount(gomock.Any(), gomock.Any()).
@@ -1167,10 +1159,6 @@ func TestOverviewHandler(t *testing.T) {
 							TotalCount: 2,
 						},
 					}, nil).AnyTimes()
-				mockPc.
-					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -1249,8 +1237,8 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 				mockPc.
 					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, nil)
+					GetPopulationType(ctx, gomock.Any()).
+					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
@@ -1263,7 +1251,7 @@ func TestOverviewHandler(t *testing.T) {
 				So(w.Code, ShouldEqual, http.StatusInternalServerError)
 			})
 
-			Convey("test FilterFlexOverview returns 500 if pc.GetPopulationTypes returns an error", func() {
+			Convey("test FilterFlexOverview returns 500 if pc.GetPopulationType returns an error", func() {
 				mockFilterDims := filter.Dimensions{
 					Items: []filter.Dimension{
 						{
@@ -1299,8 +1287,12 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 				mockPc.
 					EXPECT().
-					GetPopulationTypes(ctx, gomock.Any()).
-					Return(population.GetPopulationTypesResponse{}, errors.New("Sorry"))
+					GetDimensionsDescription(gomock.Any(), gomock.Any()).
+					Return(population.GetDimensionsResponse{}, nil)
+				mockPc.
+					EXPECT().
+					GetPopulationType(ctx, gomock.Any()).
+					Return(population.GetPopulationTypeResponse{}, errors.New("Sorry"))
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.
