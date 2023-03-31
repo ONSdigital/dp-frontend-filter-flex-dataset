@@ -36,15 +36,15 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	var dimCategories population.GetDimensionCategoriesResponse
 	var filterJob *filter.GetFilterResponse
 	var eb zebedee.EmergencyBanner
-	var pops population.GetPopulationTypesResponse
+	var pop population.GetPopulationTypeResponse
 	var sdc *cantabular.GetBlockedAreaCountResult
 	var fErr, dErr, fdsErr, imErr, zErr, sErr, dcErr, pErr error
 	var isMultivariate bool
-	var serviceMsg, areaTypeID, parent string
+	var serviceMsg, areaTypeID, parent, supVar string
 	var dimIds, nonAreaIds, areaOpts []string
 
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
@@ -96,17 +96,6 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		}
 	}()
 
-	go func() {
-		defer wg.Done()
-		// TODO: Get single population type is being developed
-		pops, pErr = f.PopulationClient.GetPopulationTypes(ctx, population.GetPopulationTypesInput{
-			AuthTokens: population.AuthTokens{
-				UserAuthToken: accessToken,
-			},
-		})
-
-	}()
-
 	wg.Wait()
 
 	// log zebedee error but don't set a server error
@@ -130,13 +119,18 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 		setStatusCode(req, w, imErr)
 		return
 	}
-	if pErr != nil {
-		log.Error(ctx, "failed to get population types", pErr, log.Data{"filter_id": filterID})
-		setStatusCode(req, w, pErr)
-		return
-	}
 
-	wg.Add(2)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		pop, pErr = f.PopulationClient.GetPopulationType(ctx, population.GetPopulationTypeInput{
+			PopulationType: filterJob.PopulationType,
+			AuthTokens: population.AuthTokens{
+				UserAuthToken: accessToken,
+			},
+		})
+	}()
+
 	go func() {
 		defer wg.Done()
 		if len(nonAreaIds) > 0 {
@@ -176,6 +170,15 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	}()
 
 	wg.Wait()
+
+	if pErr != nil {
+		log.Error(ctx, "failed to get population type", pErr, log.Data{
+			"filter_id":       filterID,
+			"population_type": filterJob.PopulationType,
+		})
+		setStatusCode(req, w, pErr)
+		return
+	}
 
 	if dErr != nil {
 		log.Error(ctx, "failed to get dimension descriptions", dErr, log.Data{
@@ -286,35 +289,34 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 		areaOpts = optsIDs
 
-		// TODO: pc.GetParentAreaCount is causing issues in production
-		// if dim.FilterByParent != "" {
-		// 	count, err := pc.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
-		// 		AuthTokens: population.AuthTokens{
-		// 			UserAuthToken: accessToken,
-		// 		},
-		// 		PopulationType:   filterJob.PopulationType,
-		// 		AreaTypeID:       dim.ID,
-		// 		ParentAreaTypeID: dim.FilterByParent,
-		// 		Areas:            optsIDs,
-		// 		SVarID:           supVar,
-		// 	})
-		// 	if err != nil {
-		// 		log.Error(ctx, "failed to get parent area count", err, log.Data{
-		// 			"population_type":     filterJob.PopulationType,
-		// 			"area_type_id":        dim.ID,
-		// 			"parent_area_type_id": dim.FilterByParent,
-		// 			"areas":               optsIDs,
-		// 		})
-		// 		return nil, 0, err
-		// 	}
-		// 	totalCount = count
-		// }
+		if dim.FilterByParent != "" {
+			count, err := f.PopulationClient.GetParentAreaCount(ctx, population.GetParentAreaCountInput{
+				AuthTokens: population.AuthTokens{
+					UserAuthToken: accessToken,
+				},
+				PopulationType:   filterJob.PopulationType,
+				AreaTypeID:       dim.ID,
+				ParentAreaTypeID: dim.FilterByParent,
+				Areas:            optsIDs,
+				SVarID:           supVar,
+			})
+			if err != nil {
+				log.Error(ctx, "failed to get parent area count", err, log.Data{
+					"population_type":     filterJob.PopulationType,
+					"area_type_id":        dim.ID,
+					"parent_area_type_id": dim.FilterByParent,
+					"areas":               optsIDs,
+				})
+				return nil, 0, nil
+			}
+			totalCount = count
+		}
 
 		return options, totalCount, nil
 	}
 
 	getOptions := func(dim filter.Dimension) ([]string, int, error) {
-		if dim.IsAreaType != nil && *dim.IsAreaType {
+		if helpers.IsBoolPtr(dim.IsAreaType) {
 			areaTypeID = dim.ID
 			parent = dim.FilterByParent
 			return getAreaOptions(dim)
@@ -333,10 +335,9 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			return
 		}
 		filterDims.Items[i].IsAreaType = filterDimension.IsAreaType
-		// TODO: pc.GetParentAreaCount is causing production issues
-		// if !*filterDims.Items[i].IsAreaType {
-		// 	supVar = filterDims.Items[i].ID
-		// }
+		if !helpers.IsBoolPtr(filterDims.Items[i].IsAreaType) {
+			supVar = filterDims.Items[i].ID
+		}
 		filterDims.Items[i].FilterByParent = filterDimension.FilterByParent
 
 		options, count, err := getOptions(filterDims.Items[i])
@@ -377,7 +378,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 
 	basePage := f.Render.NewBasePageModel()
 	m := mapper.NewMapper(req, basePage, eb, lang, serviceMsg, filterID)
-	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, pops, *sdc, isMultivariate)
+	overview := m.CreateFilterFlexOverview(*filterJob, fDims, dimDescriptions, pop, *sdc, isMultivariate)
 	f.Render.BuildPage(w, overview, "overview")
 }
 
