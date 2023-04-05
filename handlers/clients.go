@@ -62,7 +62,6 @@ type PopulationClient interface {
 	GetDimensions(ctx context.Context, input population.GetDimensionsInput) (population.GetDimensionsResponse, error)
 	GetDimensionCategories(ctx context.Context, input population.GetDimensionCategoryInput) (population.GetDimensionCategoriesResponse, error)
 	GetDimensionsDescription(ctx context.Context, input population.GetDimensionsDescriptionInput) (population.GetDimensionsResponse, error)
-	GetParentAreaCount(ctx context.Context, input population.GetParentAreaCountInput) (int, error)
 	GetPopulationType(ctx context.Context, input population.GetPopulationTypeInput) (population.GetPopulationTypeResponse, error)
 }
 

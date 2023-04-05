@@ -568,21 +568,6 @@ func (mr *MockPopulationClientMockRecorder) GetDimensionsDescription(ctx, input 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimensionsDescription", reflect.TypeOf((*MockPopulationClient)(nil).GetDimensionsDescription), ctx, input)
 }
 
-// GetParentAreaCount mocks base method.
-func (m *MockPopulationClient) GetParentAreaCount(ctx context.Context, input population.GetParentAreaCountInput) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParentAreaCount", ctx, input)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetParentAreaCount indicates an expected call of GetParentAreaCount.
-func (mr *MockPopulationClientMockRecorder) GetParentAreaCount(ctx, input interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParentAreaCount", reflect.TypeOf((*MockPopulationClient)(nil).GetParentAreaCount), ctx, input)
-}
-
 // GetPopulationType mocks base method.
 func (m *MockPopulationClient) GetPopulationType(ctx context.Context, input population.GetPopulationTypeInput) (population.GetPopulationTypeResponse, error) {
 	m.ctrl.T.Helper()
@@ -596,21 +581,6 @@ func (m *MockPopulationClient) GetPopulationType(ctx context.Context, input popu
 func (mr *MockPopulationClientMockRecorder) GetPopulationType(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPopulationType", reflect.TypeOf((*MockPopulationClient)(nil).GetPopulationType), ctx, input)
-}
-
-// GetPopulationTypes mocks base method.
-func (m *MockPopulationClient) GetPopulationTypes(ctx context.Context, input population.GetPopulationTypesInput) (population.GetPopulationTypesResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPopulationTypes", ctx, input)
-	ret0, _ := ret[0].(population.GetPopulationTypesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPopulationTypes indicates an expected call of GetPopulationTypes.
-func (mr *MockPopulationClientMockRecorder) GetPopulationTypes(ctx, input interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPopulationTypes", reflect.TypeOf((*MockPopulationClient)(nil).GetPopulationTypes), ctx, input)
 }
 
 // MockZebedeeClient is a mock of ZebedeeClient interface.
