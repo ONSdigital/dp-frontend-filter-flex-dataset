@@ -679,10 +679,6 @@ func TestOverviewHandler(t *testing.T) {
 							}, nil).AnyTimes()
 						mockPc.
 							EXPECT().
-							GetParentAreaCount(ctx, gomock.Any()).
-							Return(0, nil)
-						mockPc.
-							EXPECT().
 							GetPopulationType(gomock.Any(), gomock.Any()).
 							Return(population.GetPopulationTypeResponse{}, nil)
 
@@ -801,10 +797,6 @@ func TestOverviewHandler(t *testing.T) {
 							EXPECT().
 							GetPopulationType(gomock.Any(), gomock.Any()).
 							Return(population.GetPopulationTypeResponse{}, nil)
-						mockPc.
-							EXPECT().
-							GetParentAreaCount(ctx, gomock.Any()).
-							Return(0, errors.New("Internal error"))
 
 						mockRend := NewMockRenderClient(mockCtrl)
 						mockRend.
@@ -1087,10 +1079,6 @@ func TestOverviewHandler(t *testing.T) {
 					EXPECT().
 					GetPopulationType(ctx, gomock.Any()).
 					Return(population.GetPopulationTypeResponse{}, nil)
-				mockPc.
-					EXPECT().
-					GetParentAreaCount(gomock.Any(), gomock.Any()).
-					Return(0, nil)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 
