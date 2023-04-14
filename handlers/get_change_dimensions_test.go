@@ -415,10 +415,6 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 					EXPECT().
 					GetDimensions(gomock.Any(), gomock.Any()).
 					Return(population.GetDimensionsResponse{}, nil)
-				mockPc.
-					EXPECT().
-					GetCategorisations(gomock.Any(), gomock.Any()).
-					Return(population.GetCategorisationsResponse{}, nil)
 
 				mockZc := NewMockZebedeeClient(mockCtrl)
 				mockZc.
