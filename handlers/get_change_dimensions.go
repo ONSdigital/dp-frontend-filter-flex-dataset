@@ -10,6 +10,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mapper"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-net/v2/handlers"
@@ -151,11 +152,12 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 					"dimension_name": dim.Name,
 				})
 				dimErrs[i] = err
+				continue
 			}
 
 			dim.IsAreaType = fDim.IsAreaType
 			dimIds = append(dimIds, fDim.ID)
-			if *fDim.IsAreaType {
+			if helpers.IsBoolPtr(fDim.IsAreaType) {
 				opts, _, oErr = f.FilterClient.GetDimensionOptions(ctx, accessToken, "", collectionID, fid, dim.Name, &filter.QueryParams{Offset: 0, Limit: 500})
 				if oErr != nil {
 					log.Error(ctx, "failed to get dimension options", oErr, log.Data{
