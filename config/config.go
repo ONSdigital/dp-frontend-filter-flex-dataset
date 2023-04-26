@@ -12,7 +12,6 @@ type Config struct {
 	BindAddr                    string        `envconfig:"BIND_ADDR"`
 	Debug                       bool          `envconfig:"DEBUG"`
 	DefaultMaximumSearchResults int           `envconfig:"DEFAULT_MAXIMUM_SEARCH_RESULTS"`
-	EnableCustomSort            bool          `envconfig:"ENABLE_CUSTOM_SORT"`
 	EnableMultivariate          bool          `envconfig:"ENABLE_MULTIVARIATE"`
 	GracefulShutdownTimeout     time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
 	HealthCheckInterval         time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
@@ -51,7 +50,6 @@ func get() (*Config, error) {
 		BindAddr:                    "localhost:20100",
 		Debug:                       false,
 		DefaultMaximumSearchResults: 50,
-		EnableCustomSort:            false,
 		EnableMultivariate:          false,
 		GracefulShutdownTimeout:     5 * time.Second,
 		HealthCheckInterval:         30 * time.Second,
