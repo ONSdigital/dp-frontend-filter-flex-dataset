@@ -14,7 +14,7 @@ import (
 	filter "github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	population "github.com/ONSdigital/dp-api-clients-go/v2/population"
 	zebedee "github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
-	model "github.com/ONSdigital/dp-renderer/model"
+	model "github.com/ONSdigital/dp-renderer/v2/model"
 	gomock "github.com/golang/mock/gomock"
 )
 

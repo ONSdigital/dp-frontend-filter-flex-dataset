@@ -7,7 +7,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
-	coreModel "github.com/ONSdigital/dp-renderer/model"
+	coreModel "github.com/ONSdigital/dp-renderer/v2/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

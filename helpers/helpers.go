@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ONSdigital/dp-renderer/helper"
+	"github.com/ONSdigital/dp-renderer/v2/helper"
 	"github.com/ONSdigital/log.go/v2/log"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -38,7 +38,8 @@ func ToBoolPtr(val bool) *bool {
 	return &val
 }
 
-/* Pluralise performs a toml file lookup to return the pluralised lookup value from a given key.
+/*
+Pluralise performs a toml file lookup to return the pluralised lookup value from a given key.
 This function is intended not to panic if the toml file lookup fails.
 req is the *http.Request, required for logging.
 key is the key to lookup in the toml file.

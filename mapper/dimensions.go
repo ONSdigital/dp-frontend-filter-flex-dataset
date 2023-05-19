@@ -7,8 +7,8 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
-	"github.com/ONSdigital/dp-renderer/helper"
-	coreModel "github.com/ONSdigital/dp-renderer/model"
+	"github.com/ONSdigital/dp-renderer/v2/helper"
+	coreModel "github.com/ONSdigital/dp-renderer/v2/model"
 )
 
 // CreateGetChangeDimensions maps data to the ChangeDimensions model
