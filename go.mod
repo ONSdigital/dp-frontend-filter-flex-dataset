@@ -1,6 +1,6 @@
 module github.com/ONSdigital/dp-frontend-filter-flex-dataset
 
-go 1.19
+go 1.20
 
 exclude github.com/gorilla/sessions v1.2.1
 
