@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
-	"github.com/ONSdigital/dp-renderer/helper"
+	"github.com/ONSdigital/dp-renderer/v2/helper"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

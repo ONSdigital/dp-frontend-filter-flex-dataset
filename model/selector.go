@@ -1,7 +1,7 @@
 package model
 
 import (
-	coreModel "github.com/ONSdigital/dp-renderer/model"
+	coreModel "github.com/ONSdigital/dp-renderer/v2/model"
 )
 
 // Selector represents page data for the Dimension selection screen

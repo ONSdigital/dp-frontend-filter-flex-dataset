@@ -11,7 +11,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/zebedee"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/handlers"
-	render "github.com/ONSdigital/dp-renderer"
+	render "github.com/ONSdigital/dp-renderer/v2"
 
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"

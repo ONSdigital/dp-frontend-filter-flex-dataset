@@ -12,8 +12,8 @@ import (
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/mocks"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
-	"github.com/ONSdigital/dp-renderer/helper"
-	coreModel "github.com/ONSdigital/dp-renderer/model"
+	"github.com/ONSdigital/dp-renderer/v2/helper"
+	coreModel "github.com/ONSdigital/dp-renderer/v2/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

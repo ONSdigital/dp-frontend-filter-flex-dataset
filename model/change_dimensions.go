@@ -1,6 +1,6 @@
 package model
 
-import coreModel "github.com/ONSdigital/dp-renderer/model"
+import coreModel "github.com/ONSdigital/dp-renderer/v2/model"
 
 // ChangeDimensions represents the data to display a ChangeDimensions page
 type ChangeDimensions struct {
