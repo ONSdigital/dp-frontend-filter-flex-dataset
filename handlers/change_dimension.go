@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
@@ -25,29 +26,51 @@ func changeDimension(w http.ResponseWriter, req *http.Request, fc FilterClient, 
 	vars := mux.Vars(req)
 	filterID := vars["filterID"]
 	dimensionName := vars["name"]
+	var form changeDimensionForm
+	var fd filter.Dimension
+	var formErr, filterErr error
 
 	logData := log.Data{
 		"filter_id": filterID,
 	}
 
-	form, err := parseChangeDimensionForm(req)
-	if isValidationErr(err) {
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		form, formErr = parseChangeDimensionForm(req)
+	}()
+	go func() {
+		defer wg.Done()
+		fd, _, filterErr = fc.GetDimension(ctx, accessToken, "", collectionID, filterID, dimensionName)
+	}()
+	wg.Wait()
+
+	// error handling from WaitGroup
+	if isValidationErr(formErr) {
 		http.Redirect(w, req, fmt.Sprintf("/filters/%s/dimensions/%s?error=true", filterID, dimensionName), http.StatusMovedPermanently)
 		return
 	}
-	if err != nil {
-		log.Error(ctx, "failed to parse change dimension form", err, logData)
-		setStatusCode(req, w, err)
+	if formErr != nil {
+		log.Error(ctx, "failed to parse change dimension form", formErr, logData)
+		setStatusCode(req, w, formErr)
+		return
+	}
+	if filterErr != nil {
+		log.Error(ctx, "failed to find dimension in filter", filterErr, logData)
+		setStatusCode(req, w, filterErr)
 		return
 	}
 
 	dimension := filter.Dimension{
-		Name:       form.Dimension,
-		ID:         form.Dimension,
-		IsAreaType: helpers.ToBoolPtr(form.IsAreaType),
+		Name:                 form.Dimension,
+		ID:                   form.Dimension,
+		IsAreaType:           helpers.ToBoolPtr(form.IsAreaType),
+		QualityStatementText: fd.QualityStatementText,
+		QualitySummaryURL:    fd.QualitySummaryURL,
 	}
 
-	if _, _, err = fc.UpdateDimensions(ctx, accessToken, "", collectionID, filterID, dimensionName, "", dimension); err != nil {
+	if _, _, err := fc.UpdateDimensions(ctx, accessToken, "", collectionID, filterID, dimensionName, "", dimension); err != nil {
 		log.Error(ctx, "error updating filter dimension", err, logData)
 		setStatusCode(req, w, err)
 		return
