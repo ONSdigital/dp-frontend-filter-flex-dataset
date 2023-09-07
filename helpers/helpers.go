@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -62,9 +63,7 @@ func Pluralise(req *http.Request, key, lang, keyPrefix string, plural int) strin
 	// Therefore log panic and handle returned empty string in calling function
 	defer func() {
 		if err := recover(); err != nil {
-			log.Info(ctx, "recovered from panic", log.Data{
-				"lookup_not_found": str,
-			})
+			log.Info(ctx, fmt.Sprintf("recovered from panic, add %s to toml file", str), log.Data{})
 		}
 	}()
 	log.Info(ctx, "performing toml lookup", log.Data{

@@ -45,6 +45,11 @@ func TestChangeDimensionHandler(t *testing.T) {
 					Return(filter.Dimension{}, "", nil).
 					AnyTimes()
 
+				filterClient.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", nil)
+
 				w := runChangeDimension(filterID, "city", stubFormData, ff.ChangeDimension())
 
 				Convey("Then the location header should match the review screen", func() {
@@ -71,6 +76,10 @@ func TestChangeDimensionHandler(t *testing.T) {
 					EXPECT().
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), filterID, dimensionName, gomock.Any(), gomock.Eq(expDimension)).
 					Return(filter.Dimension{}, "", nil)
+				filterClient.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", nil)
 
 				formData := url.Values{}
 				formData.Add("dimension", newDimension)
@@ -79,10 +88,31 @@ func TestChangeDimensionHandler(t *testing.T) {
 				runChangeDimension(filterID, dimensionName, formData, ff.ChangeDimension())
 			})
 
-			Convey("When the filter API client responds with an error", func() {
+			Convey("When the filter.UpdateDimensions responds with an error", func() {
 				filterClient.
 					EXPECT().
 					UpdateDimensions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", errors.New("internal error"))
+				filterClient.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(filter.Dimension{}, "", nil)
+
+				w := runChangeDimension("test", "test", stubFormData, ff.ChangeDimension())
+
+				Convey("Then the client should not be redirected", func() {
+					So(w.Header().Get("Location"), ShouldBeEmpty)
+				})
+
+				Convey("And the status code should be 500", func() {
+					So(w.Code, ShouldEqual, http.StatusInternalServerError)
+				})
+			})
+
+			Convey("When the filter.GetDimension responds with an error", func() {
+				filterClient.
+					EXPECT().
+					GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(filter.Dimension{}, "", errors.New("internal error"))
 
 				w := runChangeDimension("test", "test", stubFormData, ff.ChangeDimension())
@@ -100,11 +130,16 @@ func TestChangeDimensionHandler(t *testing.T) {
 		Convey("Given an invalid request", func() {
 			ff := NewFilterFlex(
 				NewMockRenderClient(mockCtrl),
-				NewMockFilterClient(mockCtrl),
+				filterClient,
 				NewMockDatasetClient(mockCtrl),
 				NewMockPopulationClient(mockCtrl),
 				NewMockZebedeeClient(mockCtrl),
 				cfg)
+
+			filterClient.
+				EXPECT().
+				GetDimension(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(filter.Dimension{}, "", nil)
 
 			Convey("When the area type has not been provided", func() {
 				formData := url.Values{}

@@ -3,17 +3,17 @@ module github.com/ONSdigital/dp-frontend-filter-flex-dataset
 go 1.20
 
 require (
-	github.com/ONSdigital/dp-api-clients-go/v2 v2.254.0
+	github.com/ONSdigital/dp-api-clients-go/v2 v2.254.1
 	github.com/ONSdigital/dp-cookies v0.4.0
 	github.com/ONSdigital/dp-healthcheck v1.6.1
-	github.com/ONSdigital/dp-net/v2 v2.9.1
+	github.com/ONSdigital/dp-net/v2 v2.11.0
 	github.com/ONSdigital/dp-renderer/v2 v2.1.0
 	github.com/ONSdigital/log.go/v2 v2.4.1
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/smartystreets/goconvey v1.8.0
-	golang.org/x/text v0.9.0
+	github.com/smartystreets/goconvey v1.8.1
+	golang.org/x/text v0.12.0
 )
 
 require (
@@ -29,13 +29,13 @@ require (
 	github.com/justinas/alice v1.2.0 // indirect
 	github.com/kevinburke/go-bindata v3.24.0+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.18 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/shurcooL/graphql v0.0.0-20220606043923-3cf50f8a0a29 // indirect
-	github.com/smartystreets/assertions v1.13.1 // indirect
+	github.com/shurcooL/graphql v0.0.0-20230722043721-ed46e5a46466 // indirect
+	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/unrolled/render v1.6.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
 )
