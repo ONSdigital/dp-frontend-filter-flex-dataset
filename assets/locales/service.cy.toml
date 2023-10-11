@@ -311,3 +311,97 @@ one = "Remove a variable to continue"
 [MaxCellsErrorPanelDescription]
 description = "Description for warning panel if maximum cells exceeded error"
 one = "<strong>This dataset exceeds the maximum number of cells permitted.</strong>"
+
+AreaTypeSubIntegratedCareBoardLocations]
+description = "Sub Integrated Care Board Locations"
+one = "Sub Integrated Care Board Location"
+other = "Sub Integrated Care Board Locations"
+
+[AreaType2023UpperTierLocalAuthorities]
+description = "2023 Upper Tier Local Authorities"
+one = "2023 Upper Tier Local Authority"
+other = "2023 Upper Tier Local Authorities"
+
+[AreaTypeMiddleLayerSuperOutputAreas]
+description = "Middle Layer Super Output Areas"
+one = "Middle Layer Super Output Area"
+other = "Middle Layer Super Output Areas"
+
+[AreaTypeLowerLayerSuperOutputAreas]
+description = "Lower Layer Super Output Areas"
+one = "Lower Layer Super Output Area"
+other = "Lower Layer Super Output Areas"
+
+[AreaTypeElectoralWardsAndDivisions]
+description = "Electoral Wards And Divisions"
+one = "Electoral Ward And Division"
+other = "Electoral Wards And Divisions"
+
+[AreaTypeLocalEnterprisePartnerships]
+description = "Local Enterprise Partnerships"
+one = "Local Enterprise Partnership"
+other = "Local Enterprise Partnerships"
+
+[AreaTypeLowerTierLocalAuthorities]
+description = "Lower Tier Local Authorities"
+one = "Lower Tier Local Authority"
+other = "Lower Tier Local Authorities"
+
+[AreaTypeCountries]
+description = "Countries"
+one = "Country"
+other = "Countries"
+
+[AreaTypeEnglandAndWales]
+description = "England And Wales"
+one = "England And Wales"
+
+[AreaTypeOutputAreas]
+description = "Output Areas"
+one = "Output Area"
+other = "Output Areas"
+
+[AreaTypeUpperTierLocalAuthorities]
+description = "Upper Tier Local Authorities"
+one = "Upper Tier Local Authority"
+other = "Upper Tier Local Authorities"
+
+[AreaType2023LowerTierLocalAuthorities]
+description = "2023 Lower Tier Local Authorities"
+one = "2023 Lower Tier Local Authority"
+other = "2023 Lower Tier Local Authorities"
+
+[AreaTypeSeneddConstituencies]
+description = "Senedd Constituencies"
+one = "Senedd Constituency"
+other = "Senedd Constituencies"
+
+[AreaTypeRegions]
+description = "Regions"
+one = "Region"
+other = "Regions"
+
+[AreaTypeWestminsterParliamentaryConstituencies]
+description = "Westminster Parliamentary Constituencies"
+one = "Westminster Parliamentary Constituency"
+other = "Westminster Parliamentary Constituencies"
+
+[AreaTypeIntegratedCareBoards]
+description = "Integrated Care Boards"
+one = "Integrated Care Board"
+other = "Integrated Care Boards"
+
+[AreaTypeLocalHealthBoards]
+description = "Local Health Boards"
+one = "Local Health Board"
+other = "Local Health Boards"
+
+[AreaTypeNhsEnglandRegions]
+description = "Nhs England Regions"
+one = "Nhs England Region"
+other = "Nhs England Regions"
+
+[AreaTypeSub-IntegratedCareBoardLocations]
+description = "Sub-Integrated Care Board Locations"
+one = "Sub-Integrated Care Board Location"
+other = "Sub-Integrated Care Board Locations"
