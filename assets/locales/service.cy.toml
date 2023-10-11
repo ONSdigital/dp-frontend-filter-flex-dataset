@@ -312,7 +312,7 @@ one = "Remove a variable to continue"
 description = "Description for warning panel if maximum cells exceeded error"
 one = "<strong>This dataset exceeds the maximum number of cells permitted.</strong>"
 
-AreaTypeSubIntegratedCareBoardLocations]
+[AreaTypeSubIntegratedCareBoardLocations]
 description = "Sub Integrated Care Board Locations"
 one = "Sub Integrated Care Board Location"
 other = "Sub Integrated Care Board Locations"
