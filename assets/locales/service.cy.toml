@@ -215,14 +215,9 @@ one = "Local Health Board"
 other = "Local Health Boards"
 
 [AreaTypeNhsEnglandRegions]
-description = "Nhs England Regions"
-one = "Nhs England Region"
-other = "Nhs England Regions"
-
-[AreaTypeSub-IntegratedCareBoardLocations]
-description = "Sub-Integrated Care Board Locations"
-one = "Sub-Integrated Care Board Location"
-other = "Sub-Integrated Care Board Locations"
+description = "NHS England Regions"
+one = "NHS England Region"
+other = "NHS England Regions"
 
 [CoverageLegend]
 description = "Select the geography you would like your dataset to cover"
