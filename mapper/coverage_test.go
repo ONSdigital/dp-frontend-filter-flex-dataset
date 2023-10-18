@@ -51,7 +51,7 @@ func TestGetCoverage(t *testing.T) {
 			})
 
 			Convey("it sets the geography to countries", func() {
-				So(coverage.Geography, ShouldEqual, "countries")
+				So(coverage.Geography, ShouldEqual, "Countries")
 			})
 
 			Convey("it sets HasNoResults property", func() {
@@ -244,7 +244,7 @@ func TestGetCoverage(t *testing.T) {
 				false,
 				1)
 			Convey("Then it sets the geography to unknown geography", func() {
-				So(coverage.Geography, ShouldEqual, "unknown geography")
+				So(coverage.Geography, ShouldEqual, "Unknown geography")
 			})
 		})
 
