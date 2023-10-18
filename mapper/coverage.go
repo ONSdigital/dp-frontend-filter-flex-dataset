@@ -3,7 +3,6 @@ package mapper
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -36,7 +35,7 @@ func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setPare
 		geography = geogName
 	}
 
-	p.Geography = strings.ToLower(geography)
+	p.Geography = geography
 	p.CoverageType = coverage
 	p.Dimension = dim
 	p.GeographyID = geogID
