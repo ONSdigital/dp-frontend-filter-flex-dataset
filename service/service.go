@@ -19,6 +19,8 @@ import (
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var (
@@ -85,8 +87,10 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, serviceList *E
 
 	// Initialise router
 	r := mux.NewRouter()
+	r.Use(otelmux.Middleware(cfg.OTServiceName))
 	middleware := []alice.Constructor{
 		renderror.Handler(clients.Render),
+		otelhttp.NewMiddleware(cfg.OTServiceName),
 	}
 	newAlice := alice.New(middleware...).Then(r)
 	routes.Setup(ctx, r, cfg, clients)
