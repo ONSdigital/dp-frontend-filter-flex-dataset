@@ -7,13 +7,15 @@ import (
 // Selector represents page data for the Dimension selection screen
 type Selector struct {
 	coreModel.Page
-	Dimensions       Dimension `json:"dimensions"`
-	Selections       []Selection
-	InitialSelection string
-	IsAreaType       bool
-	LeadText         string `json:"lead_text"`
-	ErrorId          string `json:"error_id"`
-	Panel            Panel  `json:"panel"`
+	Dimensions        Dimension `json:"dimensions"`
+	Selections        []Selection
+	InitialSelection  string
+	IsAreaType        bool
+	LeadText          string `json:"lead_text"`
+	ErrorId           string `json:"error_id"`
+	Panel             Panel  `json:"panel"`
+	EnableFeedbackAPI bool   `json:"enable_feedback_api"`
+	FeedbackAPIURL    string `json:"feedback_api_url"`
 }
 
 // Selection represents a dimension selection (e.g. an Area-type of City)

@@ -19,4 +19,6 @@ type Coverage struct {
 	IsSelectParents    bool                `json:"is_select_parents"`
 	OptionType         string              `json:"option_type"`
 	SetParent          string              `json:"set_parent"`
+	EnableFeedbackAPI  bool                `json:"enable_feedback_api"`
+	FeedbackAPIURL     string              `json:"feedback_api_url"`
 }
