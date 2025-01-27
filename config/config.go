@@ -12,7 +12,9 @@ type Config struct {
 	BindAddr                    string        `envconfig:"BIND_ADDR"`
 	Debug                       bool          `envconfig:"DEBUG"`
 	DefaultMaximumSearchResults int           `envconfig:"DEFAULT_MAXIMUM_SEARCH_RESULTS"`
+	EnableFeedbackAPI           bool          `envconfig:"ENABLE_FEEDBACK_API"`
 	EnableMultivariate          bool          `envconfig:"ENABLE_MULTIVARIATE"`
+	FeedbackAPIURL              string        `envconfig:"FEEDBACK_API_URL"`
 	GracefulShutdownTimeout     time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
 	HealthCheckInterval         time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	HealthCheckCriticalTimeout  time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
@@ -53,7 +55,9 @@ func get() (*Config, error) {
 		BindAddr:                    "localhost:20100",
 		Debug:                       false,
 		DefaultMaximumSearchResults: 50,
+		EnableFeedbackAPI:           false,
 		EnableMultivariate:          false,
+		FeedbackAPIURL:              "http://localhost:23200/v1/feedback",
 		GracefulShutdownTimeout:     5 * time.Second,
 		HealthCheckInterval:         30 * time.Second,
 		HealthCheckCriticalTimeout:  90 * time.Second,
