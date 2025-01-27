@@ -6,6 +6,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/pagination"
@@ -17,6 +18,8 @@ import (
 // CreateGetCoverage maps data to the coverage model
 func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setParent, coverage, dim, geogID, releaseDate string, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent bool, currentPage int) model.Coverage {
 	hasValidationErr, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
+	cfg, _ := config.Get()
+
 	p := model.Coverage{
 		Page: m.basePage,
 	}
@@ -58,6 +61,8 @@ func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setPare
 	p.DatasetId = dataset.ID
 	p.DatasetTitle = dataset.Title
 	p.ReleaseDate = releaseDate
+	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
+	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	if len(parents.AreaTypes) > 1 && parentArea == "" {
 		p.ParentSelect = []model.SelectableElement{

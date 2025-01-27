@@ -9,6 +9,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/helpers"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/v2/helper"
@@ -17,6 +18,8 @@ import (
 
 // CreateFilterFlexOverview maps data to the Overview model
 func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, filterDims []model.FilterDimension, dimDescriptions population.GetDimensionsResponse, pops population.GetPopulationTypeResponse, sdc cantabular.GetBlockedAreaCountResult, isMultivariate bool) model.Overview {
+	cfg, _ := config.Get()
+
 	queryStrValues := m.req.URL.Query()["showAll"]
 	path := m.req.URL.Path
 
@@ -33,6 +36,8 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 	p.IsMultivariate = isMultivariate
+	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
+	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	p.Breadcrumb = buildBreadcrumb(dataset, helpers.IsBoolPtr(filterJob.Custom), m.lang)
 

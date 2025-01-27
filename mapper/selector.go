@@ -7,6 +7,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/v2/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/v2/model"
@@ -14,6 +15,8 @@ import (
 
 // CreateCategorisationsSelector maps data to the Selector model
 func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId string, cats population.GetCategorisationsResponse) model.Selector {
+	cfg, _ := config.Get()
+
 	p := model.Selector{
 		Page: m.basePage,
 	}
@@ -36,6 +39,8 @@ func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId string, cats popu
 		selections = append(selections, mapCats(cats, m.req.URL.Query()["showAll"], m.lang, m.req.URL.Path, cat.ID, cat.DefaultCategorisation))
 	}
 	p.Selections = selections
+	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
+	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	isValidationError, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
 	if isValidationError {
@@ -60,6 +65,8 @@ func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId string, cats popu
 
 // CreateAreaTypeSelector maps data to the Selector model
 func (m *Mapper) CreateAreaTypeSelector(areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, hasOpts bool) model.Selector {
+	cfg, _ := config.Get()
+
 	p := model.Selector{
 		Page: m.basePage,
 	}
@@ -118,6 +125,8 @@ func (m *Mapper) CreateAreaTypeSelector(areaType []population.AreaType, fDim fil
 	p.DatasetId = dataset.ID
 	p.DatasetTitle = dataset.Title
 	p.ReleaseDate = releaseDate
+	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
+	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	return p
 }

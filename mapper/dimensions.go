@@ -6,6 +6,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
+	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/model"
 	"github.com/ONSdigital/dp-renderer/v2/helper"
 	coreModel "github.com/ONSdigital/dp-renderer/v2/model"
@@ -13,6 +14,8 @@ import (
 
 // CreateGetChangeDimensions maps data to the ChangeDimensions model
 func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.FilterDimension, pDims, results population.GetDimensionsResponse, sdc *cantabular.GetBlockedAreaCountResult) model.ChangeDimensions {
+	cfg, _ := config.Get()
+
 	p := model.ChangeDimensions{
 		Page: m.basePage,
 	}
@@ -23,6 +26,8 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 		},
 	}
 	p.FormAction = formAction
+	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
+	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	selections := []model.SelectableElement{}
 	pageDims := []model.Dimension{}
