@@ -61,7 +61,6 @@ func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setPare
 	p.DatasetId = dataset.ID
 	p.DatasetTitle = dataset.Title
 	p.ReleaseDate = releaseDate
-	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	if len(parents.AreaTypes) > 1 && parentArea == "" {

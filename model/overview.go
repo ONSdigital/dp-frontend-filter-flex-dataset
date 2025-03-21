@@ -15,7 +15,6 @@ type Overview struct {
 	DisableGetDataButton  bool        `json:"disable_get_data_button"`
 	HasSDC                bool        `json:"has_sdc"`
 	MaxVariableError      bool        `json:"max_variable_error"`
-	EnableFeedbackAPI     bool        `json:"enable_feedback_api"`
 	FeedbackAPIURL        string      `json:"feedback_api_url"`
 	ImproveResults        coreModel.Collapsible
 	DimensionDescriptions coreModel.Collapsible

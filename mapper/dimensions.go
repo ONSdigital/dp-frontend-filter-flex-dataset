@@ -26,7 +26,6 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 		},
 	}
 	p.FormAction = formAction
-	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	selections := []model.SelectableElement{}

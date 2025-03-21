@@ -39,7 +39,6 @@ func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId string, cats popu
 		selections = append(selections, mapCats(cats, m.req.URL.Query()["showAll"], m.lang, m.req.URL.Path, cat.ID, cat.DefaultCategorisation))
 	}
 	p.Selections = selections
-	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	isValidationError, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
@@ -125,7 +124,6 @@ func (m *Mapper) CreateAreaTypeSelector(areaType []population.AreaType, fDim fil
 	p.DatasetId = dataset.ID
 	p.DatasetTitle = dataset.Title
 	p.ReleaseDate = releaseDate
-	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	return p

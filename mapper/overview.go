@@ -36,7 +36,6 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	p.FilterID = filterJob.FilterID
 	dataset := filterJob.Dataset
 	p.IsMultivariate = isMultivariate
-	p.FeatureFlags.EnableFeedbackAPI = cfg.EnableFeedbackAPI
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	p.Breadcrumb = buildBreadcrumb(dataset, helpers.IsBoolPtr(filterJob.Custom), m.lang)

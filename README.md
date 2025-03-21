@@ -22,7 +22,6 @@ Frontend service to host filter, flexing and rendering the templates for dataset
 | BIND_ADDR                      | :20100                            | The host and port to bind to                                                                                                                          |
 | DEBUG                          | false                             | Enable debug mode                                                                                                                                     |
 | DEFAULT_MAXIMUM_SEARCH_RESULTS | 50                                | Maximum paginated search results                                                                                                                      |
-| ENABLE_FEEDBACK_API            | false                       | Enable feedback api                                                                                                |
 | ENABLE_MULTIVARIATE            | false                             | Enable 2021 [multivariate datasets](https://github.com/ONSdigital/dp-dataset-api/blob/5f9f4218b65aae4803809f4a876e9f72b9bf5305/models/dataset.go#L43) |
 | FEEDBACK_API_URL               | <http://localhost:23200/v1/feedback> | The public `dp-api-router` address for feedback, not the internal one |
 | GRACEFUL_SHUTDOWN_TIMEOUT      | 5s                                | The graceful shutdown timeout in seconds (`time.Duration` format)                                                                                     |
