@@ -120,11 +120,13 @@ func mapCommonProps(req *http.Request, p *coreModel.Page, pageType, title, lang,
 
 // mapCookiePreferences reads cookie policy and preferences cookies and then maps the values to the page model
 func mapCookiePreferences(req *http.Request, preferencesIsSet *bool, policy *coreModel.CookiesPolicy) {
-	preferencesCookie := cookies.GetCookiePreferences(req)
+	preferencesCookie := cookies.GetONSCookiePreferences(req)
 	*preferencesIsSet = preferencesCookie.IsPreferenceSet
 	*policy = coreModel.CookiesPolicy{
-		Essential: preferencesCookie.Policy.Essential,
-		Usage:     preferencesCookie.Policy.Usage,
+		Communications: preferencesCookie.Policy.Campaigns,
+		Essential:      preferencesCookie.Policy.Essential,
+		Settings:       preferencesCookie.Policy.Settings,
+		Usage:          preferencesCookie.Policy.Usage,
 	}
 }
 
