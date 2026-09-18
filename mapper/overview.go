@@ -56,7 +56,8 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	}
 
 	var area model.Dimension
-	for _, dim := range filterDims {
+	for i := range filterDims {
+		dim := &filterDims[i]
 		if *dim.IsAreaType {
 			area.Name = helper.Localise("AreaTypeDescription", m.lang, 1)
 			area.Options = []string{cleanDimensionLabel(dim.Label)}
@@ -153,7 +154,7 @@ func (m *Mapper) CreateFilterFlexOverview(filterJob filter.GetFilterResponse, fi
 	}
 
 	if isMaxVariablesError(&sdc) {
-		p.Page.Error = core.Error{
+		p.Error = core.Error{
 			Title: helper.Localise("MaximumVariablesErrorTitle", m.lang, 1),
 			ErrorItems: []core.ErrorItem{
 				{

@@ -64,7 +64,7 @@ func postChangeDimensions(w http.ResponseWriter, req *http.Request, fc FilterCli
 		req.URL.Fragment = "dimensions--added"
 	}
 	req.URL.RawQuery = v.Encode()
-	http.Redirect(w, req, fmt.Sprint(req.URL), http.StatusSeeOther)
+	http.Redirect(w, req, req.URL.String(), http.StatusSeeOther)
 }
 
 // changeDimensionsForm represents form-data for the UpdateCoverage handler.

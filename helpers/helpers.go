@@ -74,7 +74,7 @@ func Pluralise(req *http.Request, key, lang, keyPrefix string, plural int) strin
 
 // TrimCategoryValue trims _[0-9] from the given string and returns the result
 func TrimCategoryValue(s string) string {
-	rx := regexp.MustCompile(`(_[\d])\w+`)
+	rx := regexp.MustCompile(`(_\d)\w+`)
 	return rx.ReplaceAllString(s, "")
 }
 

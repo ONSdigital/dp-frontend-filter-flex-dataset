@@ -54,7 +54,8 @@ func dimensionSelector(w http.ResponseWriter, req *http.Request, f *FilterFlex, 
 	basePage := f.Render.NewBasePageModel()
 
 	if !isAreaType(filterDimension) {
-		isMultivariate, err := isMultivariateDataset(ctx, f.DatasetClient, accessToken, collectionID, currentFilter.Dataset.DatasetID)
+		var isMultivariate bool
+		isMultivariate, err = isMultivariateDataset(ctx, f.DatasetClient, accessToken, collectionID, currentFilter.Dataset.DatasetID)
 		if err != nil {
 			log.Error(ctx, "failed to determine if filter is multivariate", err, log.Data{
 				"filter_id":  filterID,
@@ -68,7 +69,8 @@ func dimensionSelector(w http.ResponseWriter, req *http.Request, f *FilterFlex, 
 			setStatusCode(req, w, err)
 			return
 		}
-		cats, err := f.PopulationClient.GetCategorisations(ctx, population.GetCategorisationsInput{
+		var cats population.GetCategorisationsResponse
+		cats, err = f.PopulationClient.GetCategorisations(ctx, population.GetCategorisationsInput{
 			AuthTokens: population.AuthTokens{
 				UserAuthToken: accessToken,
 			},

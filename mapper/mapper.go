@@ -60,7 +60,7 @@ const (
 
 // mapDimensionsResponse returns a sorted array of selectable elements
 func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[]model.SelectableElement, lang string) []model.SelectableElement {
-	results := []model.SelectableElement{}
+	results := make([]model.SelectableElement, 0, len(pDims.Dimensions))
 	for _, pDim := range pDims.Dimensions {
 		var sel model.SelectableElement
 		sel.Name = "add-dimension"
@@ -73,7 +73,8 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[
 			Language:   lang,
 		}
 		pDimId := helpers.TrimCategoryValue(pDim.ID)
-		for _, dim := range *selections {
+		for i := range *selections {
+			dim := &(*selections)[i]
 			dimV := helpers.TrimCategoryValue(dim.Value)
 			if strings.EqualFold(dimV, pDimId) {
 				sel.IsSelected = true
@@ -92,7 +93,7 @@ func mapDimensionsResponse(pDims population.GetDimensionsResponse, selections *[
 
 // cleanDimensionLabel is a helper function that parses dimension labels from cantabular into display text
 func cleanDimensionLabel(label string) string {
-	matcher := regexp.MustCompile(`(\(\d+ ((C|c)ategories|(C|c)ategory)\))`)
+	matcher := regexp.MustCompile(`(\(\d+ (([Cc])ategories|([Cc])ategory)\))`)
 	result := matcher.ReplaceAllString(label, "")
 	return strings.TrimSpace(result)
 }
@@ -136,7 +137,7 @@ func mapEmergencyBanner(bannerData zebedee.EmergencyBanner) core.EmergencyBanner
 	emptyBannerObj := zebedee.EmergencyBanner{}
 	if bannerData != emptyBannerObj {
 		mappedEmergencyBanner.Title = bannerData.Title
-		mappedEmergencyBanner.Type = strings.Replace(bannerData.Type, "_", "-", -1)
+		mappedEmergencyBanner.Type = strings.ReplaceAll(bannerData.Type, "_", "-")
 		mappedEmergencyBanner.Description = bannerData.Description
 		mappedEmergencyBanner.URI = bannerData.URI
 		mappedEmergencyBanner.LinkText = bannerData.LinkText
@@ -145,10 +146,10 @@ func mapEmergencyBanner(bannerData zebedee.EmergencyBanner) core.EmergencyBanner
 }
 
 // getTruncationMidRange returns ints that can be used as the truncation mid range
-func getTruncationMidRange(total int) (int, int) {
+func getTruncationMidRange(total int) (midFloor, midCeiling int) {
 	mid := total / 2
-	midFloor := mid - 2
-	midCeiling := midFloor + 3
+	midFloor = mid - 2
+	midCeiling = midFloor + 3
 	if midFloor < 0 {
 		midFloor = 0
 	}
@@ -199,14 +200,14 @@ func mapCats(cats, queryStrValues []string, lang, path, catID string, isSuggeste
 }
 
 func mapAreaTypesToSelection(areaTypes []population.AreaType) []model.Selection {
-	var selections []model.Selection
-	for _, area := range areaTypes {
-		selections = append(selections, model.Selection{
+	selections := make([]model.Selection, len(areaTypes))
+	for i, area := range areaTypes {
+		selections[i] = model.Selection{
 			Value:       area.ID,
 			Label:       area.Label,
 			Description: area.Description,
 			TotalCount:  area.TotalCount,
-		})
+		}
 	}
 	return selections
 }

@@ -28,6 +28,7 @@ func (f *FilterFlex) GetCoverage() http.HandlerFunc {
 	})
 }
 
+//nolint:gocyclo // cyclomatic complexity is not in scope to be reduced
 func getCoverage(w http.ResponseWriter, req *http.Request, f *FilterFlex, lang, accessToken, collectionID string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
@@ -89,7 +90,8 @@ func getCoverage(w http.ResponseWriter, req *http.Request, f *FilterFlex, lang, 
 	}
 
 	var geogLabel, geogID, dimension, parent string
-	for _, dim := range filterDims.Items {
+	for i := range filterDims.Items {
+		dim := &filterDims.Items[i]
 		// Needed to determine whether dimension is_area_type
 		// Only one dimension will be is_area_type=true
 		filterDimension, _, err := f.FilterClient.GetDimension(ctx, accessToken, "", collectionID, filterID, dim.Name)

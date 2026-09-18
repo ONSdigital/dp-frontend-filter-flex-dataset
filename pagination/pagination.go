@@ -1,7 +1,6 @@
 package pagination
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -70,7 +69,7 @@ func GetFirstAndLastPages(req *http.Request, totalPages int) []coreModel.PageToD
 // getWindowStartEndPage calculates the start and end page of the moving window of size windowSize, over the set of pages
 // whose current page is currentPage, and whose size is totalPages
 // It is an error to pass a parameter whose value is < 1, or a currentPage > totalPages, and the function will panic in this case
-func getWindowStartEndPage(currentPage, totalPages, windowSize int) (int, int) {
+func getWindowStartEndPage(currentPage, totalPages, windowSize int) (startPage, endPage int) {
 	if currentPage < 1 || totalPages < 1 || windowSize < 1 || currentPage > totalPages {
 		panic("invalid parameters for getWindowStartEndPage - see documentation")
 	}
@@ -110,13 +109,13 @@ func getWindowOffset(windowSize int) int {
 // getPageUrl returns the url for a paginated page that retains existing query string parameters
 func getPageUrl(req *http.Request, pg int) string {
 	page := strconv.Itoa(pg)
-	u, _ := url.Parse(fmt.Sprint(req.URL))
+	u, _ := url.Parse(req.URL.String())
 
 	q := u.Query()
 	q.Set("page", page)
 	u.RawQuery = q.Encode()
 
-	return fmt.Sprint(u)
+	return u.String()
 }
 
 // getPageRange ensures that the total page numbers displayed is limited to 5 i.e. 1 .. 2, (3), 4 ... 7

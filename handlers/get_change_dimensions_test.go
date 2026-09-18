@@ -34,7 +34,7 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 				},
 			}
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change", nil)
+			req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change", http.NoBody)
 
 			Convey("When the filter is based off a multivariate dataset type", func() {
 				md := dataset.DatasetDetails{
@@ -113,7 +113,7 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 			})
 
 			Convey("When the filter is based off a multivariate dataset type and the user performs a search", func() {
-				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", nil)
+				searchReq := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", http.NoBody)
 				md := dataset.DatasetDetails{
 					Type: "multivariate",
 				}
@@ -183,7 +183,7 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
 				router.HandleFunc("/filters/12345/dimensions/change", ff.GetChangeDimensions())
-				router.ServeHTTP(w, req)
+				router.ServeHTTP(w, searchReq)
 
 				Convey("Then the status code should be 200", func() {
 					So(w.Code, ShouldEqual, http.StatusOK)
@@ -515,7 +515,7 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 			})
 
 			Convey("When the additional population.GetDimensions api method call responds with an error", func() {
-				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", nil)
+				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", http.NoBody)
 				md := dataset.DatasetDetails{
 					Type: "multivariate",
 				}
@@ -563,7 +563,7 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 			})
 
 			Convey("When the additional filter.GetDimensionOptions api method call responds with an error", func() {
-				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", nil)
+				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change?q=test", http.NoBody)
 				md := dataset.DatasetDetails{
 					Type: "multivariate",
 				}
@@ -628,7 +628,7 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 			})
 
 			Convey("When the additional population.GetBlockedAreaCount api method call responds with an error", func() {
-				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change", nil)
+				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change", http.NoBody)
 				md := dataset.DatasetDetails{
 					Type: "multivariate",
 				}
@@ -692,7 +692,7 @@ func TestGetChangeDimensionsHandler(t *testing.T) {
 			})
 
 			Convey("When the additional population.GetCategorisations api method call responds with an error", func() {
-				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change", nil)
+				req := httptest.NewRequest(http.MethodGet, "/filters/12345/dimensions/change", http.NoBody)
 				md := dataset.DatasetDetails{
 					Type: "multivariate",
 				}

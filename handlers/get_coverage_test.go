@@ -64,7 +64,7 @@ func TestGetCoverageHandler(t *testing.T) {
 		Convey("Given a valid request", func() {
 			Convey("When the user is redirected to the change coverage screen", func() {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
@@ -126,7 +126,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			Convey("When the zebedee.GetHomepageContent api function responds with an error", func() {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
@@ -188,7 +188,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			Convey("When the user performs a name search", func() {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=name", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=name", http.NoBody)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
@@ -263,7 +263,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			Convey("When the user performs a parent search", func() {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?p=parent&pq=name", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?p=parent&pq=name", http.NoBody)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
@@ -339,7 +339,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			Convey("When a valid search is performed a client error is not returned", func() {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=bob&page=1", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=bob&page=1", http.NoBody)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
@@ -414,7 +414,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			Convey("When the user has saved options", func() {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
@@ -491,7 +491,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 			Convey("When the user has saved parent options", func() {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 				mockRend := NewMockRenderClient(mockCtrl)
 				mockRend.
@@ -570,7 +570,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When the GetFilter API call responds with an error", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.EXPECT().
@@ -601,7 +601,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When the GetDimensions API call responds with an error", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.EXPECT().
@@ -632,7 +632,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When the subsequent GetDimension API call responds with an error", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.EXPECT().
@@ -666,7 +666,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When the GetDimensionOptions API call responds with an error", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.
@@ -719,7 +719,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When the GetAreaTypeParents API call responds with an error", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.
@@ -773,7 +773,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When the GetArea API call via the options loop responds with an error", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.
@@ -849,7 +849,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When the GetAreas API call via the name search responds with an error", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=test", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.
@@ -906,7 +906,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When the GetAreas API call via the parent search responds with an error", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?p=country&pq=test", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?p=country&pq=test", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.
@@ -963,7 +963,7 @@ func TestGetCoverageHandler(t *testing.T) {
 
 		Convey("When invalid page parameters are given a client error is returned", func() {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=name&page=10", nil)
+			req := httptest.NewRequest("GET", "/filters/12345/dimensions/geography/coverage?q=name&page=10", http.NoBody)
 
 			mockFc := NewMockFilterClient(mockCtrl)
 			mockFc.

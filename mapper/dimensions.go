@@ -29,8 +29,9 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	selections := []model.SelectableElement{}
-	pageDims := []model.Dimension{}
-	for _, dim := range dims {
+	pageDims := make([]model.Dimension, 0, len(dims))
+	for i := range dims {
+		dim := &dims[i]
 		if !*dim.IsAreaType {
 			selections = append(selections, model.SelectableElement{
 				Text:  cleanDimensionLabel(dim.Label),
@@ -104,7 +105,7 @@ func (m *Mapper) CreateGetChangeDimensions(q, formAction string, dims []model.Fi
 	}
 
 	if isMaxVariablesError(sdc) {
-		p.Page.Error = core.Error{
+		p.Error = core.Error{
 			Title: helper.Localise("MaximumVariablesErrorTitle", m.lang, 1),
 			ErrorItems: []core.ErrorItem{
 				{

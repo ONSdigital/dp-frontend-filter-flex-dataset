@@ -9,7 +9,7 @@ import (
 
 // sortCategoriesByID sorts population categories by ID - numerically if possible, with negatives listed last
 func sortCategoriesByID(items []population.Category) []population.Category {
-	sorted := []population.Category{}
+	sorted := make([]population.Category, 0, len(items))
 	sorted = append(sorted, items...)
 
 	doNumericSort := func(items []population.Category) bool {

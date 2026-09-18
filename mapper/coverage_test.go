@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -17,7 +18,7 @@ func TestGetCoverage(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	Convey("Given a valid page", t, func() {
 		const lang = "en"
-		req := httptest.NewRequest("", "/", nil)
+		req := httptest.NewRequest("", "/", http.NoBody)
 		eb := getTestEmergencyBanner()
 		sm := getTestServiceMessage()
 		m := NewMapper(req, core.Page{}, eb, lang, sm, "12345")
@@ -460,7 +461,7 @@ func TestGetCoverage(t *testing.T) {
 				},
 				Language: lang,
 			}
-			m.req = httptest.NewRequest("", "/?error=true", nil)
+			m.req = httptest.NewRequest("", "/?error=true", http.NoBody)
 			coverage := m.CreateGetCoverage(
 				"Unknown geography",
 				"",

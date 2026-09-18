@@ -99,7 +99,7 @@ func TestOverviewHandler(t *testing.T) {
 					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -156,7 +156,7 @@ func TestOverviewHandler(t *testing.T) {
 					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -207,7 +207,7 @@ func TestOverviewHandler(t *testing.T) {
 					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -289,7 +289,7 @@ func TestOverviewHandler(t *testing.T) {
 						Return(zebedee.HomepageContent{}, nil)
 
 					w := httptest.NewRecorder()
-					req := httptest.NewRequest(http.MethodGet, "/", nil)
+					req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 
 					ff := NewFilterFlex(NewMockRenderClient(mockCtrl), mockFc, mockDc, mockPc, mockZc, cfg)
 					ff.FilterFlexOverview().
@@ -388,7 +388,7 @@ func TestOverviewHandler(t *testing.T) {
 							Return(zebedee.HomepageContent{}, nil)
 
 						w := httptest.NewRecorder()
-						req := httptest.NewRequest(http.MethodGet, "/", nil)
+						req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 
 						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 						ff.FilterFlexOverview().
@@ -483,7 +483,7 @@ func TestOverviewHandler(t *testing.T) {
 							Return(zebedee.HomepageContent{}, nil)
 
 						w := httptest.NewRecorder()
-						req := httptest.NewRequest(http.MethodGet, "/test", nil)
+						req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 
 						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 						ff.FilterFlexOverview().
@@ -591,7 +591,7 @@ func TestOverviewHandler(t *testing.T) {
 							Return(zebedee.HomepageContent{}, nil)
 
 						w := httptest.NewRecorder()
-						req := httptest.NewRequest(http.MethodGet, "/test", nil)
+						req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 
 						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 						ff.FilterFlexOverview().
@@ -707,7 +707,7 @@ func TestOverviewHandler(t *testing.T) {
 							Return(zebedee.HomepageContent{}, nil)
 
 						w := httptest.NewRecorder()
-						req := httptest.NewRequest(http.MethodGet, "/test", nil)
+						req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 
 						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 						ff.FilterFlexOverview().
@@ -823,7 +823,7 @@ func TestOverviewHandler(t *testing.T) {
 							Return(zebedee.HomepageContent{}, nil)
 
 						w := httptest.NewRecorder()
-						req := httptest.NewRequest(http.MethodGet, "/test", nil)
+						req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 
 						ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 						ff.FilterFlexOverview().
@@ -874,7 +874,7 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, NewMockDatasetClient(mockCtrl), mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -924,7 +924,7 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -992,7 +992,7 @@ func TestOverviewHandler(t *testing.T) {
 					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -1080,7 +1080,7 @@ func TestOverviewHandler(t *testing.T) {
 					GetPopulationType(ctx, gomock.Any()).
 					Return(population.GetPopulationTypeResponse{}, nil)
 
-				mockRend := NewMockRenderClient(mockCtrl)
+				mockRender := NewMockRenderClient(mockCtrl)
 
 				mockDc := NewMockDatasetClient(mockCtrl)
 				mockDc.
@@ -1097,9 +1097,9 @@ func TestOverviewHandler(t *testing.T) {
 					Return(zebedee.HomepageContent{}, nil)
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, "/test", nil)
+				req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 
-				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
+				ff := NewFilterFlex(mockRender, mockFc, mockDc, mockPc, mockZc, cfg)
 				ff.FilterFlexOverview().
 					ServeHTTP(w, req)
 
@@ -1149,7 +1149,7 @@ func TestOverviewHandler(t *testing.T) {
 					}, nil).AnyTimes()
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -1229,7 +1229,7 @@ func TestOverviewHandler(t *testing.T) {
 					Return(population.GetPopulationTypeResponse{}, nil)
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -1289,7 +1289,7 @@ func TestOverviewHandler(t *testing.T) {
 					Return(zebedee.HomepageContent{}, nil)
 
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest("GET", "/filters/12345/dimensions", nil)
+				req := httptest.NewRequest("GET", "/filters/12345/dimensions", http.NoBody)
 
 				ff := NewFilterFlex(mockRend, mockFc, mockDc, mockPc, mockZc, cfg)
 				router := mux.NewRouter()
@@ -1303,9 +1303,9 @@ func TestOverviewHandler(t *testing.T) {
 
 	Convey("Population categories are sorted", t, func() {
 		getCategoryList := func(items []population.DimensionCategoryItem) []string {
-			results := []string{}
-			for _, item := range items {
-				results = append(results, item.ID)
+			results := make([]string, len(items))
+			for i, item := range items {
+				results[i] = item.ID
 			}
 			return results
 		}

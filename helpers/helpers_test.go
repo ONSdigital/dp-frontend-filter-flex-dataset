@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
@@ -70,7 +71,7 @@ func TestToBoolPtr(t *testing.T) {
 
 func TestPluralise(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
-	req := httptest.NewRequest("GET", "http://localhost:20100", nil)
+	req := httptest.NewRequest("GET", "http://localhost:20100", http.NoBody)
 
 	Convey("Given a valid key with lookup prefix", t, func() {
 		input := "Country"
@@ -167,7 +168,7 @@ func TestIsBoolPtr(t *testing.T) {
 		})
 	})
 	Convey("When the value is a false pointer", t, func() {
-		ptr := *new(bool)
+		ptr := false
 		Convey("Then the returned value is false", func() {
 			So(IsBoolPtr(&ptr), ShouldBeFalse)
 		})

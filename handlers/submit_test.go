@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -118,7 +118,7 @@ func TestSubmitHandler(t *testing.T) {
 }
 
 func testResponse(code int, url string, ff *FilterFlex) *httptest.ResponseRecorder {
-	req := httptest.NewRequest("POST", url, nil)
+	req := httptest.NewRequest("POST", url, http.NoBody)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	w := httptest.NewRecorder()
@@ -129,7 +129,7 @@ func testResponse(code int, url string, ff *FilterFlex) *httptest.ResponseRecord
 
 	So(w.Code, ShouldEqual, code)
 
-	b, err := ioutil.ReadAll(w.Body)
+	b, err := io.ReadAll(w.Body)
 	So(err, ShouldBeNil)
 	// Writer body should be empty, we don't write a response
 	So(b, ShouldBeEmpty)

@@ -25,6 +25,7 @@ func (f *FilterFlex) GetChangeDimensions() http.HandlerFunc {
 	})
 }
 
+//nolint:gocyclo // cyclomatic complexity is not in scope to be reduced
 func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
@@ -144,14 +145,15 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 	dimErrs := make([]error, len(fDims.Items))
 	go func() {
 		defer wg.Done()
-		for i, dim := range fDims.Items {
+		for i := range fDims.Items {
+			dim := &fDims.Items[i]
 			// Needed to determine whether dimension is_area_type
-			fDim, _, err := f.FilterClient.GetDimension(ctx, accessToken, "", collectionID, fid, dim.Name)
-			if err != nil {
-				log.Error(ctx, "failed to get dimension", err, log.Data{
+			fDim, _, dimErr := f.FilterClient.GetDimension(ctx, accessToken, "", collectionID, fid, dim.Name)
+			if dimErr != nil {
+				log.Error(ctx, "failed to get dimension", dimErr, log.Data{
 					"dimension_name": dim.Name,
 				})
-				dimErrs[i] = err
+				dimErrs[i] = dimErr
 				continue
 			}
 
@@ -189,10 +191,10 @@ func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex
 					setStatusCode(req, w, err)
 					return
 				}
-				categorisationCount = cats.PaginationResponse.TotalCount
+				categorisationCount = cats.TotalCount
 			}
 			dims = append(dims, model.FilterDimension{
-				Dimension:           dim,
+				Dimension:           *dim,
 				CategorisationCount: categorisationCount,
 			})
 		}

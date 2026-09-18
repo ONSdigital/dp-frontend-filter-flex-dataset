@@ -14,9 +14,10 @@ type Link struct {
 	Text string
 }
 
-func mapImproveResultsCollapsible(dims []model.Dimension) (areaTypeUri string, linksItem string) {
+func mapImproveResultsCollapsible(dims []model.Dimension) (areaTypeUri, linksItem string) {
 	var dimsLinks []Link
-	for _, dim := range dims {
+	for i := range dims {
+		dim := &dims[i]
 		if dim.IsGeography {
 			areaTypeUri = dim.URI
 		} else if dim.Name != "" && dim.HasChange {
@@ -35,11 +36,11 @@ func buildLinksString(dimsLinks []Link) (linkStr string) {
 	for i, link := range dimsLinks {
 		switch {
 		case i < penultimateItem:
-			linkStr += fmt.Sprintf("<a href=\"%s\">%s</a>, ", link.Uri, link.Text)
+			linkStr += fmt.Sprintf("<a href=%q>%s</a>, ", link.Uri, link.Text)
 		case i == penultimateItem:
-			linkStr += fmt.Sprintf("<a href=\"%s\">%s</a> or ", link.Uri, link.Text)
+			linkStr += fmt.Sprintf("<a href=%q>%s</a> or ", link.Uri, link.Text)
 		default:
-			linkStr += fmt.Sprintf("<a href=\"%s\">%s</a>", link.Uri, link.Text)
+			linkStr += fmt.Sprintf("<a href=%q>%s</a>", link.Uri, link.Text)
 		}
 	}
 	return linkStr
@@ -49,7 +50,8 @@ func mapDescriptionsCollapsible(dimDescriptions population.GetDimensionsResponse
 	var collapsibleContentItems []core.CollapsibleItem
 	var areaItem core.CollapsibleItem
 
-	for _, dim := range dims {
+	for i := range dims {
+		dim := &dims[i]
 		for _, dimDescription := range dimDescriptions.Dimensions {
 			if dim.ID == dimDescription.ID && !dim.IsGeography {
 				collapsibleContentItems = append(collapsibleContentItems, core.CollapsibleItem{

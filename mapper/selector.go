@@ -30,21 +30,21 @@ func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId string, cats popu
 	p.LeadText = helper.Localise("SelectCategoriesLeadText", m.lang, 1)
 	p.InitialSelection = dimId
 
-	var selections []model.Selection
-	for _, cat := range cats.Items {
+	selections := make([]model.Selection, len(cats.Items))
+	for i, cat := range cats.Items {
 		cats := []string{}
 		for _, c := range sortCategoriesByID(cat.Categories) {
 			cats = append(cats, c.Label)
 		}
-		selections = append(selections, mapCats(cats, m.req.URL.Query()["showAll"], m.lang, m.req.URL.Path, cat.ID, cat.DefaultCategorisation))
+		selections[i] = mapCats(cats, m.req.URL.Query()["showAll"], m.lang, m.req.URL.Path, cat.ID, cat.DefaultCategorisation)
 	}
 	p.Selections = selections
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
 	isValidationError, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
 	if isValidationError {
-		p.Page.Error = core.Error{
-			Title: p.Page.Metadata.Title,
+		p.Error = core.Error{
+			Title: p.Metadata.Title,
 			ErrorItems: []core.ErrorItem{
 				{
 					Description: core.Localisation{
@@ -63,7 +63,7 @@ func (m *Mapper) CreateCategorisationsSelector(dimLabel, dimId string, cats popu
 }
 
 // CreateAreaTypeSelector maps data to the Selector model
-func (m *Mapper) CreateAreaTypeSelector(areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, dataset dataset.DatasetDetails, hasOpts bool) model.Selector {
+func (m *Mapper) CreateAreaTypeSelector(areaType []population.AreaType, fDim filter.Dimension, lowest_geography, releaseDate string, datasetDetails dataset.DatasetDetails, hasOpts bool) model.Selector {
 	cfg, _ := config.Get()
 
 	p := model.Selector{
@@ -86,8 +86,8 @@ func (m *Mapper) CreateAreaTypeSelector(areaType []population.AreaType, fDim fil
 
 	isValidationError, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
 	if isValidationError {
-		p.Page.Error = core.Error{
-			Title: p.Page.Metadata.Title,
+		p.Error = core.Error{
+			Title: p.Metadata.Title,
 			ErrorItems: []core.ErrorItem{
 				{
 					Description: core.Localisation{
@@ -121,8 +121,8 @@ func (m *Mapper) CreateAreaTypeSelector(areaType []population.AreaType, fDim fil
 	p.InitialSelection = fDim.ID
 	p.IsAreaType = true
 
-	p.DatasetId = dataset.ID
-	p.DatasetTitle = dataset.Title
+	p.DatasetId = datasetDetails.ID
+	p.DatasetTitle = datasetDetails.Title
 	p.ReleaseDate = releaseDate
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 

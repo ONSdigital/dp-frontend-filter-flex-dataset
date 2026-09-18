@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -17,7 +18,7 @@ import (
 func TestCreateCategorisationsSelector(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	mdl := core.Page{}
-	req := httptest.NewRequest("", "/", nil)
+	req := httptest.NewRequest("", "/", http.NoBody)
 	lang := "en"
 	eb := getTestEmergencyBanner()
 	sm := getTestServiceMessage()
@@ -155,7 +156,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 			})
 		})
 		Convey("When a form validation error occurs", func() {
-			m.req = httptest.NewRequest("", "/?error=true", nil)
+			m.req = httptest.NewRequest("", "/?error=true", http.NoBody)
 			selector := m.CreateCategorisationsSelector("Dimension", "dim1234", population.GetCategorisationsResponse{})
 			Convey("Then it sets the error title", func() {
 				So(selector.Error.Title, ShouldEqual, "Dimension")
@@ -258,7 +259,7 @@ func TestCreateCategorisationsSelector(t *testing.T) {
 			})
 
 			Convey("Then a showAll request shows all categories as expected", func() {
-				m.req = httptest.NewRequest("", "/?showAll=cat_12a", nil)
+				m.req = httptest.NewRequest("", "/?showAll=cat_12a", http.NoBody)
 				selector := m.CreateCategorisationsSelector("Dimension", "dim1234", cats)
 				allCats := []model.Selection{
 					{
@@ -294,7 +295,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	eb := getTestEmergencyBanner()
 	sm := getTestServiceMessage()
-	req := httptest.NewRequest("", "/", nil)
+	req := httptest.NewRequest("", "/", http.NoBody)
 	m := NewMapper(req, core.Page{}, eb, "en", sm, "12345")
 	Convey("Given a slice of geography areas", t, func() {
 		areas := []population.AreaType{
@@ -420,7 +421,7 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 	})
 
 	Convey("Given a validation error", t, func() {
-		m.req = httptest.NewRequest("", "/?error=true", nil)
+		m.req = httptest.NewRequest("", "/?error=true", http.NoBody)
 		changeDimension := m.CreateAreaTypeSelector(nil, filter.Dimension{}, "", "", dataset.DatasetDetails{}, false)
 
 		Convey("it returns a populated error", func() {
@@ -440,12 +441,12 @@ func TestCreateAreaTypeSelector(t *testing.T) {
 
 	Convey("Given analytics metadata", t, func() {
 		releaseDate := "2022/11/29"
-		dataset := dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"}
-		changeDimension := m.CreateAreaTypeSelector(nil, filter.Dimension{}, "", releaseDate, dataset, true)
+		datasetDetails := dataset.DatasetDetails{ID: "dataset-id", Title: "Dataset title"}
+		changeDimension := m.CreateAreaTypeSelector(nil, filter.Dimension{}, "", releaseDate, datasetDetails, true)
 
 		Convey("it sets DatasetID, DatasetTitle and ReleaseData", func() {
-			So(changeDimension.DatasetId, ShouldEqual, dataset.ID)
-			So(changeDimension.DatasetTitle, ShouldEqual, dataset.Title)
+			So(changeDimension.DatasetId, ShouldEqual, datasetDetails.ID)
+			So(changeDimension.DatasetTitle, ShouldEqual, datasetDetails.Title)
 			So(changeDimension.ReleaseDate, ShouldEqual, releaseDate)
 		})
 	})

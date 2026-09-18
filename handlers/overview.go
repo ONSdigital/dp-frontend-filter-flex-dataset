@@ -26,6 +26,7 @@ func (f *FilterFlex) FilterFlexOverview() http.HandlerFunc {
 	})
 }
 
+//nolint:gocognit,gocyclo // cognitive and cyclomatic complexity is not in scope to be reduced
 func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
@@ -88,7 +89,8 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			return
 		}
 
-		for _, dim := range filterDims.Items {
+		for i := range filterDims.Items {
+			dim := &filterDims.Items[i]
 			dimIds = append(dimIds, dim.ID)
 			if !helpers.IsBoolPtr(dim.IsAreaType) {
 				nonAreaIds = append(nonAreaIds, dim.ID)
@@ -202,7 +204,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 	getDimensionOptions := func(dim filter.Dimension) ([]string, int, error) {
 		dimensionCategory := dimensionCategoriesMap[dim.ID]
 
-		var options []string
+		options := make([]string, 0, len(dimensionCategory.Categories))
 		for _, opt := range sortCategoriesByID(dimensionCategory.Categories) {
 			options = append(options, opt.Label)
 		}
@@ -221,7 +223,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			PopulationType: populationType,
 			Dimension:      dimension,
 		})
-		return cats.PaginationResponse.TotalCount, err
+		return cats.TotalCount, err
 	}
 
 	getAreaOptions := func(dim filter.Dimension) ([]string, int, error) {
@@ -258,11 +260,11 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 			go func(opt filter.DimensionOption) {
 				defer wg.Done()
 				optsIDs = append(optsIDs, opt.Option)
-				var areaTypeID string
+				var optionAreaTypeID string
 				if dim.FilterByParent != "" {
-					areaTypeID = dim.FilterByParent
+					optionAreaTypeID = dim.FilterByParent
 				} else {
-					areaTypeID = dim.ID
+					optionAreaTypeID = dim.ID
 				}
 
 				area, err := f.PopulationClient.GetArea(ctx, population.GetAreaInput{
@@ -270,7 +272,7 @@ func filterFlexOverview(w http.ResponseWriter, req *http.Request, f *FilterFlex,
 						UserAuthToken: accessToken,
 					},
 					PopulationType: filterJob.PopulationType,
-					AreaType:       areaTypeID,
+					AreaType:       optionAreaTypeID,
 					Area:           opt.Option,
 				})
 				if err != nil {
@@ -366,7 +368,7 @@ func mapDimensionCategories(dimCategories population.GetDimensionCategoriesRespo
 
 // sorts population.DimensionCategoryItems - numerically if possible, with negatives listed last
 func sortCategoriesByID(items []population.DimensionCategoryItem) []population.DimensionCategoryItem {
-	sorted := []population.DimensionCategoryItem{}
+	sorted := make([]population.DimensionCategoryItem, 0, len(items))
 	sorted = append(sorted, items...)
 
 	doNumericSort := func(items []population.DimensionCategoryItem) bool {

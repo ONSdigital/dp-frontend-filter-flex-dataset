@@ -16,7 +16,7 @@ import (
 )
 
 // CreateGetCoverage maps data to the coverage model
-func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setParent, coverage, dim, geogID, releaseDate string, dataset dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent bool, currentPage int) model.Coverage {
+func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setParent, coverage, dim, geogID, releaseDate string, datasetDetails dataset.DatasetDetails, areas population.GetAreasResponse, opts []model.SelectableElement, parents population.GetAreaTypeParentsResponse, hasFilterByParent bool, currentPage int) model.Coverage {
 	hasValidationErr, _ := strconv.ParseBool(m.req.URL.Query().Get("error"))
 	cfg, _ := config.Get()
 
@@ -58,8 +58,8 @@ func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setPare
 		Label:    helper.Localise("CoverageSearchLabel", m.lang, 1),
 	}
 
-	p.DatasetId = dataset.ID
-	p.DatasetTitle = dataset.Title
+	p.DatasetId = datasetDetails.ID
+	p.DatasetTitle = datasetDetails.Title
 	p.ReleaseDate = releaseDate
 	p.FeatureFlags.FeedbackAPIURL = cfg.FeedbackAPIURL
 
@@ -86,13 +86,18 @@ func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setPare
 	if coverage == parentSearch {
 		isParentSearch = true
 	}
+
 	var results []model.SelectableElement
+	if len(areas.Areas) > 0 {
+		results = make([]model.SelectableElement, 0, len(areas.Areas))
+	}
 	for _, area := range areas.Areas {
 		var result model.SelectableElement
 		result.Text = area.Label
 		result.Value = area.ID
 		result.Name = getAddOptionStr(isParentSearch)
-		for _, opt := range opts {
+		for i := range opts {
+			opt := &opts[i]
 			if opt.Value == area.ID {
 				result.IsSelected = true
 				result.Name = "delete-option"
@@ -140,7 +145,7 @@ func (m *Mapper) CreateGetCoverage(geogName, nameQ, parentQ, parentArea, setPare
 	}
 
 	if hasValidationErr {
-		p.Page.Error = core.Error{
+		p.Error = core.Error{
 			Title: p.Metadata.Title,
 			ErrorItems: []core.ErrorItem{
 				{

@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -19,7 +20,7 @@ func TestGetChangeDimensions(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	Convey("Given a valid page request", t, func() {
 		const lang = "en"
-		req := httptest.NewRequest("", "/", nil)
+		req := httptest.NewRequest("", "/", http.NoBody)
 		eb := getTestEmergencyBanner()
 		sm := getTestServiceMessage()
 		m := NewMapper(req, core.Page{}, eb, lang, sm, "12345")

@@ -33,7 +33,8 @@ var RendererVersion = "v1.0.0"
 // Get returns the default config with any modifications through environment
 // variables
 func Get() (*Config, error) {
-	cfg, err := get()
+	var err error
+	cfg, err = get()
 	if err != nil {
 		return nil, err
 	}

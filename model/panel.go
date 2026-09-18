@@ -9,6 +9,15 @@ const (
 	Error
 )
 
+// Panel contains the data required to populate a panel UI component
+type Panel struct {
+	Type       PanelType `json:"type"`
+	CssClasses []string  `json:"css_classes"`
+	Body       string    `json:"body"`
+	SafeHTML   []string  `json:"safe_html"`
+	Language   string    `json:"language"`
+}
+
 // FuncGetPanelType returns the panel type as a string
 func (p Panel) FuncGetPanelType() (panelType string) {
 	switch p.Type {
@@ -22,13 +31,4 @@ func (p Panel) FuncGetPanelType() (panelType string) {
 		return "error"
 	}
 	return panelType
-}
-
-// Panel contains the data required to populate a panel UI component
-type Panel struct {
-	Type       PanelType `json:"type"`
-	CssClasses []string  `json:"css_classes"`
-	Body       string    `json:"body"`
-	SafeHTML   []string  `json:"safe_html"`
-	Language   string    `json:"language"`
 }

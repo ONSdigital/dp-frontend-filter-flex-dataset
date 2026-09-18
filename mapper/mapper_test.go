@@ -12,7 +12,7 @@ import (
 )
 
 func TestUnitMapCookiesPreferences(t *testing.T) {
-	req := httptest.NewRequest("", "/", nil)
+	req := httptest.NewRequest("", "/", http.NoBody)
 	pageModel := core.Page{
 		CookiesPreferencesSet: false,
 		CookiesPolicy: core.CookiesPolicy{

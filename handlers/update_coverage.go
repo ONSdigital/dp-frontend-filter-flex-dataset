@@ -21,6 +21,7 @@ func (f *FilterFlex) UpdateCoverage() http.HandlerFunc {
 	})
 }
 
+//nolint:gocyclo // cyclomatic complexity is not in scope to be reduced
 func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, accessToken, collectionID string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
@@ -32,7 +33,7 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 		v.Set("c", ParentSearch)
 		v.Set("error", "true")
 		req.URL.RawQuery = v.Encode()
-		http.Redirect(w, req, fmt.Sprint(req.URL), http.StatusMovedPermanently)
+		http.Redirect(w, req, req.URL.String(), http.StatusMovedPermanently)
 		return
 	}
 	if err != nil {
@@ -77,7 +78,7 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 
 		if opts.TotalCount > 0 && form.Coverage != form.OptionType || opts.TotalCount > 0 && form.SetParent != form.LargerArea {
 			log.Info(ctx, "invalid options combination, removing existing options", log.Data{"filter_id": filterID})
-			_, err := fc.DeleteDimensionOptions(ctx, accessToken, "", collectionID, filterID, form.Dimension)
+			_, err = fc.DeleteDimensionOptions(ctx, accessToken, "", collectionID, filterID, form.Dimension)
 			if err != nil {
 				log.Error(ctx, "failed to delete dimension options", err, log.Data{
 					"dimension": form.Dimension,
@@ -130,7 +131,7 @@ func updateCoverage(w http.ResponseWriter, req *http.Request, fc FilterClient, a
 		req.URL.Fragment = "search--name"
 	}
 
-	http.Redirect(w, req, fmt.Sprint(req.URL), http.StatusMovedPermanently)
+	http.Redirect(w, req, req.URL.String(), http.StatusMovedPermanently)
 }
 
 // updateCoverageForm represents form-data for the UpdateCoverage handler.

@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
@@ -20,7 +21,7 @@ import (
 func TestOverview(t *testing.T) {
 	helper.InitialiseLocalisationsHelper(mocks.MockAssetFunction)
 	mdl := core.Page{}
-	req := httptest.NewRequest("", "/dimensions", nil)
+	req := httptest.NewRequest("", "/dimensions", http.NoBody)
 	lang := "en"
 	eb := getTestEmergencyBanner()
 	sm := getTestServiceMessage()
@@ -230,7 +231,7 @@ func TestOverview(t *testing.T) {
 	})
 
 	Convey("test truncation shows all when parameter given", t, func() {
-		m.req = httptest.NewRequest("", "/?showAll=Truncated+dim+2", nil)
+		m.req = httptest.NewRequest("", "/?showAll=Truncated+dim+2", http.NoBody)
 		overview := m.CreateFilterFlexOverview(filterJob, filterDims, dimDescriptions, pop, sdc, false)
 		So(overview.Dimensions[5].OptionsCount, ShouldEqual, filterDims[2].OptionsCount)
 		So(overview.Dimensions[5].Options, ShouldHaveLength, 12)

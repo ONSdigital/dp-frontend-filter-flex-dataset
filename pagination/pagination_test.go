@@ -2,6 +2,7 @@ package pagination
 
 import (
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
@@ -55,7 +56,7 @@ func TestGetOffset(t *testing.T) {
 
 func TestGetPagesToDisplay(t *testing.T) {
 	t.Parallel()
-	req := httptest.NewRequest("GET", "/a/page", nil)
+	req := httptest.NewRequest("GET", "/a/page", http.NoBody)
 	Convey("Given an http request, total pages and current page parameters", t, func() {
 		testcases := []struct {
 			totalPages    int
@@ -152,7 +153,7 @@ func TestGetPagesToDisplay(t *testing.T) {
 
 func TestGetFirstAndLastPages(t *testing.T) {
 	t.Parallel()
-	req := httptest.NewRequest("GET", "/a/page", nil)
+	req := httptest.NewRequest("GET", "/a/page", http.NoBody)
 	Convey("Given an http request and the total pages parameter", t, func() {
 		testcases := []struct {
 			totalPages    int

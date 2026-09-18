@@ -188,7 +188,6 @@ func TestDimensionsHandler(t *testing.T) {
 
 			Convey("When area types are returned", func() {
 				Convey("Then the page should contain a sorted list of area type selections", func() {
-
 					unsortedAreaTypes := []population.AreaType{
 						{
 							ID:         "ladcd",
@@ -294,7 +293,6 @@ func TestDimensionsHandler(t *testing.T) {
 				})
 
 				Convey("Then the page should limit selections by lowest geography", func() {
-
 					areaTypes := []population.AreaType{
 						{
 							ID:         "country",
@@ -520,7 +518,7 @@ func TestDimensionsHandler(t *testing.T) {
 			})
 
 			Convey("Given a truthy error query param", func() {
-				req := httptest.NewRequest(http.MethodGet, "/filters/1234/dimensions/city?error=true", nil)
+				req := httptest.NewRequest(http.MethodGet, "/filters/1234/dimensions/city?error=true", http.NoBody)
 
 				Convey("Then the page should contain a populated error", func() {
 					mockFilter := NewMockFilterClient(mockCtrl)
@@ -832,7 +830,6 @@ func TestDimensionsHandler(t *testing.T) {
 				})
 			})
 		})
-
 	})
 
 	Convey("Lowest geography override", t, func() {
@@ -851,7 +848,7 @@ func TestDimensionsHandler(t *testing.T) {
 
 func runDimensionsSelector(dimension string, selector func(http.ResponseWriter, *http.Request)) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", fmt.Sprintf("/filters/1234/dimensions/%s", dimension), nil)
+	req := httptest.NewRequest("GET", fmt.Sprintf("/filters/1234/dimensions/%s", dimension), http.NoBody)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/filters/{filterID}/dimensions/{name}", selector)
@@ -878,25 +875,6 @@ func (c pageMatchesSelections) Matches(x interface{}) bool {
 
 func (c pageMatchesSelections) String() string {
 	return fmt.Sprintf("is equal to %+v", c.selections)
-}
-
-// pageMatchesSelections is a gomock matcher that confirms a selection page
-// has the correct page title.
-type pageHasTitle struct {
-	title string
-}
-
-func (p pageHasTitle) Matches(x interface{}) bool {
-	page, ok := x.(model.Selector)
-	if !ok {
-		return false
-	}
-
-	return p.title == page.Page.Metadata.Title
-}
-
-func (p pageHasTitle) String() string {
-	return fmt.Sprintf("title is equal to \"%s\"", p.title)
 }
 
 // pageIsAreaType is a gomock matcher that confirms a selection page
