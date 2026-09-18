@@ -19,8 +19,8 @@ audit: generate-prod
 	dis-vulncheck --build-tags=production
 
 .PHONY: lint
-lint:
-	exit
+lint: generate-prod
+	golangci-lint run ./... --build-tags 'production'
 
 .PHONY: build
 build: generate-prod
