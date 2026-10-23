@@ -65,6 +65,10 @@ linters:
       - std-error-handling
     rules:
       - linters:
+          - staticcheck
+        text: 'SA1019: github\.com/ONSdigital/dp-api-clients-go/v2/dataset is deprecated:'
+        # Tech debt: Replace deprecated client with dp-dataset-api SDK client.
+      - linters:
           - dupl
           - errcheck
           - gocyclo

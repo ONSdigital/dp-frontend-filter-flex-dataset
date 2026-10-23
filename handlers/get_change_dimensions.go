@@ -25,7 +25,7 @@ func (f *FilterFlex) GetChangeDimensions() http.HandlerFunc {
 	})
 }
 
-//nolint:gocyclo // cyclomatic complexity is not in scope to be reduced
+//nolint:gocyclo,gocognit // cyclomatic and cognitive complexity are not in scope to be reduced.
 func getChangeDimensions(w http.ResponseWriter, req *http.Request, f *FilterFlex, accessToken, collectionID, lang string) {
 	ctx := req.Context()
 	vars := mux.Vars(req)
