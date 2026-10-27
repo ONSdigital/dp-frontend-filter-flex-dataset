@@ -8,6 +8,7 @@ import (
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/v3/http"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // ExternalServiceList holds the initialiser and initialisation state of external services.
@@ -54,9 +55,10 @@ func (e *Init) DoGetHTTPServer(bindAddr string, router http.Handler) HTTPServer 
 	return s
 }
 
-// DoGetHealthClient creates a new Health Client for the provided name and url
+// DoGetHealthClient creates a health client whose transport traces downstream API calls.
 func (e *Init) DoGetHealthClient(name, url string) *health.Client {
-	return health.NewClient(name, url)
+	client := dphttp.NewClientWithTransport(otelhttp.NewTransport(dphttp.DefaultTransport))
+	return health.NewClientWithClienter(name, url, client)
 }
 
 // DoGetHealthCheck creates a healthcheck with versionInfo
