@@ -2,18 +2,29 @@ package service_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/health"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/config"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/service"
 	"github.com/ONSdigital/dp-frontend-filter-flex-dataset/service/mocks"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
+	"github.com/ONSdigital/dp-net/v3/request"
 	. "github.com/smartystreets/goconvey/convey"
+	"go.opentelemetry.io/contrib/propagators/autoprop"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -418,4 +429,191 @@ func TestCloseFailure(t *testing.T) {
 			})
 		})
 	})
+}
+
+type backendRequest struct {
+	method  string
+	path    string
+	query   string
+	headers http.Header
+	body    []byte
+}
+
+func TestSubmitBackendForwarding(t *testing.T) {
+	const filterID = "filter-123"
+	const requestID = "caller-123"
+	const userToken = "synthetic-user-token"
+
+	backend, received := newSubmitTestBackend(t)
+	handler := newSubmitTestHandler(t, backend.URL)
+	incoming := httptest.NewRequest(http.MethodPost, "/filters/"+filterID+"/submit?choice=one&choice=two", strings.NewReader("choice=from-form"))
+	incoming.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	incoming.Header.Set("X-Request-Id", requestID)
+	incoming.Header.Set("X-Florence-Token", userToken)
+	incoming.Header.Set("Authorization", "Bearer unrelated-service-token")
+	incoming.Header.Set("Collection-Id", "collection-123")
+	incoming.Header.Set("X-Client-Only", "not-for-backend")
+	incoming.AddCookie(&http.Cookie{Name: "session", Value: "synthetic-session"})
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, incoming)
+	if w.Code != http.StatusFound {
+		t.Fatalf("submit status: got %d, want %d: %s", w.Code, http.StatusFound, w.Body.String())
+	}
+
+	lookup := <-received
+	checkSubmitBackendRequest(t, lookup, http.MethodGet, "/v1/filters/"+filterID, requestID, userToken)
+	if got := lookup.headers.Get("Collection-Id"); got != "collection-123" {
+		t.Errorf("lookup collection ID: got %q, want %q", got, "collection-123")
+	}
+	if len(lookup.body) != 0 {
+		t.Errorf("lookup body: got %q, want empty", lookup.body)
+	}
+
+	submit := <-received
+	checkSubmitBackendRequest(t, submit, http.MethodPost, "/v1/filters/"+filterID+"/submit", requestID, userToken)
+	if got := submit.headers.Get("If-Match"); got != "etag-123" {
+		t.Errorf("submit If-Match: got %q, want %q", got, "etag-123")
+	}
+	if got := submit.headers.Get("Collection-Id"); got != "" {
+		t.Errorf("submit collection ID: got %q, want empty", got)
+	}
+	if got := submit.headers.Get("Content-Type"); got == "application/x-www-form-urlencoded" {
+		t.Error("submit forwarded the caller's form content type")
+	}
+	var payload filter.SubmitFilterRequest
+	if err := json.Unmarshal(submit.body, &payload); err != nil {
+		t.Fatalf("decode backend submit body: %v", err)
+	}
+	if payload.FilterID != filterID || payload.PopulationType != "type-123" || len(payload.Dimensions) != 0 {
+		t.Errorf("backend submit body: got %+v, want filter ID and population type from lookup", payload)
+	}
+}
+
+func TestSubmitBackendTraceWithOTel(t *testing.T) {
+	t.Setenv("OTEL_PROPAGATORS", "tracecontext,baggage")
+	previousProvider := otel.GetTracerProvider()
+	previousPropagator := otel.GetTextMapPropagator()
+	provider := sdktrace.NewTracerProvider()
+	propagator := autoprop.NewTextMapPropagator()
+	otel.SetTracerProvider(provider)
+	otel.SetTextMapPropagator(propagator)
+	t.Cleanup(func() {
+		otel.SetTracerProvider(previousProvider)
+		otel.SetTextMapPropagator(previousPropagator)
+		if err := provider.Shutdown(context.Background()); err != nil {
+			t.Errorf("shut down tracer provider: %v", err)
+		}
+	})
+
+	backend, received := newSubmitTestBackend(t)
+	handler := newSubmitTestHandler(t, backend.URL)
+	const traceparent = "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01"
+	const requestID = "caller-123"
+	const userToken = "synthetic-user-token"
+	incoming := httptest.NewRequest(http.MethodPost, "/filters/filter-123/submit", http.NoBody)
+	incoming.Header.Set("traceparent", traceparent)
+	incoming.Header.Set("X-Request-Id", requestID)
+	incoming.Header.Set("X-Florence-Token", userToken)
+	incomingSpan := trace.SpanContextFromContext(propagator.Extract(context.Background(), propagation.HeaderCarrier(incoming.Header)))
+	if !incomingSpan.IsValid() {
+		t.Fatalf("invalid test traceparent: %q", traceparent)
+	}
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, incoming)
+	if w.Code != http.StatusFound {
+		t.Fatalf("submit status: got %d, want %d: %s", w.Code, http.StatusFound, w.Body.String())
+	}
+
+	for _, expected := range []struct{ method, path string }{
+		{http.MethodGet, "/v1/filters/filter-123"},
+		{http.MethodPost, "/v1/filters/filter-123/submit"},
+	} {
+		got := <-received
+		checkSubmitBackendRequest(t, got, expected.method, expected.path, requestID, userToken)
+		backendSpan := trace.SpanContextFromContext(propagator.Extract(context.Background(), propagation.HeaderCarrier(got.headers)))
+		if !backendSpan.IsValid() {
+			t.Errorf("backend %s traceparent: got %q, want a valid continuation of %q", expected.method, got.headers.Get("traceparent"), traceparent)
+			continue
+		}
+		if backendSpan.TraceID() != incomingSpan.TraceID() {
+			t.Errorf("backend %s trace ID: got %s, want %s", expected.method, backendSpan.TraceID(), incomingSpan.TraceID())
+		}
+		if backendSpan.SpanID() == incomingSpan.SpanID() {
+			t.Errorf("backend %s span ID: got %s, want a new outbound span", expected.method, backendSpan.SpanID())
+		}
+	}
+}
+
+func newSubmitTestBackend(t *testing.T) (backend *httptest.Server, backendRequests <-chan backendRequest) {
+	t.Helper()
+	received := make(chan backendRequest, 2)
+	backend = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("read backend request: %v", err)
+			http.Error(w, "could not read request", http.StatusBadRequest)
+			return
+		}
+		received <- backendRequest{r.Method, r.URL.Path, r.URL.RawQuery, r.Header.Clone(), body}
+
+		w.Header().Set("Content-Type", "application/json")
+		switch r.Method {
+		case http.MethodGet:
+			w.Header().Set("ETag", "etag-123")
+			if _, err := io.WriteString(w, `{"filter_id":"filter-123","population_type":"type-123","dataset":{"id":"dataset-123","edition":"2021","version":1}}`); err != nil {
+				t.Errorf("write filter response: %v", err)
+			}
+		case http.MethodPost:
+			w.WriteHeader(http.StatusAccepted)
+			if _, err := io.WriteString(w, `{"filter_output_id":"output-123"}`); err != nil {
+				t.Errorf("write submit response: %v", err)
+			}
+		default:
+			http.Error(w, "unexpected method", http.StatusMethodNotAllowed)
+		}
+	}))
+	t.Cleanup(backend.Close)
+	return backend, received
+}
+
+func newSubmitTestHandler(t *testing.T, backendURL string) http.Handler {
+	t.Helper()
+	initialiser := &mocks.InitialiserMock{
+		DoGetHealthClientFunc: new(service.Init).DoGetHealthClient,
+		DoGetHealthCheckFunc: func(*config.Config, string, string, string) (service.HealthChecker, error) {
+			return hcMock, nil
+		},
+		DoGetHTTPServerFunc: func(string, http.Handler) service.HTTPServer {
+			return serverMock
+		},
+	}
+	cfg := &config.Config{APIRouterURL: backendURL + "/v1", OTServiceName: "filter-flex-test"}
+	if err := service.New().Init(context.Background(), cfg, service.NewServiceList(initialiser)); err != nil {
+		t.Fatalf("initialise service: %v", err)
+	}
+
+	// The HTTP server adds request-ID middleware when it starts, outside Service.Init.
+	return request.HandlerRequestID(16)(initialiser.DoGetHTTPServerCalls()[0].Router)
+}
+
+func checkSubmitBackendRequest(t *testing.T, got backendRequest, method, path, requestID, userToken string) {
+	t.Helper()
+	if got.method != method || got.path != path || got.query != "" {
+		t.Errorf("backend request: got %s %s?%s, want %s %s with no caller query", got.method, got.path, got.query, method, path)
+	}
+	if value := got.headers.Get("X-Florence-Token"); value != userToken {
+		t.Errorf("backend Florence token: got %q, want %q", value, userToken)
+	}
+	if value := got.headers.Get("Authorization"); value != "Bearer "+userToken {
+		t.Errorf("backend authorization: got %q, want bearer user token", value)
+	}
+	if value := got.headers.Get("X-Request-Id"); !strings.HasPrefix(value, requestID+",") || len(value) != len(requestID)+1+len(requestID)/2 {
+		t.Errorf("backend request ID: got %q, want %q followed by a generated ID", value, requestID+",")
+	}
+	if value := got.headers.Get("Cookie"); value != "" {
+		t.Errorf("backend cookie: got %q, want none", value)
+	}
+	if value := got.headers.Get("X-Client-Only"); value != "" {
+		t.Errorf("backend caller-only header: got %q, want none", value)
+	}
 }
